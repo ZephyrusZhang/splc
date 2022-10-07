@@ -32,7 +32,7 @@ crawtype        char|short|int|long|float|double|void
 ctype           (const{ws}+)?((unsigned|signed){ws}+)?{crawtype}(const{ws}+)?({ws}?\*{ws}?(const{ws}+)?)*
 identifier      {letter_}({letter_}|{digit})*
 keywords        if|else|while|return|typedef|break|case|continue|default|do|for|goto|struct|switch
-marco_nextline  {ws0}(.*(\\[\r\n])?)*
+marco_nextline  {ws0}(.*(\\(\n|(\r\n)))?)*
 marco           (define{marco_nextline})|undef|(if{marco_nextline})|endif|(ifndef{marco_nextline})|(ifdef{marco_nextline})|else|(include.*)|[a-zA-Z0-9_-]+{marco_nextline}
 
 decimal-literal [0-9]+

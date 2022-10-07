@@ -1,3 +1,6 @@
+#define MACRO printf("Hello World!"); \
+printf("?");
+
 int test(int a, char b) {
     return a * b; 
 }
