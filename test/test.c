@@ -1,9 +1,13 @@
-#define MACRO printf("Hello World!"); \
-printf("?");
-
 int test(int a, char b) {
     return a * b; 
 }
+
+// single line comment
+/*
+
+multi-line comment
+
+*/
 
 int main()
 {
