@@ -55,6 +55,5 @@ dkms.conf
 zephyrus/
 
 # Auto generated
-lex.yy.c
-syntax.tab.c
-syntax.tab.h
+lex.yy.*
+syntax.tab.*
