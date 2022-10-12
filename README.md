@@ -9,7 +9,7 @@
 - [ ] `float`: only dot form
 - [ ] `char`: normal character or hex-form character
 - [ ] `struct`
-- [ ] pointer: `int *`  ~~`float *``char *`~~
+- [ ] pointer: `int *`  ~~`float *``char *`~~. `&` for addressing, `*` for address resolution
 
 ### Control Flow
 
