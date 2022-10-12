@@ -1,16 +1,20 @@
 %{
     #define EXIT_OK 0
     #define EXIT_FAIL 1
+    #define YYSTYPE Node *
+    #define ret(STMT) STMT
 
     #include "node.hpp"
+    #include "syntax.tab.h"
 
     int yycolno = 1;
     #define YY_USER_ACTION \
         yylloc.first_line = yylineno; \
-        yylloc.last_line = yylineno; \
         yylloc.first_column = yycolno; \
-        yylloc.last_column = yycolno + yyleng;\
+        yylloc.last_line = yylineno; \
+        yylloc.last_column = yycolno + yyleng; \
         yycolno += yyleng;
+
 
     extern "C" int yylex();
 
@@ -91,7 +95,7 @@ while               { yylval = new Node("WHILE", yylloc.first_line, DataType::OT
 for                 { yylval = new Node("FOR", yylloc.first_line, DataType::OTHER);             return FOR; }
 break               { yylval = new Node("BREAK", yylloc.first_line, DataType::OTHER);           return BREAK; }
 continue            { yylval = new Node("CONTINUE", yylloc.first_line, DataType::OTHER);        return CONTINUE; }
-return              { yylval = newEOL Node("RETURN", yylloc.first_line, DataType::OTHER);       return RETURN; }
+return              { yylval = new Node("RETURN", yylloc.first_line, DataType::OTHER);          return RETURN; }
 
 "."                 { yylval = new Node("DOT", yylloc.first_line, DataType::OTHER);             return DOT; }
 ";"                 { yylval = new Node("SEMI", yylloc.first_line, DataType::OTHER);            return SEMI; }
@@ -106,7 +110,7 @@ return              { yylval = newEOL Node("RETURN", yylloc.first_line, DataType
 "=="                { yylval = new Node("EQ", yylloc.first_line, DataType::OTHER);              return EQ; }
 "+"                 { yylval = new Node("PLUS", yylloc.first_line, DataType::OTHER);            return PLUS; }
 "-"                 { yylval = new Node("MINUS", yylloc.first_line, DataType::OTHER);           return MINUS; }
-"*"                 { yylval = new Node("MUL", yylloc.file_line, DataType::OTHER);              return MUL; }
+"*"                 { yylval = new Node("MUL", yylloc.first_line, DataType::OTHER);              return MUL; }
 "/"                 { yylval = new Node("DIV", yylloc.first_line, DataType::OTHER);             return DIV; }
 "&"                 { yylval = new Node("AR", yylloc.first_line, DataType::OTHER);              return AR; }
 "&&"                { yylval = new Node("AND", yylloc.first_line, DataType::OTHER);             return AND; }
@@ -124,22 +128,4 @@ return              { yylval = newEOL Node("RETURN", yylloc.first_line, DataType
 <<EOF>> {}
 
 %%
-int main(int argc, char **argv){
-    char *file_path;
-    if(argc < 2){
-        fprintf(stderr, "Usage: %s <file_path>\n", argv[0]);
-        return EXIT_FAIL;
-    } else if(argc == 2){
-        file_path = argv[1];
-        if(!(yyin = fopen(file_path, "r"))){
-            perror(argv[1]);
-            return EXIT_FAIL;
-        }
-        yylex();
-        return EXIT_OK;
-    } else{
-        fputs("Too many arguments! Expected: 2.\n", stderr);
-        return EXIT_FAIL;
-    }
-}
 

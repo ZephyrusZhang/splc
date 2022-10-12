@@ -145,6 +145,7 @@ return              { ACT(yylval = new Node("RETURN", yylloc.first_line, DataTyp
 <<EOF>>             { ACT( , yyterminate();) }
 
 %%
+#ifdef Debug
 int main(int argc, char **argv){
     char *file_path;
     if(argc < 2){
@@ -163,4 +164,5 @@ int main(int argc, char **argv){
         return EXIT_FAIL;
     }
 }
+#endif
 

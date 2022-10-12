@@ -2,20 +2,17 @@ CC=gcc
 CXX=g++
 FLEX=flex
 BISON=bison
+OUT_NAME=parser
 
-CXX_FLAGS += -DDebug
+CXX_FLAGS=-lfl -ly
 
-pre:
-	$(FLEX) preprocess.l
-	$(CXX) lex.yy.c -lfl -o preprocessor.out
-lex:
+.y: syntax.y
 	$(BISON) -d syntax.y
+.l: lex.l
 	$(FLEX) lex.l
-	$(CXX) lex.yy.c -lfl -o lexer.out
-parse:
-	$(BISON) -d syntax.y
-	$(FLEX) lex.l
-	$(CC) syntax.tab.c -lfl -ly -o parser.out
+build: .y .l
+	mkdir -p bin && $(CXX) $(CXX_FLAGS) syntax.tab.c -o bin/$(OUT_NAME)
+debug: .y .l
+	mkdir -p bin && $(CXX) -DDebug $(CXX_FLAGS) syntax.tab.c -o bin/$(OUT_NAME)
 clean:
-	@rm -f lex.yy.* *.out syntax.tab.*
-.PHONY: lexer
+	@rm -rf lex.yy.* syntax.yy.* bin
