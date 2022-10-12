@@ -3,22 +3,25 @@
     #define EXIT_FAIL 1
     #define MAX_INCLUDE_DEPTH 8
 
-    #include <string.h>
+    #include <string>
+    #include <cstdlib>
+    #include <cstdio>
 
     YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
     int include_stack_ptr = 0;
 
-    char *substring(char *, int, int);
+    extern "C"
+    {
+        int yylex(void);
+    }
 %}
 %x INCLUDE
-
-ws  [ \t\r]+
 
 %%
 ([a-z]+)|([^a-z\n]*\n?) ECHO;
 
 "#include"          BEGIN(INCLUDE);
-<INCLUDE>\".+\" {
+<INCLUDE>[^ \t\n]+ {
     if (include_stack_ptr >= MAX_INCLUDE_DEPTH)
     {
     fprintf( stderr, "Includes nested too deeply" );
@@ -27,8 +30,10 @@ ws  [ \t\r]+
 
     include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
 
-    char *path = substring(yytext, 1, strlen(yytext) - 1);
-    yyin = fopen(path, "r");
+    std::string text(yytext);
+    std::string path = text.substr(1, text.length() - 2);
+
+    yyin = fopen(path.c_str(), "r");
     if (!yyin)
     {
         fprintf(stderr, "No such file: \"%s\"\n", path);
@@ -39,7 +44,7 @@ ws  [ \t\r]+
 
     BEGIN(INITIAL);
 }
-<INCLUDE>{ws} { /*skip*/ }
+<INCLUDE>[ \t]* { /*skip*/ }
 
 <<EOF>> {
     if (--include_stack_ptr < 0)
@@ -48,8 +53,8 @@ ws  [ \t\r]+
     }
     else
     {
-        yy_delete_buffer( YY_CURRENT_BUFFER );
-        yy_switch_to_buffer(include_stack[include_stack_ptr] );
+        yy_delete_buffer(YY_CURRENT_BUFFER);
+        yy_switch_to_buffer(include_stack[include_stack_ptr]);
     }
 }
 
@@ -71,26 +76,4 @@ int main(int argc, char **argv){
         fputs("Too many arguments! Expected: 2.\n", stderr);
         return EXIT_FAIL;
     }
-}
-
-char *substring(char *src, int start, int end)
-{
-    int length = strlen(src);
-    if (start < 0 || start >= length || end < 1 || end > length)
-    {
-        fprintf(stderr, "Index out of range\n");
-        return NULL;
-    }
-
-
-    char *dst = malloc(end - start + 1);
-    int cur_src = start;
-    int cur_dst = 0;
-    
-    while (cur_src != end)
-    {
-        dst[cur_dst++] = src[cur_src++];
-    }
-    dst[cur_dst] = '\0';
-    return dst;
 }

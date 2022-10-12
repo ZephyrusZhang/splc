@@ -1,18 +1,19 @@
 CC=gcc
+CXX=g++
 FLEX=flex
 BISON=bison
 
-preprocessor:
+pre:
 	$(FLEX) preprocess.l
-	$(CC) lex.yy.c -lfl -o preprocessor.out
-lexer:
+	$(CXX) lex.yy.c -lfl -o preprocessor.out
+lex:
 	$(BISON) -d syntax.y
 	$(FLEX) lex.l
 	$(CC) lex.yy.c -lfl -o lexer.out
-parser:
+parse:
 	$(BISON) -d syntax.y
 	$(FLEX) lex.l
 	$(CC) syntax.tab.c -lfl -ly -o parser.out
 clean:
-	@rm -f lex.yy.c *.out
+	@rm -f lex.yy.c *.out syntax.tab.*
 .PHONY: lexer
