@@ -2,6 +2,16 @@
     #define EXIT_OK 0
     #define EXIT_FAIL 1
 
+    #include "node.hpp"
+
+    int yycolno = 1;
+    #define YY_USER_ACTION \
+        yylloc.first_line = yylineno; \
+        yylloc.last_line = yylineno; \
+        yylloc.first_column = yycolno; \
+        yylloc.last_column = yycolno + yyleng;\
+        yycolno += yyleng;
+
     extern "C" int yylex();
 
     // global variables
@@ -22,6 +32,8 @@
     }
 %}
 
+%option yylineno
+
 letter  [a-zA-Z]
 letter_ {letter}|_
 digit   [0-9]
@@ -30,12 +42,7 @@ hex     [a-fA-F0-9]
 ws      [ \t\r\n]+
 ws0     [ \t\r]+
 
-crawtype        char|short|int|long|float|double|void
-ctype           (const{ws}+)?((unsigned|signed){ws}+)?{crawtype}(const{ws}+)?({ws}?\*{ws}?(const{ws}+)?)*
 identifier      {letter_}({letter_}|{digit})*
-keywords        if|else|while|return|typedef|break|case|continue|default|do|for|goto|struct|switch
-marco_nextline  {ws0}(.*(\\(\n|\r\n))?)*
-marco           (define{marco_nextline})|undef|(if{marco_nextline})|endif|(ifndef{marco_nextline})|(ifdef{marco_nextline})|else|(include.*)|[a-zA-Z0-9_-]+{marco_nextline}
 
 decimal-literal [0-9]+
 hex-literal     0x[a-fA-F0-9]+
@@ -45,65 +52,76 @@ integersuffix   (L|LL|U|UL|LU|ULL|LLU)
 integer-literal ({decimal-literal}|{hex-literal}|{binary-literal}){integersuffix}?
 
 float-literal   {digit}+([fd]|(\.{digit}+[fd]?))[fd]?
-
-string      \"[^\"]*\"
 char        \'(.|(\\x{hex}{1,2})|(\\.))\'
-operators   =|!=|==|\<=|\>=|\<|\>|\+|\+\+|-|--|\*|\/|%|\!|&|&&|\||\|\||\[|\]|\.|\?|:
-EOL         ;
-comma       \,
-scope       \{|\}|\(|\)
-%%
 
-\n                  { lines++; }    
+%%
+\n                  { lines++; yycolno = 1; }    
 {ws0}               { /**/ }
-\#{marco}           {  printf("line %d: mcr: \t%s\n", lines, yytext); lines += count_occu(yytext, '\n'); }
-"//" { 
-  // ignore the following chars until seeing a newline character
-  while((c = yyinput()) != '\n'); 
-  // put the newline character back to the input buffer
-  unput(c); 
-}
+
+"//" { while((c = yyinput()) != '\n'); unput(c); }
 "/*" {
-    // printf("line %d: cmt: ", lines);
     c = yyinput();
     while(1) {
         char tmp = yyinput();
         if (c == '*' && tmp == '/') break;
         c = tmp;
         if (c == '\n') lines++;
-        // printf("%c", c);
-    }
-    // printf("\n");
-}
-{operators}         { operators++;      printf("line %d: op: \t%s\n", lines, yytext); }
-{string}            {
-    if (yytext[yyleng-2]=='\\') {
-        yyless(yyleng - 1);
-        yymore();
-    } else {
-        constants++;
-        printf("line %d: str: \t%s\n", lines, yytext); 
     }
 }
+
+{integer-literal}   { yylval = new Node("INT", yylloc.first_line, DataType::INT);       return INT; }
+{float-literal}     { yylval = new Node("FLOAT", yylloc.first_line, DataType::FLOAT);   return FLOAT; }
 {char}              {
     if (yytext[yyleng - 2] =='\\' && yytext[yyleng - 1] != '\'') {
         yyless(yyleng - 1);
         yymore();
     } else {
-        constants++;
-        printf("line %d: char: \t%s\n", lines, yytext);
+        yylval = new Node("CHAR", yylloc.first_line, DataType::CHAR);
+        return CHAR;
     }
 }
-{keywords}          { keywords++;       printf("line %d: kw: \t%s\n", lines, yytext); }
-{ctype}             { keywords++;       printf("line %d: type: \t%s\n", lines, yytext); }
-{identifier}        { identifiers++;    printf("line %d: id: \t%s\n", lines, yytext); }
-{integer-literal}   { constants++;      printf("line %d: int: \t%s\n", lines, yytext); }
-{float-literal}     { constants++;      printf("line %d: flt: \t%s\n", lines, yytext); }
-{scope}             {                   printf("line %d: scope \t%s\n", lines, yytext); }
-{EOL}               {                   printf("line %d: end \t;\n", lines); }
-{comma}             { /**/ }
-.                   {                   printf("line %d: unmatched: \t%s\n", lines, yytext); }
-<<EOF>> { printf("There are %d occurrences of valid identifiers\n", identifiers); yyterminate(); }
+
+(int|float|char)({ws}?\*)? {
+                      yylval = new Node("TYPE", yylloc.first_line, DataType::DTYPE, yytext);    return TYPE; }
+
+struct              { yylval = new Node("STRUCT", yylloc.first_line, DataType::OTHER);          return STRUCT; }
+if                  { yylval = new Node("IF", yylloc.first_line, DataType::OTHER);              return IF; }
+else                { yylval = new Node("ELSE", yylloc.first_line, DataType::OTHER);            return ELSE; }
+while               { yylval = new Node("WHILE", yylloc.first_line, DataType::OTHER);           return WHILE; }
+for                 { yylval = new Node("FOR", yylloc.first_line, DataType::OTHER);             return FOR; }
+break               { yylval = new Node("BREAK", yylloc.first_line, DataType::OTHER);           return BREAK; }
+continue            { yylval = new Node("CONTINUE", yylloc.first_line, DataType::OTHER);        return CONTINUE; }
+return              { yylval = newEOL Node("RETURN", yylloc.first_line, DataType::OTHER);       return RETURN; }
+
+"."                 { yylval = new Node("DOT", yylloc.first_line, DataType::OTHER);             return DOT; }
+";"                 { yylval = new Node("SEMI", yylloc.first_line, DataType::OTHER);            return SEMI; }
+","                 { yylval = new Node("COMMA", yylloc.first_line, DataType::OTHER);           return COMMA; }
+
+"="                 { yylval = new Node("ASSIGN", yylloc.first_line, DataType::OTHER);          return ASSIGN; }
+"<"                 { yylval = new Node("LT", yylloc.first_line, DataType::OTHER);              return LT; }
+"<="                { yylval = new Node("LE", yylloc.first_line, DataType::OTHER);              return LE; }
+">"                 { yylval = new Node("GT", yylloc.first_line, DataType::OTHER);              return GT; }
+">="                { yylval = new Node("GE", yylloc.first_line, DataType::OTHER);              return GE; }
+"!="                { yylval = new Node("NE", yylloc.first_line, DataType::OTHER);              return NE; }
+"=="                { yylval = new Node("EQ", yylloc.first_line, DataType::OTHER);              return EQ; }
+"+"                 { yylval = new Node("PLUS", yylloc.first_line, DataType::OTHER);            return PLUS; }
+"-"                 { yylval = new Node("MINUS", yylloc.first_line, DataType::OTHER);           return MINUS; }
+"*"                 { yylval = new Node("MUL", yylloc.file_line, DataType::OTHER);              return MUL; }
+"/"                 { yylval = new Node("DIV", yylloc.first_line, DataType::OTHER);             return DIV; }
+"&"                 { yylval = new Node("AR", yylloc.first_line, DataType::OTHER);              return AR; }
+"&&"                { yylval = new Node("AND", yylloc.first_line, DataType::OTHER);             return AND; }
+"||"                { yylval = new Node("OR", yylloc.first_line, DataType::OTHER);              return OR; }
+"!"                 { yylval = new Node("NOT", yylloc.first_line, DataType::OTHER);             return NOT; }
+"("                 { yylval = new Node("LP", yylloc.first_line, DataType::OTHER);              return LP; }
+")"                 { yylval = new Node("RP", yylloc.first_line, DataType::OTHER);              return RP; }
+"["                 { yylval = new Node("LB", yylloc.first_line, DataType::OTHER);              return LB; }
+"]"                 { yylval = new Node("RB", yylloc.first_line, DataType::OTHER);              return RB; }
+"{"                 { yylval = new Node("LC", yylloc.first_line, DataType::OTHER);              return LC; }
+"}"                 { yylval = new Node("RC", yylloc.first_line, DataType::OTHER);              return RC; }
+
+{identifier}        { yylval = new Node("ID", yylloc.first_line, DataType::ID);                 return ID; }
+
+<<EOF>> {}
 
 %%
 int main(int argc, char **argv){
@@ -117,8 +135,6 @@ int main(int argc, char **argv){
             perror(argv[1]);
             return EXIT_FAIL;
         }
-        // FlexLexer* lexer = new yyFlexLexer;
-        // lexer->yylex();
         yylex();
         return EXIT_OK;
     } else{
