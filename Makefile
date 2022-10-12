@@ -3,6 +3,8 @@ CXX=g++
 FLEX=flex
 BISON=bison
 
+CXX_FLAGS += -DDebug
+
 pre:
 	$(FLEX) preprocess.l
 	$(CXX) lex.yy.c -lfl -o preprocessor.out

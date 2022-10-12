@@ -57,3 +57,7 @@ zephyrus/
 # Auto generated
 lex.yy.*
 syntax.tab.*
+bin/
+
+# VS Code
+.vscode/

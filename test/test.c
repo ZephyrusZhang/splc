@@ -31,6 +31,11 @@ int main()
         printf("q\"\"wq\n");
     }
 
+    for(int i = 0; i < 10; i++)
+    {
+        int a = 1;
+    }
+
     const int vasdvsaf = 1231;
 
     int q2 = 0x00;
