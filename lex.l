@@ -2,6 +2,8 @@
     #define EXIT_OK 0
     #define EXIT_FAIL 1
 
+    extern "C" int yylex();
+
     // global variables
     int identifiers = 0;
     int lines = 1;
@@ -32,7 +34,7 @@ crawtype        char|short|int|long|float|double|void
 ctype           (const{ws}+)?((unsigned|signed){ws}+)?{crawtype}(const{ws}+)?({ws}?\*{ws}?(const{ws}+)?)*
 identifier      {letter_}({letter_}|{digit})*
 keywords        if|else|while|return|typedef|break|case|continue|default|do|for|goto|struct|switch
-marco_nextline  {ws0}(.*(\\(\n|(\r\n)))?)*
+marco_nextline  {ws0}(.*(\\(\n|\r\n))?)*
 marco           (define{marco_nextline})|undef|(if{marco_nextline})|endif|(ifndef{marco_nextline})|(ifdef{marco_nextline})|else|(include.*)|[a-zA-Z0-9_-]+{marco_nextline}
 
 decimal-literal [0-9]+
@@ -57,21 +59,21 @@ scope       \{|\}|\(|\)
 \#{marco}           {  printf("line %d: mcr: \t%s\n", lines, yytext); lines += count_occu(yytext, '\n'); }
 "//" { 
   // ignore the following chars until seeing a newline character
-  while((c = input()) != '\n'); 
+  while((c = yyinput()) != '\n'); 
   // put the newline character back to the input buffer
   unput(c); 
 }
 "/*" {
-    printf("line %d: cmt: ", lines);
-    c = input();
+    // printf("line %d: cmt: ", lines);
+    c = yyinput();
     while(1) {
-        char tmp = input();
+        char tmp = yyinput();
         if (c == '*' && tmp == '/') break;
         c = tmp;
         if (c == '\n') lines++;
-        printf("%c", c);
+        // printf("%c", c);
     }
-    printf("\n");
+    // printf("\n");
 }
 {operators}         { operators++;      printf("line %d: op: \t%s\n", lines, yytext); }
 {string}            {
@@ -82,7 +84,6 @@ scope       \{|\}|\(|\)
         constants++;
         printf("line %d: str: \t%s\n", lines, yytext); 
     }
-    printf("\"\"\n");
 }
 {char}              {
     if (yytext[yyleng - 2] =='\\' && yytext[yyleng - 1] != '\'') {
@@ -116,6 +117,8 @@ int main(int argc, char **argv){
             perror(argv[1]);
             return EXIT_FAIL;
         }
+        // FlexLexer* lexer = new yyFlexLexer;
+        // lexer->yylex();
         yylex();
         return EXIT_OK;
     } else{
