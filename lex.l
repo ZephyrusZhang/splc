@@ -42,6 +42,7 @@ letter  [a-zA-Z]
 letter_ {letter}|_
 digit   [0-9]
 hex     [a-fA-F0-9]
+letter_digit [a-zA-Z0-9]
 
 ws      [ \t\r\n]+
 ws0     [ \t\r]+
@@ -58,6 +59,9 @@ integer-literal ({decimal-literal}|{hex-literal}|{binary-literal}){integersuffix
 float-literal   {digit}+([fd]|(\.{digit}+[fd]?))[fd]?
 char        \'(.|(\\x{hex}{1,2})|(\\.))\'
 
+err-hex-literal     0x[a-zA-Z0-9]+
+err-char            \'(.|(\\x{letter_digit}{1,2})|(\\.))\'
+
 %%
 \n                  { lines++; yycolno = 1; }    
 {ws0}               { /**/ }
@@ -73,14 +77,14 @@ char        \'(.|(\\x{hex}{1,2})|(\\.))\'
     }
 }
 
-{integer-literal}   { yylval = new Node("INT", yylloc.first_line, DataType::INT);       return INT; }
-{float-literal}     { yylval = new Node("FLOAT", yylloc.first_line, DataType::FLOAT);   return FLOAT; }
+{integer-literal}   { yylval = new Node("INT", yylloc.first_line, DataType::INT, yytext);       return INT; }
+{float-literal}     { yylval = new Node("FLOAT", yylloc.first_line, DataType::FLOAT, yytext);   return FLOAT; }
 {char}              {
     if (yytext[yyleng - 2] =='\\' && yytext[yyleng - 1] != '\'') {
         yyless(yyleng - 1);
         yymore();
     } else {
-        yylval = new Node("CHAR", yylloc.first_line, DataType::CHAR);
+        yylval = new Node("CHAR", yylloc.first_line, DataType::CHAR, yytext);
         return CHAR;
     }
 }
@@ -123,9 +127,29 @@ return              { yylval = new Node("RETURN", yylloc.first_line, DataType::O
 "{"                 { yylval = new Node("LC", yylloc.first_line, DataType::OTHER);              return LC; }
 "}"                 { yylval = new Node("RC", yylloc.first_line, DataType::OTHER);              return RC; }
 
-{identifier}        { yylval = new Node("ID", yylloc.first_line, DataType::ID);                 return ID; }
+{identifier}        { yylval = new Node("ID", yylloc.first_line, DataType::ID, yytext);         return ID; }
 
-<<EOF>> {}
+{err-char}          {
+    err_count++;
+    fprintf(output_file, "Error type A at Line %d: Illegal hexadecimal representation %s\n", yylineno, yytext);
+    yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
+    return CHAR;
+}
+{err-hex-literal}   {
+    err_count++;
+    fprintf(output_file, "Error type A at Line %d: Illegal hex-form character \"%s\"\n", yylineno, yytext);
+    yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
+    return INT;
+}
+
+.                   {
+    err_count++;
+    fprintf(output_file, "Error type A at Line %d: Mysterious lexeme %s\n", yylineno, yytext);
+    yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
+    return CHAR;
+}
+
+<<EOF>> { yyterminate(); }
 
 %%
 
