@@ -58,6 +58,7 @@ zephyrus/
 lex.yy.*
 syntax.tab.*
 bin/
+*.output
 
 # VS Code
 .vscode/
