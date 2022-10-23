@@ -61,6 +61,7 @@ char        \'(.|(\\x{hex}{1,2})|(\\.))\'
 
 err-hex-literal     0x[a-zA-Z0-9]+
 err-char            \'(.|(\\x{letter_digit}{1,2})|(\\.))\'
+err-identifier      {digit}+{identifier}
 
 %%
 \n                  { lines++; yycolno = 1; }    
@@ -129,6 +130,13 @@ return              { yylval = new Node("RETURN", yylloc.first_line, DataType::O
 
 {identifier}        { yylval = new Node("ID", yylloc.first_line, DataType::ID, yytext);         return ID; }
 
+{err-identifier}    {
+    err_count++;
+    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
+    return CHAR;
+}
+
 {err-char}          {
     err_count++;
     fprintf(output_file, "Error type A at Line %d: Illegal hexadecimal representation %s\n", yylineno, yytext);
@@ -144,7 +152,7 @@ return              { yylval = new Node("RETURN", yylloc.first_line, DataType::O
 
 .                   {
     err_count++;
-    fprintf(output_file, "Error type A at Line %d: Mysterious lexeme %s\n", yylineno, yytext);
+    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
     yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
     return CHAR;
 }

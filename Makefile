@@ -15,4 +15,4 @@ release: .y .l
 debug: .y .l
 	mkdir -p bin && $(CXX) -DDebug $(CXX_FLAGS) syntax.tab.c -o bin/$(OUT_NAME)
 clean:
-	@rm -rf lex.yy.* syntax.yy.* bin out
+	@rm -rf lex.yy.* syntax.tab.* bin out *.out *.output

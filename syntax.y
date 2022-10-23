@@ -47,6 +47,8 @@ ExtDef:
       Specifier ExtDecList SEMI     { $$ = Node::create_node_with_children("ExtDef", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     | Specifier SEMI                { $$ = Node::create_node_with_children("ExtDef", @$.first_line, DataType::PROD, {$1, $2}); }
     | Specifier FunDec CompSt       { $$ = Node::create_node_with_children("ExtDef", @$.first_line, DataType::PROD, {$1, $2, $3}); }
+    | Specifier ExtDecList error    { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
+    | Specifier error               { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
     ;
 ExtDecList:
       VarDec                        { $$ = Node::create_node_with_children("ExtDecList", @$.first_line, DataType::PROD, {$1}); }
@@ -70,6 +72,8 @@ VarDec:
 FunDec:
       ID LP VarList RP              { $$ = Node::create_node_with_children("FunDec", @$.first_line, DataType::PROD, {$1, $2, $3, $4}); }
     | ID LP RP                      { $$ = Node::create_node_with_children("FunDec", @$.first_line, DataType::PROD, {$1, $2, $3}); }
+    | ID LP error                   { fprintf(output_file, "Error type B at Line %d: Missing closing parenthesis ')'\n", @$.first_line); err_count++; }
+    | ID LP VarList error           { fprintf(output_file, "Error type B at Line %d: Missing closing parenthesis ')'\n", @$.first_line); err_count++; }
     ;
 VarList:
       ParamDec COMMA VarList        { $$ = Node::create_node_with_children("VarList", @$.first_line, DataType::PROD, {$1, $2, $3}); }
@@ -94,7 +98,8 @@ Stmt:
     | IF LP Exp RP Stmt             { $$ = Node::create_node_with_children("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}); }
     | IF LP Exp RP Stmt ELSE Stmt   { $$ = Node::create_node_with_children("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5, $6, $7}); }
     | WHILE LP Exp RP Stmt          { $$ = Node::create_node_with_children("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}); }
-    | RETURN Exp error              { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'", @$.first_line); err_count++; }
+    | Exp error                     { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
+    | RETURN Exp error              { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
     ;
 
 /* local definition */
@@ -103,7 +108,9 @@ DefList:
     | Def DefList                   { $$ = Node::create_node_with_children("DefList", @$.first_line, DataType::PROD, {$1, $2}); }
     ;
 Def:
-    Specifier DecList SEMI          { $$ = Node::create_node_with_children("Def", @$.first_line, DataType::PROD, {$1, $2, $3}); }
+      Specifier DecList SEMI        { $$ = Node::create_node_with_children("Def", @$.first_line, DataType::PROD, {$1, $2, $3}); }
+    | Specifier DecList error       { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
+    | error DecList SEMI            { fprintf(output_file, "Error type B at Line %d: Missing specifier\n", @$.first_line); err_count++; }
     ;
 DecList:
       Dec                           { $$ = Node::create_node_with_children("DecList", @$.first_line, DataType::PROD, {$1}); }
@@ -140,6 +147,9 @@ Exp:
     | INT                           { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }
     | FLOAT                         { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }
     | CHAR                          { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }
+    | LP Exp error                  { fprintf(output_file, "Error type B at Line %d: Missing closing parenthesis ')'\n", @$.first_line); err_count++; }
+    | ID LP Args error              { fprintf(output_file, "Error type B at Line %d: Missing closing parenthesis ')'\n", @$.first_line); err_count++; }
+    | ID LP error                   { fprintf(output_file, "Error type B at Line %d: Missing closing parenthesis ')'\n", @$.first_line); err_count++; }
     ;
 Args:
       Exp COMMA Args                { $$ = Node::create_node_with_children("Args", @$.first_line, DataType::PROD, {$1, $2, $3}); }
