@@ -4,6 +4,8 @@
     #define YYSTYPE Node *
     #define ret(STMT) STMT
 
+    #include <string>
+
     #include "node.hpp"
     #include "syntax.tab.h"
 
@@ -14,6 +16,9 @@
         yylloc.last_line = yylineno; \
         yylloc.last_column = yycolno + yyleng; \
         yycolno += yyleng;
+
+    using std::to_string;
+    using std::stoi;
 
 
     extern "C" int yylex();
@@ -59,9 +64,9 @@ integer-literal ({decimal-literal}|{hex-literal}|{binary-literal}){integersuffix
 float-literal   {digit}+([fd]|(\.{digit}+[fd]?))[fd]?
 char        \'(.|(\\x{hex}{1,2})|(\\.))\'
 
-err-hex-literal     0x[a-zA-Z0-9]+
+err-hex-literal     0x[a-fA-F0-9]*[g-zG-Z]+[a-fA-F0-9]*
 err-char            \'(.|(\\x{letter_digit}{1,})|(\\.))\'
-err-identifier      {digit}+{identifier}
+err-identifier      [0-9]+{identifier}
 
 %%
 \n                  { lines++; yycolno = 1; }    
@@ -78,7 +83,10 @@ err-identifier      {digit}+{identifier}
     }
 }
 
-{integer-literal}   { yylval = new Node("INT", yylloc.first_line, DataType::INT, yytext);       return INT; }
+{decimal-literal}   { yylval = new Node("INT", yylloc.first_line, DataType::INT, yytext);       return INT; }
+{hex-literal}       { yylval = new Node("INT", yylloc.first_line, DataType::INT, to_string(stol(string(yytext), 0, 16)).c_str()); return INT; }
+{binary-literal}    { yylval = new Node("INT", yylloc.first_line, DataType::INT, to_string(stol(string(yytext), 0, 2)).c_str()); return INT; }
+
 {float-literal}     { yylval = new Node("FLOAT", yylloc.first_line, DataType::FLOAT, yytext);   return FLOAT; }
 {char}              {
     if (yytext[yyleng - 2] =='\\' && yytext[yyleng - 1] != '\'') {
@@ -130,6 +138,20 @@ return              { yylval = new Node("RETURN", yylloc.first_line, DataType::O
 
 {identifier}        { yylval = new Node("ID", yylloc.first_line, DataType::ID, yytext);         return ID; }
 
+{err-char}          {
+    err_count++;
+    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
+    return CHAR;
+}
+
+{err-hex-literal}   {
+    err_count++;
+    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
+    return INT;
+}
+
 {err-identifier}    {
     err_count++;
     fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
@@ -137,17 +159,11 @@ return              { yylval = new Node("RETURN", yylloc.first_line, DataType::O
     return CHAR;
 }
 
-{err-char}          {
+"|"                 {
     err_count++;
     fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
     yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
-    return CHAR;
-}
-{err-hex-literal}   {
-    err_count++;
-    fprintf(output_file, "Error type A at Line %d: unknown lexeme \"%s\"\n", yylineno, yytext);
-    yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
-    return INT;
+    return OR;
 }
 
 .                   {

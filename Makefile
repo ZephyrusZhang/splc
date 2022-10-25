@@ -2,7 +2,7 @@ CC=gcc
 CXX=g++
 FLEX=flex
 BISON=bison
-OUT_NAME=parser
+OUT_NAME=splc
 
 CXX_FLAGS=-lfl -ly
 

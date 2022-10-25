@@ -33,7 +33,7 @@
 %left PLUS MINUS
 %left MUL DIV
 %right NOT AR
-%left LC RC LB RB DOT
+%left LP RP LB RB DOT
 
 %%
 Program:
@@ -68,6 +68,7 @@ StructSpecifier:
 VarDec:
       ID                            { $$ = Node::create_node_with_children("VarDec", @$.first_line, DataType::PROD, {$1}); }
     | VarDec LB INT RB              { $$ = Node::create_node_with_children("VarDec", @$.first_line, DataType::PROD, {$1, $2, $3, $4}); }
+    | VarDec LB INT error           { fprintf(output_file, "Error type B at Line %d: Missing closing brackets ']'\n", @$.first_line); err_count++; }
     ;
 FunDec:
       ID LP VarList RP              { $$ = Node::create_node_with_children("FunDec", @$.first_line, DataType::PROD, {$1, $2, $3, $4}); }
@@ -100,6 +101,7 @@ Stmt:
     | WHILE LP Exp RP Stmt          { $$ = Node::create_node_with_children("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}); }
     | Exp error                     { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
     | RETURN Exp error              { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
+    | WHILE LP Exp error Stmt       { fprintf(output_file, "Error type B at Line %d: Missing closing parenthesis ')'\n", @$.first_line); err_count++; }
     ;
 
 /* local definition */
@@ -169,7 +171,7 @@ int main(int argc, char **argv) {
         perror(argv[1]);
         exit(-1);
     }
-    init_args(get_file_name(argv[1]));
+    init_args(argv[1]);
 
     yyparse();
 

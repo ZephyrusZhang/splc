@@ -129,14 +129,16 @@ void output_tree(Node *root)
 
 void init_args(string file_name)
 {
-    int index = file_name.find('.');
-    string output_file_name = file_name.substr(0, index + 1) + "out";
+    int index = file_name.find_last_of('.');
+    output_path = file_name.substr(0, index + 1) + "out";
 
-    if (output_path == "")
-    {
-        std::system("mkdir -p out");
-        output_path = "./out/" + output_file_name;
-    }
+    printf("%s\n", output_path.c_str());
+
+    // if (output_path == "")
+    // {
+    //     std::system("mkdir -p out");
+    //     output_path = "./out/" + output_file_name;
+    // }
 
     output_file = fopen(output_path.c_str(), "w+");
 }
