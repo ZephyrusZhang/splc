@@ -1,5 +1,0 @@
-int test_1_r07()
-{
-    int a, b, c;
-    b = a * c;
-}
