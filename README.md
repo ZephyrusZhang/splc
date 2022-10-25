@@ -13,7 +13,7 @@
 
 ### Control Flow
 
-- [ ] `if`, `else if`, `else`
+- [ ] `if`, ~~`else if`~~, `else`
 
 - [ ] `while`
 
