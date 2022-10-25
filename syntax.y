@@ -106,6 +106,8 @@ Stmt:
     | Exp error                             { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
     | RETURN Exp error                      { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
     | WHILE LP Exp error Stmt               { fprintf(output_file, "Error type B at Line %d: Missing closing parenthesis ')'\n", @$.first_line); err_count++; }
+    | IF LP Exp error Stmt %prec LOWER_ELSE { fprintf(output_file, "Error type B at Line %d: Missing closing parenthesis ')'\n", @$.first_line); err_count++; }
+    | IF LP Exp error Stmt ELSE Stmt        { fprintf(output_file, "Error type B at Line %d: Missing closing parenthesis ')'\n", @$.first_line); err_count++; }
     ;
 
 /* local definition */
