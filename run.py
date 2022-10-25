@@ -63,7 +63,6 @@ if __name__ == "__main__":
     opt = parser.parse_args()
 
     os.system('make')
-    os.system('clear')
 
     if opt.test_case is None:
         for i in range(1, 13):
