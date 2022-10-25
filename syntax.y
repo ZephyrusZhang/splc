@@ -10,7 +10,7 @@
 %}
 %locations
 
-%token INT FLOAT CHAR
+%token INT FLOAT CHAR STRING
 %token ID TYPE
 %token STRUCT
 %token IF ELSE
@@ -153,7 +153,9 @@ Exp:
     | INT                                   { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }
     | FLOAT                                 { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }
     | CHAR                                  { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }
+    | STRING                                { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }
     | AR Exp                                { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2}); }
+    | LP TYPE RP Exp                        { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2}); }
     | MUL Exp                               { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2}); }
     | BREAK                                 { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }
     | CONTINUE                              { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }

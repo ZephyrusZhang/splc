@@ -23,6 +23,7 @@ enum class DataType
     INT,
     FLOAT,
     CHAR,
+    STRING,
     DTYPE,      // data type
     ID,
     OTHER,      // keyword, operator and other symbols
@@ -37,8 +38,8 @@ public:
     string token_name{};
     string data{};
     DataType type{};
-    int lineno{};
-    Node *parent;
+    int lineno{0};
+    Node *parent = nullptr;
     vector<Node *> children{};
 
     Node(string token_name, int lineno, DataType type, string data="")

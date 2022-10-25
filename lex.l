@@ -58,11 +58,12 @@ decimal-literal [0-9]+
 hex-literal     0x[a-fA-F0-9]+
 binary-literal  0b[01]+
 
-integersuffix   (L|LL|U|UL|LU|ULL|LLU)
-integer-literal ({decimal-literal}|{hex-literal}|{binary-literal}){integersuffix}?
+integersuffix       (L|LL|U|UL|LU|ULL|LLU)
+integer-literal     ({decimal-literal}|{hex-literal}|{binary-literal}){integersuffix}?
 
-float-literal   {digit}+([fd]|(\.{digit}+[fd]?))[fd]?
-char        \'(.|(\\x{hex}{1,2})|(\\.))\'
+float-literal       {digit}+([fd]|(\.{digit}+[fd]?))[fd]?
+char                \'(.|(\\x{hex}{1,2})|(\\.))\'
+string-literal      \".*\"
 
 err-hex-literal     0x[a-fA-F0-9]*[g-zG-Z]+[a-fA-F0-9]*
 err-char            \'(.|(\\x{letter_digit}{1,})|(\\.))\'
@@ -98,7 +99,17 @@ err-identifier      [0-9]+{identifier}
     }
 }
 
-(int|float|char)({ws}?\*)? {
+{string-literal}            {
+    if (yytext[yyleng - 2] =='\\' && yytext[yyleng - 1] != '"') {
+        yyless(yyleng - 1);
+        yymore();
+    } else {
+        yylval = new Node("STRING", yylloc.first_line, DataType::STRING, yytext);
+        return STRING;
+    }
+}
+
+(void|int|float|char)({ws}?\*)? {
                       yylval = new Node("TYPE", yylloc.first_line, DataType::DTYPE, yytext);    return TYPE; }
 
 struct              { yylval = new Node("STRUCT", yylloc.first_line, DataType::OTHER);          return STRUCT; }
@@ -123,7 +134,7 @@ return              { yylval = new Node("RETURN", yylloc.first_line, DataType::O
 "=="                { yylval = new Node("EQ", yylloc.first_line, DataType::OTHER);              return EQ; }
 "+"                 { yylval = new Node("PLUS", yylloc.first_line, DataType::OTHER);            return PLUS; }
 "-"                 { yylval = new Node("MINUS", yylloc.first_line, DataType::OTHER);           return MINUS; }
-"*"                 { yylval = new Node("MUL", yylloc.first_line, DataType::OTHER);              return MUL; }
+"*"                 { yylval = new Node("MUL", yylloc.first_line, DataType::OTHER);             return MUL; }
 "/"                 { yylval = new Node("DIV", yylloc.first_line, DataType::OTHER);             return DIV; }
 "&"                 { yylval = new Node("AR", yylloc.first_line, DataType::OTHER);              return AR; }
 "&&"                { yylval = new Node("AND", yylloc.first_line, DataType::OTHER);             return AND; }
