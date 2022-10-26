@@ -4,10 +4,11 @@ FLEX=flex
 BISON=bison
 OUT_NAME=splc
 
-CXX_FLAGS=-lfl -ly
+ADDRESS_SANITIZER=-O0 -g -fsanitize=address -fno-omit-frame-pointer
+CXX_FLAGS=-Wl,-z stack-size=16777216 -lfl -ly
 
 .y: syntax.y
-	$(BISON) -d syntax.y --report all
+	$(BISON) -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr
 .l: lex.l
 	$(FLEX) lex.l
 release: .y .l

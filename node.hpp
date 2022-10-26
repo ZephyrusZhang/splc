@@ -38,9 +38,9 @@ public:
     string token_name{};
     string data{};
     DataType type{};
-    int lineno{0};
+    int lineno = 0;
     Node *parent = nullptr;
-    vector<Node *> children{};
+    vector<Node *> children;
 
     Node(string token_name, int lineno, DataType type, string data="")
         : token_name(token_name), lineno(lineno), type(type), data(data)
@@ -66,6 +66,7 @@ public:
 private:
     static void recursive_print(Node *cur, int depth)
     {
+        // if (cur == nullptr) return;
         if (cur->children.size() == 0 && cur->type == DataType::PROD)
         {
             return;

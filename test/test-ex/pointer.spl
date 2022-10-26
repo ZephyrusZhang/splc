@@ -1,6 +1,13 @@
 int main()
 {
     void *a;
+    int i;
     int *b;
     char *c;
+    c = "114514";
+    b = &c;
+    i = 0;
+    while(*c!='\0') {
+        i = i + 1;
+    }
 }

@@ -4,6 +4,9 @@
 
     #define YYSTYPE Node *
 
+    #define YYINITDEPTH 40960
+    #define YYSTACK_ALLOC
+
     void yyerror(const char*);
 
     Node *root;
@@ -11,7 +14,7 @@
 %locations
 
 %token INT FLOAT CHAR STRING
-%token ID TYPE
+%token ID TYPE ERR
 %token STRUCT
 %token IF ELSE
 %token WHILE FOR
@@ -72,6 +75,7 @@ VarDec:
       ID                                    { $$ = Node::create_node_with_children("VarDec", @$.first_line, DataType::PROD, {$1}); }
     | VarDec LB INT RB                      { $$ = Node::create_node_with_children("VarDec", @$.first_line, DataType::PROD, {$1, $2, $3, $4}); }
     | VarDec LB INT error                   { fprintf(output_file, "Error type B at Line %d: Missing closing brackets ']'\n", @$.first_line); err_count++; }
+    | ERR                                   { fprintf(output_file, "Error type B at Line %d: bad identifier\n", @$.first_line); err_count++; }
     ;
 FunDec:
       ID LP VarList RP                      { $$ = Node::create_node_with_children("FunDec", @$.first_line, DataType::PROD, {$1, $2, $3, $4}); }
@@ -196,6 +200,7 @@ int main(int argc, char **argv) {
     else
     {
         fclose(output_file);
+        printf("%p\n", root);
         output_tree(root);
     }
     return 0;

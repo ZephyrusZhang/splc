@@ -1,0 +1,15 @@
+float abcd[123][777];
+struct qqq {
+  int a[1];
+  float b[12];
+};
+int main() {
+  int array[114514][0x123];
+  int test[999];
+  struct qqq asd;
+  test = array[1234];
+  test[123] = 114514;
+  asd.a[0] = 123;
+  asd.a[0] = 0x1919810;
+  return 0;
+}

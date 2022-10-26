@@ -1,0 +1,14 @@
+Error type A at Line 4: unknown lexeme 9ccc
+Error type B at Line 2: Missing specifier
+Error type B at Line 2: Missing specifier
+Error type B at Line 1: Missing semicolon ';'
+Error type A at Line 19: unknown lexeme 3a
+Error type B at Line 19: Missing specifier
+Error type A at Line 20: unknown lexeme 4arr
+Error type B at Line 20: Missing specifier
+Error type B at Line 22: Missing semicolon ';'
+Error type B at Line 18: Missing specifier
+Error type B at Line 24: Missing closing parenthesis ')'
+Error type B at Line 24: Missing semicolon ';'
+Error type B at Line 18: Missing specifier
+Error type B at Line 27: Missing specifier
