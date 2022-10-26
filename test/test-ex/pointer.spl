@@ -1,0 +1,6 @@
+int main()
+{
+    void *a;
+    int *b;
+    char *c;
+}
