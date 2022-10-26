@@ -97,6 +97,10 @@ private:
             {
                 cout << ("CHAR: " + cur->data) << endl;
             }
+            else if (cur->type == DataType::STRING)
+            {
+                cout << ("STRING: " + cur->data) << endl;
+            }
             else
             {
                 
