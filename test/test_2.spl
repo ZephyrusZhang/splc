@@ -1,7 +1,7 @@
 struct my_struct {
     char aaa;
     int bbb;
-    doublefff 9ccc;
+    float 9ccc;
 };
 
 int test(struct my_struct test, char c, int a114514, float asdads) {
@@ -15,16 +15,20 @@ int qwer(char c, int b) {
 }
 
 int main() {
+    char c = '\xt0';
+    char a = '\x90';
+    int i = 114514;
+    int j = 0x114514;
+    int k = 0xsustech;
     struct my_struct def;
     int 3a = 1, b=2;
     int 4arr[123];
     def.aaa = '\x1D';
-    def->bbb = 0x114514;
-    def.ccc = 114514.1919810;
-    printf(a*, +b);
+    def.bbb = 0x114514;
+    printf(a, b);
     test(def, def.aaa, def.bbb, def.ccc);
     while(test(def, def.aaa, def.bbb, def.ccc) > 0) {
         if (def.aaa!=8.123)def.bbb = b;else def.ccc = 0x123123123;a=a-qwer(def.ccc, def.bbb);
-    } 
-    return def.ccc*def.aaa+def.bbb;
+    }
+    return def.ccc*def.aaa+def.bbb
 }

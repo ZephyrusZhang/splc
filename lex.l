@@ -167,7 +167,7 @@ return              { yylval = new Node("RETURN", yylloc.first_line, DataType::O
     err_count++;
     fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
     yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
-    return CHAR;
+    return ID;
 }
 
 "|"                 {
@@ -175,6 +175,27 @@ return              { yylval = new Node("RETURN", yylloc.first_line, DataType::O
     fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
     yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
     return OR;
+}
+
+"$"                 {
+    err_count++;
+    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
+    return CHAR;
+}
+
+"@"                 {
+    err_count++;
+    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
+    return CHAR;
+}
+
+"->"                {
+    err_count++;
+    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
+    return DOT;
 }
 
 .                   {

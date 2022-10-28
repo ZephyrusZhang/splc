@@ -67,9 +67,9 @@ if __name__ == "__main__":
     if opt.test_case is None:
         for i in range(1, 13):
             num = f'0{i}' if i < 10 else i
-            test(f'test/test-phase-1/test_1_r{num}.spl',
-                f'test/test-phase-1/test_1_r{num}.out',
-                f'test/out/test_1_r{num}.out')
+            test(f'test-official/test_1_r{num}.spl',
+                f'test-official/test_1_r{num}.out',
+                f'test-official/official-out/test_1_r{num}.out')
     else:
         num = f'0{opt.test_case}' if opt.test_case < 10 else opt.test_case
         test(f'test/test-phase-1/test_1_r{num}.spl',

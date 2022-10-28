@@ -5,7 +5,7 @@ BISON=bison
 OUT_NAME=splc
 
 ADDRESS_SANITIZER=-O0 -g -fsanitize=address -fno-omit-frame-pointer
-CXX_FLAGS=-Wl,-z stack-size=16777216 -lfl -ly
+CXX_FLAGS=-lfl -ly
 
 .y: syntax.y
 	$(BISON) -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr
