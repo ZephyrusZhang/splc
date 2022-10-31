@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import traceback
 
 
 class CustomFormatter(logging.Formatter):
@@ -59,21 +60,26 @@ def test(test_case_path: str, output_path: str, answer_path: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--test-case', default=None, type=int)
+    parser.add_argument('-n', '--test-case-no', default=None, type=int)
+    parser.add_argument('-t', '--type', default='r', type=str)
+    parser.add_argument('--dir', default='test-official', type=str)
     opt = parser.parse_args()
 
     os.system('make')
 
-    if opt.test_case is None:
-        for i in range(1, 13):
-            num = f'0{i}' if i < 10 else i
-            test(f'test-official/test_1_r{num}.spl',
-                f'test-official/test_1_r{num}.out',
-                f'test-official/official-out/test_1_r{num}.out')
-    else:
-        num = f'0{opt.test_case}' if opt.test_case < 10 else opt.test_case
-        test(f'test/test-phase-1/test_1_r{num}.spl',
-                f'test/test-phase-1/test_1_r{num}.out',
-                f'test/out/test_1_r{num}.out')
+    try:
+        if opt.test_case_no is None:
+                for i in range(1, 13):
+                    num = f'0{i}' if i < 10 else i
+                    test(f'{opt.dir}/test_1_{opt.type}{num}.spl',
+                        f'{opt.dir}/test_1_{opt.type}{num}.out',
+                        f'{opt.dir}/standard-output/test_1_{opt.type}{num}.out')
+        else:
+            num = f'0{opt.test_case_no }' if opt.test_case_no    < 10 else opt.test_case_no
+            test(f'{opt.dir}/test_1_{opt.type}{num}.spl',
+                    f'{opt.dir}/test_1_{opt.type}{num}.out',
+                    f'{opt.dir}/out/test_1_{opt.type}{num}.out')
+    except Exception:
+        traceback.print_exc()
 
     os.system('make clean')
