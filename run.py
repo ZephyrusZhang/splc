@@ -67,9 +67,15 @@ if __name__ == "__main__":
 
     os.system('make')
 
+    root, dir_names, file_names = list(os.walk(f'./{opt.dir}/'))[0]
+    count = 0
+    for file_name in file_names:
+        if os.path.splitext(file_name)[-1][1:] == 'spl':
+            count += 1
+
     try:
         if opt.test_case_no is None:
-                for i in range(1, 13):
+                for i in range(1, count + 1):
                     num = f'0{i}' if i < 10 else i
                     test(f'{opt.dir}/test_1_{opt.type}{num}.spl',
                         f'{opt.dir}/test_1_{opt.type}{num}.out',
