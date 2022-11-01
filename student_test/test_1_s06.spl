@@ -1,4 +1,4 @@
-int test_1_r15()
+int test_1_6()
 {
   int a, b, c, d=1;
   while(a>0){

@@ -1,4 +1,4 @@
-int t02_12012919() 
+int t08() 
 {
     int a = 0xff;
     while(a < 10{

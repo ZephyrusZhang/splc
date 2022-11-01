@@ -1,4 +1,4 @@
-int test_1_1()
+int test_2()
 {
 	int i = 0;
     char c = ?;
