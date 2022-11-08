@@ -32,16 +32,16 @@ public:
     const std::string tokenName;
     const std::string data;
     DataType type;
-    int lineno = 0;
+    int lineno;
     Node *parent = nullptr;
-    Container *info = nullptr;
+    std::shared_ptr<Container> info;
     std::vector<Node *> children;
     explicit Node() = delete;
     Node(std::string tokenName, int lineno, DataType type, std::string data = "");
     static Node *createNodeWithChildren(const std::string &tokenName, int lineno, DataType type, std::initializer_list<Node *> childList, const std::string &data = "");
-    static void printTree(Node *root);
+    static void printTree(Node *root, std::ostream& outputStream = outputFile);
 private:
-    static void recursivePrint(Node *cur, int depth);
+    static void recursivePrint(Node *cur, int depth, std::ostream& outputStream);
 };
 
 

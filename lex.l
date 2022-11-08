@@ -69,7 +69,6 @@ err-char            \'(.|(\\x{letter_digit}{1,})|(\\.))\'
 err-identifier      [0-9]+{identifier}
 
 basic-types         (void|char|int|float)
-pointer             ({basic-types}|struct{ws}+{identifier})({ws}?\*)+
 
 %%
 \n                  { lines++; yycolno = 1; }    
@@ -112,7 +111,6 @@ pointer             ({basic-types}|struct{ws}+{identifier})({ws}?\*)+
 }
 
 {basic-types}       { yylval = new Node("TYPE", yylloc.first_line, DataType::DTYPE, yytext);    return TYPE; }
-pointer             { yylval = new Node("POINTER", yylloc.first_line, DataType::DTYPE, yytext); return POINTER; }
 struct              { yylval = new Node("STRUCT", yylloc.first_line, DataType::OTHER);          return STRUCT; }
 if                  { yylval = new Node("IF", yylloc.first_line, DataType::OTHER);              return IF; }
 else                { yylval = new Node("ELSE", yylloc.first_line, DataType::OTHER);            return ELSE; }

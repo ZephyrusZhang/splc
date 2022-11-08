@@ -5,27 +5,21 @@
 #include <string>
 #include <memory>
 
+class Node;
 enum class DataType;
-
-class Symbol {
-public:
-
-};
 
 class Container {
 public:
-    virtual ~Container() = 0;
-
     Container() = default;
-
-    static Container *generateContainer(const std::string &tokenName, DataType type, const std::string &data) {
-        return nullptr;
-    }
+    virtual ~Container() = default;
+    virtual void installChild(std::vector<Node *>) = 0;
+    static std::shared_ptr<Container> generateContainer(const std::string &tokenName, DataType type, const std::string &data);
 };
 
 class Scope : public Container {
-//    public:
-//  /  std::map<std::string,
+    ~Scope() override = default;
+public:
+    void installChild(std::vector<Node *>) override;
 };
 
 #endif

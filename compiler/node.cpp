@@ -2,38 +2,38 @@
 #include "grammar.h"
 #include <utility>
 
-void Node::printTree(Node *root) {
-    recursivePrint(root, 0);
+void Node::printTree(Node *root, std::ostream& outputStream) {
+    recursivePrint(root, 0, outputStream);
 }
 
-void Node::recursivePrint(Node *cur, int depth) {
+void Node::recursivePrint(Node *cur, int depth, std::ostream& outputStream) {
     if (cur->children.empty() && cur->type == DataType::PROD) return;
     if (cur->children.empty()) {
         for (int j = 0; j < depth; j++) {
-            outputFile << "  ";
+            outputStream << "  ";
         }
         if (cur->type == DataType::DTYPE) {
-            outputFile << "TYPE: " << cur->data << std::endl;
+            outputStream << "TYPE: " << cur->data << std::endl;
         } else if (cur->type == DataType::ID) {
-            outputFile << "ID: " << cur->data << std::endl;
+            outputStream << "ID: " << cur->data << std::endl;
         } else if (cur->type == DataType::INT) {
-            outputFile << "INT: " << cur->data << std::endl;
+            outputStream << "INT: " << cur->data << std::endl;
         } else if (cur->type == DataType::FLOAT) {
-            outputFile << "FLOAT: " << cur->data << std::endl;
+            outputStream << "FLOAT: " << cur->data << std::endl;
         } else if (cur->type == DataType::CHAR) {
-            outputFile << "CHAR: " << cur->data << std::endl;
+            outputStream << "CHAR: " << cur->data << std::endl;
         } else if (cur->type == DataType::STRING) {
-            outputFile << "STRING: " << cur->data << std::endl;
+            outputStream << "STRING: " << cur->data << std::endl;
         } else {
-            outputFile << cur->tokenName << std::endl;
+            outputStream << cur->tokenName << std::endl;
         }
         return;
     } else {
         for (int j = 0; j < depth; j++)
-            outputFile << "  ";
-        outputFile << cur->tokenName << " (" << cur->lineno << ")" << std::endl;
+            outputStream << "  ";
+        outputStream << cur->tokenName << " (" << cur->lineno << ")" << std::endl;
         for (auto &i: cur->children) {
-            recursivePrint(i, depth + 1);
+            recursivePrint(i, depth + 1, outputStream);
         }
     }
 }
@@ -45,7 +45,9 @@ Node *Node::createNodeWithChildren(const std::string &tokenName, int lineno, Dat
         child->parent = parent;
         parent->children.push_back(child);
     }
-
+    if (parent->info) {
+        parent->info->installChild(std::vector(childList));
+    }
     return parent;
 }
 

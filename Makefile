@@ -3,21 +3,40 @@ CXX=g++
 FLEX=flex
 BISON=bison
 OUT_NAME=splc
+BUILDDIR=build
+SRCS=syntax.tab compiler/grammar compiler/main compiler/node compiler/type
+OBJS=$(SRCS:%=$(BUILDDIR)/%.o)
 
 ADDRESS_SANITIZER = -O0 -g -fsanitize=address -fno-omit-frame-pointer
-CXX_FLAGS = -Wl,-z stack-size=16777216 -lfl -ly
+CXX_FLAGS = -std=c++17 -g
+LD_FLAGS  = -lfl -ly
 
-release:
-	$(FLEX) lex.l
-	$(BISON) -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr
-	mkdir -p bin
-	$(CXX) $(CXX_FLAGS) syntax.tab.c compiler/node.cpp compiler/main.cpp compiler/grammar.cpp -o bin/$(OUT_NAME)
-debug: .y .l
-	$(FLEX) lex.l
-	$(BISON) -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr
-	mkdir -p bin
-	$(CXX) -DDebug $(CXX_FLAGS) syntax.tab.c -o bin/$(OUT_NAME)
+.DEFAULT_GOAL := release
+
+syntax.tab.c: syntax.y lex.l
+	@echo "[flex] $<"
+	@$(FLEX) lex.l
+	@echo "[bison] $<"
+	@$(BISON) -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr
+
+$(BUILDDIR)/%.o : %.c syntax.tab.c
+	@echo "[g++] $<"
+	@$(CXX) $(CXX_FLAGS) -c $< -o $@
+
+$(BUILDDIR)/%.o : %.cpp syntax.tab.c
+	@echo "[g++] $<"
+	@$(CXX) $(CXX_FLAGS) -c $< -o $@
+
+$(OUT_NAME): $(OBJS)
+	@mkdir -p bin
+	@echo "[ld] linking splc"
+	@$(CXX) $(LD_FLAGS) $(OBJS) -o bin/$(OUT_NAME)
+
+release: $(OUT_NAME)
+
 clean:
 	@rm -rf lex.yy.* syntax.tab.* bin out *.out *.output
 	@rm -rf test/*.out
-all: release
+	@rm -rf build
+	@mkdir -p build
+	@mkdir -p build/compiler

@@ -67,7 +67,7 @@ ExtDecList:
 Specifier:
       TYPE                                  { $$ = Node::createNodeWithChildren("Specifier", @$.first_line, DataType::PROD, {$1}); }
     | StructSpecifier                       { $$ = Node::createNodeWithChildren("Specifier", @$.first_line, DataType::PROD, {$1}); }
-    | POINTER                               { $$ = Node::createNodeWithChildren("Specifier", @$.first_line, DataType::PROD, {$1}); }
+    | Specifier MUL                         { $$ = Node::createNodeWithChildren("Specifier", @$.first_line, DataType::PROD, {$1, $2}); }
     ;
 StructSpecifier:
       STRUCT ID LC DefList RC               { $$ = Node::createNodeWithChildren("StructSpecifier", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}); }
@@ -176,7 +176,7 @@ Exp:
     | CHAR                                  { $$ = Node::createNodeWithChildren("Exp", @$.first_line, DataType::PROD, {$1}); }
     | STRING                                { $$ = Node::createNodeWithChildren("Exp", @$.first_line, DataType::PROD, {$1}); }
     | AR Exp                                { $$ = Node::createNodeWithChildren("Exp", @$.first_line, DataType::PROD, {$1, $2}); }
-    | LP TYPE RP Exp                        { $$ = Node::createNodeWithChildren("Exp", @$.first_line, DataType::PROD, {$1, $2}); }
+    | LP Specifier RP Exp                   { $$ = Node::createNodeWithChildren("Exp", @$.first_line, DataType::PROD, {$1, $2}); }
     | MUL Exp                               { $$ = Node::createNodeWithChildren("Exp", @$.first_line, DataType::PROD, {$1, $2}); }
     | BREAK                                 { $$ = Node::createNodeWithChildren("Exp", @$.first_line, DataType::PROD, {$1}); }
     | CONTINUE                              { $$ = Node::createNodeWithChildren("Exp", @$.first_line, DataType::PROD, {$1}); }

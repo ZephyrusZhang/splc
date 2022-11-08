@@ -3,8 +3,11 @@
 #include <string>
 #include <utility>
 #include <memory>
+#include <vector>
+#include "grammar.h"
 
 enum BasicType {
+    TypeUnknown,
     TypeVoid,
     TypeChar,
     TypeInt,
@@ -13,19 +16,18 @@ enum BasicType {
     TypePointer
 };
 
-class Type {
+class Specifier : public Container {
 public:
     const std::string name;
-    const BasicType type;
+    BasicType type;
     std::string structName;
-    std::unique_ptr<Type> pointTo;
+    std::shared_ptr<Specifier> pointTo;
 
-    Type(std::string name, const BasicType type) : name(std::move(name)), type(type) {
-        if (type == BasicType::TypeStruct) {
-            structName = "test";
-        } else if (type == BasicType::TypePointer) {
-
-        }
+    Specifier(std::string name, const BasicType type) : name(std::move(name)), type(type) {
     }
+    ~Specifier() override = default;
+    void installChild(std::vector<Node *> children) override;
+
+    void parseStruct(Node *pNode);
 };
 #endif
