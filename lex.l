@@ -6,7 +6,7 @@
 
     #include <string>
 
-    #include "compiler/node.hpp"
+    #include "compiler/node.h"
     #include "syntax.tab.h"
 
     int yycolno = 1;
@@ -19,7 +19,6 @@
 
     using std::to_string;
     using std::stoi;
-
 
     extern "C" int yylex();
 
@@ -69,7 +68,7 @@ err-hex-literal     0x[a-fA-F0-9]*[g-zG-Z]+[a-fA-F0-9]*
 err-char            \'(.|(\\x{letter_digit}{1,})|(\\.))\'
 err-identifier      [0-9]+{identifier}
 
-basic-types         (void|char|int|float|double)
+basic-types         (void|char|int|float)
 types               ({basic-types}({ws}?\*)?)
 
 %%
@@ -155,36 +154,36 @@ return              { yylval = new Node("RETURN", yylloc.first_line, DataType::O
 {identifier}        { yylval = new Node("ID", yylloc.first_line, DataType::ID, yytext);         return ID; }
 
 {err-char}          {
-    err_count++;
-    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    errCount++;
+    outputFile << "Error type A at Line " << yylineno << ": unknown lexeme " << yytext << std::endl;
     yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
     return CHAR;
 }
 
 {err-hex-literal}   {
-    err_count++;
-    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    errCount++;
+    outputFile << "Error type A at Line " << yylineno << ": unknown lexeme " << yytext << std::endl;
     yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
     return INT;
 }
 
 {err-identifier}    {
-    err_count++;
-    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    errCount++;
+    outputFile << "Error type A at Line " << yylineno << ": unknown lexeme " << yytext << std::endl;
     yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
     return CHAR;
 }
 
 "|"                 {
-    err_count++;
-    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    errCount++;
+    outputFile << "Error type A at Line " << yylineno << ": unknown lexeme " << yytext << std::endl;
     yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
     return OR;
 }
 
 .                   {
-    err_count++;
-    fprintf(output_file, "Error type A at Line %d: unknown lexeme %s\n", yylineno, yytext);
+    errCount++;
+    outputFile << "Error type A at Line " << yylineno << ": unknown lexeme " << yytext << std::endl;
     yylval = new Node("ERR", yylloc.first_line, DataType::ERR, yytext);
     return ERR;
 }
