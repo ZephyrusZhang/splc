@@ -1,0 +1,19 @@
+struct qqq {
+  int a[1];
+  float b[12];
+};
+
+int main() {
+  int array[114514][0x123];
+  struct qqq asd;
+  struct qqq* ptr = &asd;
+  for (int i=0,j=1;i<123;i++,j++) {
+    char * b = "asdasd";
+    if (b[1] == '\x00') {
+        int c = 1234;
+        c++;
+        ptr->a[0] = 12;
+    }
+  }
+  return 0;
+}

@@ -1,15 +1,13 @@
 %{
     #include "lex.yy.c"
-    #include "node.hpp"
-
-    #define YYSTYPE Node *
+    #include "compiler/node.hpp"
 
     #define YYINITDEPTH 40960
     #define YYSTACK_ALLOC
 
     void yyerror(const char*);
 
-    Node *root;
+    Node* root;
 %}
 %locations
 
@@ -24,11 +22,14 @@
 %token ASSIGN
 %token AR
 %token LT LE GT GE NE EQ
+%token DEREF INCREASE DECREASE
 %token PLUS MINUS MUL DIV AND OR NOT
 %token LP LB LC
 %token RP RB RC
 
 %right ASSIGN
+%left DEREF
+%left INCREASE DECREASE
 %left OR
 %left AND
 %left EQ NE
@@ -63,8 +64,9 @@ ExtDecList:
 
 /* specifier */       
 Specifier:
-      TYPE                                  { $$ = Node::create_node_with_children("Specifier", @$.first_line, DataType::PROD, {$1}); }
-    | StructSpecifier                       { $$ = Node::create_node_with_children("Specifier", @$.first_line, DataType::PROD, {$1}); }
+      TYPE                                  { $$ = Node::create_node_with_children("TYPE", @$.first_line, DataType::PROD, {$1}); }
+    | StructSpecifier                       { $$ = Node::create_node_with_children("TYPE_STRUCT", @$.first_line, DataType::PROD, {$1}); }
+    | StructSpecifier MUL                   { $$ = Node::create_node_with_children("TYPE_STRUCT_PTR", @$.first_line, DataType::PROD, {$1, $2}); }
     ;
 StructSpecifier:
       STRUCT ID LC DefList RC               { $$ = Node::create_node_with_children("StructSpecifier", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}); }
@@ -93,10 +95,11 @@ ParamDec:
 
 /* statement */
 CompSt:
-      LC DefList StmtList RC                { $$ = Node::create_node_with_children("CompSt", @$.first_line, DataType::PROD, {$1, $2, $3, $4}); }
+      LC StmtList RC                        { $$ = Node::create_node_with_children("CompSt", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     ;
 StmtList:
       /*empty*/                             { $$ = Node::create_node_with_children("StmtList", @$.first_line, DataType::PROD, {}); }
+    | Def StmtList                      { $$ = Node::create_node_with_children("StmtList", @$.first_line, DataType::PROD, {$1, $2}); }
     | Stmt StmtList                         { $$ = Node::create_node_with_children("StmtList", @$.first_line, DataType::PROD, {$1, $2}); }
     ;
 Stmt:
@@ -106,7 +109,7 @@ Stmt:
     | IF LP Exp RP Stmt %prec LOWER_ELSE    { $$ = Node::create_node_with_children("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}); }
     | IF LP Exp RP Stmt ELSE Stmt           { $$ = Node::create_node_with_children("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5, $6, $7}); }
     | WHILE LP Exp RP Stmt                  { $$ = Node::create_node_with_children("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}); }
-    | FOR LP Exp SEMI Exp SEMI Exp RP Stmt  { $$ = Node::create_node_with_children("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5, $6, $7, $8, $9}); }
+    | FOR LP DefOrExp SEMI Exp SEMI MultiExp RP Stmt  { $$ = Node::create_node_with_children("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5, $6, $7, $8, $9}); }
     | Exp error                             { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
     | RETURN Exp error                      { fprintf(output_file, "Error type B at Line %d: Missing semicolon ';'\n", @$.first_line); err_count++; }
     | WHILE LP Exp error Stmt               { fprintf(output_file, "Error type B at Line %d: Missing closing parenthesis ')'\n", @$.first_line); err_count++; }
@@ -133,6 +136,14 @@ Dec:
     | VarDec ASSIGN Exp                     { $$ = Node::create_node_with_children("Dec", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     ;
 
+DefOrExp:
+    Specifier DecList                       { $$ = Node::create_node_with_children("DecOrExp", @$.first_line, DataType::PROD, {$1, $2}); }
+    | Exp                                   { $$ = Node::create_node_with_children("DecOrExp", @$.first_line, DataType::PROD, {$1}); }
+
+MultiExp:
+     Exp                                    { $$ = Node::create_node_with_children("MultiExp", @$.first_line, DataType::PROD, {$1}); }
+    | MultiExp COMMA Exp                   { $$ = Node::create_node_with_children("MultiExp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
+
 /* Expression */
 Exp:
       Exp ASSIGN Exp                        { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
@@ -145,6 +156,8 @@ Exp:
     | Exp NE Exp                            { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     | Exp EQ Exp                            { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     | Exp PLUS Exp                          { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
+    | Exp INCREASE                          { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2}); }
+    | Exp DECREASE                          { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2}); }
     | Exp MINUS Exp                         { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     | Exp MUL Exp                           { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     | Exp DIV Exp                           { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
@@ -155,6 +168,7 @@ Exp:
     | ID LP RP                              { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     | Exp LB Exp RB                         { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3, $4}); }
     | Exp DOT ID                            { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
+    | Exp DEREF ID                          { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     | ID                                    { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }
     | INT                                   { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }
     | FLOAT                                 { $$ = Node::create_node_with_children("Exp", @$.first_line, DataType::PROD, {$1}); }

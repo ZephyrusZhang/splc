@@ -2,19 +2,16 @@
 #define NODE_HPP
 
 #include <iostream>
+#include <cstring>
+#include <memory>
 #include <vector>
 #include <initializer_list>
 #include <stdio.h>
 
-using std::string;
-using std::vector;
-using std::initializer_list;
-using std::cout;
-using std::endl;
 
 #define DEBUG_MARCRO printf("Fuck\n");
 
-string output_path = "";
+std::string output_path = "";
 FILE *output_file;
 int err_count = 0;
 
@@ -31,22 +28,36 @@ enum class DataType
     ERR
 };
 
+class Container {
+    public:
+    virtual ~Container() = 0;
+    Container() = default;
+    static Container* generateContainer(const std::string& token_name, DataType type, const std::string& data) {
+        return nullptr;
+    }
+};
+
 class Node
 {
 public:
 
-    string token_name{};
-    string data{};
+    const std::string token_name{};
+    const std::string data{};
     DataType type{};
     int lineno = 0;
-    Node *parent = nullptr;
-    vector<Node *> children;
+    Node* parent = nullptr;
+    Container* info = nullptr;
+    std::vector<Node*> children;
 
-    Node(string token_name, int lineno, DataType type, string data="")
+    explicit Node() = delete;
+
+    Node(std::string token_name, int lineno, DataType type, std::string data="")
         : token_name(token_name), lineno(lineno), type(type), data(data)
-    {}
+    {
+        info = Container::generateContainer(token_name, type, data);
+    }
 
-    static Node *create_node_with_children(string token_name, int lineno, DataType type, initializer_list<Node *> child_list, string data="")
+    static Node* create_node_with_children(std::string token_name, int lineno, DataType type, std::initializer_list<Node *> child_list, std::string data="")
     {
         Node *parent = new Node(token_name, lineno, type, data);
         for (Node *child : child_list)
@@ -76,36 +87,36 @@ private:
         {
             for (int j = 0; j < depth; j++)
             {
-                cout << "  ";
+                std::cout << "  ";
             }
             if (cur->type == DataType::DTYPE)
             {
-                 cout << ("TYPE: " + cur->data) << endl;
+                 std::cout << ("TYPE: " + cur->data) << std::endl;
             }
             else if (cur->type == DataType::ID)
             {
-                cout << ("ID: " + cur->data) << endl;
+                std::cout << ("ID: " + cur->data) << std::endl;
             }
             else if (cur->type == DataType::INT)
             {
-                cout << ("INT: " + cur->data) << endl;
+                std::cout << ("INT: " + cur->data) << std::endl;
             }
             else if (cur->type == DataType::FLOAT)
             {
-                cout << ("FLOAT: " + cur->data) << endl;
+                std::cout << ("FLOAT: " + cur->data) << std::endl;
             }
             else if (cur->type == DataType::CHAR)
             {
-                cout << ("CHAR: " + cur->data) << endl;
+                std::cout << ("CHAR: " + cur->data) << std::endl;
             }
             else if (cur->type == DataType::STRING)
             {
-                cout << ("STRING: " + cur->data) << endl;
+                std::cout << ("STRING: " + cur->data) << std::endl;
             }
             else
             {
                 
-                cout << cur->token_name << endl;
+                std::cout << cur->token_name << std::endl;
                 
             }
             return;
@@ -115,9 +126,9 @@ private:
         {
             for (int j = 0; j < depth; j++)
             {
-                    cout << "  ";
+                    std::cout << "  ";
             }
-            cout << (cur->token_name  + " " + "(" + std::to_string(cur->lineno) + ")") << endl;
+            std::cout << (cur->token_name  + " " + "(" + std::to_string(cur->lineno) + ")") <<std:: endl;
             for (int i = 0; i < cur->children.size(); i++)
             {
                 recursive_print(cur->children[i], depth + 1);
@@ -133,7 +144,7 @@ void output_tree(Node *root)
     Node::print_tree(root);
 }
 
-void init_args(string file_name)
+void init_args(std::string file_name)
 {
     int index = file_name.find_last_of('.');
     output_path = file_name.substr(0, index + 1) + "out";
@@ -149,7 +160,7 @@ void init_args(string file_name)
     output_file = fopen(output_path.c_str(), "w+");
 }
 
-string get_file_name(string input_file_path)
+std::string get_file_name(std::string input_file_path)
 {
     int index = input_file_path.find_last_of('/');
     return input_file_path.substr(index + 1);

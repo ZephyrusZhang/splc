@@ -1,12 +1,12 @@
 %{
     #define EXIT_OK 0
     #define EXIT_FAIL 1
-    #define YYSTYPE Node *
+    #define YYSTYPE Node*
     #define ret(STMT) STMT
 
     #include <string>
 
-    #include "node.hpp"
+    #include "compiler/node.hpp"
     #include "syntax.tab.h"
 
     int yycolno = 1;
@@ -69,6 +69,9 @@ err-hex-literal     0x[a-fA-F0-9]*[g-zG-Z]+[a-fA-F0-9]*
 err-char            \'(.|(\\x{letter_digit}{1,})|(\\.))\'
 err-identifier      [0-9]+{identifier}
 
+basic-types         (void|char|int|float|double)
+types               ({basic-types}({ws}?\*)?)
+
 %%
 \n                  { lines++; yycolno = 1; }    
 {ws0}               { /**/ }
@@ -85,8 +88,8 @@ err-identifier      [0-9]+{identifier}
 }
 
 {decimal-literal}   { yylval = new Node("INT", yylloc.first_line, DataType::INT, yytext);       return INT; }
-{hex-literal}       { yylval = new Node("INT", yylloc.first_line, DataType::INT, to_string(stol(string(yytext), 0, 16)).c_str()); return INT; }
-{binary-literal}    { yylval = new Node("INT", yylloc.first_line, DataType::INT, to_string(stol(string(yytext), 0, 2)).c_str()); return INT; }
+{hex-literal}       { yylval = new Node("INT", yylloc.first_line, DataType::INT, std::to_string(stol(std::string(yytext), 0, 16)).c_str()); return INT; }
+{binary-literal}    { yylval = new Node("INT", yylloc.first_line, DataType::INT, std::to_string(stol(std::string(yytext), 0, 2)).c_str()); return INT; }
 
 {float-literal}     { yylval = new Node("FLOAT", yylloc.first_line, DataType::FLOAT, yytext);   return FLOAT; }
 {char}              {
@@ -109,8 +112,7 @@ err-identifier      [0-9]+{identifier}
     }
 }
 
-(void|int|float|char)({ws}?\*)? {
-                      yylval = new Node("TYPE", yylloc.first_line, DataType::DTYPE, yytext);    return TYPE; }
+{types}             { yylval = new Node("TYPE", yylloc.first_line, DataType::DTYPE, yytext);    return TYPE; }
 
 struct              { yylval = new Node("STRUCT", yylloc.first_line, DataType::OTHER);          return STRUCT; }
 if                  { yylval = new Node("IF", yylloc.first_line, DataType::OTHER);              return IF; }
@@ -133,7 +135,10 @@ return              { yylval = new Node("RETURN", yylloc.first_line, DataType::O
 "!="                { yylval = new Node("NE", yylloc.first_line, DataType::OTHER);              return NE; }
 "=="                { yylval = new Node("EQ", yylloc.first_line, DataType::OTHER);              return EQ; }
 "+"                 { yylval = new Node("PLUS", yylloc.first_line, DataType::OTHER);            return PLUS; }
+"++"                { yylval = new Node("INCREASE", yylloc.first_line, DataType::OTHER);        return INCREASE; }
 "-"                 { yylval = new Node("MINUS", yylloc.first_line, DataType::OTHER);           return MINUS; }
+"--"                { yylval = new Node("DECREASE", yylloc.first_line, DataType::OTHER);        return DECREASE; }
+"->"                { yylval = new Node("DEREF", yylloc.first_line, DataType::OTHER);           return DEREF; }
 "*"                 { yylval = new Node("MUL", yylloc.first_line, DataType::OTHER);             return MUL; }
 "/"                 { yylval = new Node("DIV", yylloc.first_line, DataType::OTHER);             return DIV; }
 "&"                 { yylval = new Node("AR", yylloc.first_line, DataType::OTHER);              return AR; }
