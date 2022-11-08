@@ -13,7 +13,7 @@
 %locations
 
 %token INT FLOAT CHAR STRING
-%token ID TYPE ERR
+%token ID TYPE ERR POINTER
 %token STRUCT
 %token IF ELSE
 %token WHILE FOR
@@ -65,9 +65,9 @@ ExtDecList:
 
 /* specifier */       
 Specifier:
-      TYPE                                  { $$ = Node::createNodeWithChildren("TYPE", @$.first_line, DataType::PROD, {$1}); }
-    | StructSpecifier                       { $$ = Node::createNodeWithChildren("TypeStruct", @$.first_line, DataType::PROD, {$1}); }
-    | StructSpecifier MUL                   { $$ = Node::createNodeWithChildren("TYPE_STRUCT_PTR", @$.first_line, DataType::PROD, {$1, $2}); }
+      TYPE                                  { $$ = Node::createNodeWithChildren("Specifier", @$.first_line, DataType::PROD, {$1}); }
+    | StructSpecifier                       { $$ = Node::createNodeWithChildren("Specifier", @$.first_line, DataType::PROD, {$1}); }
+    | POINTER                               { $$ = Node::createNodeWithChildren("Specifier", @$.first_line, DataType::PROD, {$1}); }
     ;
 StructSpecifier:
       STRUCT ID LC DefList RC               { $$ = Node::createNodeWithChildren("StructSpecifier", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}); }

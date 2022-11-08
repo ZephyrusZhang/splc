@@ -11,7 +11,7 @@ release:
 	$(FLEX) lex.l
 	$(BISON) -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr
 	mkdir -p bin
-	$(CXX) $(CXX_FLAGS) syntax.tab.c compiler/node.cpp compiler/main.cpp -o bin/$(OUT_NAME)
+	$(CXX) $(CXX_FLAGS) syntax.tab.c compiler/node.cpp compiler/main.cpp compiler/grammar.cpp -o bin/$(OUT_NAME)
 debug: .y .l
 	$(FLEX) lex.l
 	$(BISON) -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr

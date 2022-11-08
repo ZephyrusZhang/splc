@@ -1,22 +1,31 @@
+#ifndef SPLC_TYPE
+#define SPLC_TYPE
 #include <string>
 #include <utility>
+#include <memory>
 
 enum BasicType {
     TypeVoid,
     TypeChar,
     TypeInt,
     TypeFloat,
-    TypeStruct
+    TypeStruct,
+    TypePointer
 };
 
-class Type
-{
+class Type {
 public:
     const std::string name;
     const BasicType type;
-    Type(std::string  name, const BasicType type): name(std::move(name)), type(type) {
+    std::string structName;
+    std::unique_ptr<Type> pointTo;
+
+    Type(std::string name, const BasicType type) : name(std::move(name)), type(type) {
         if (type == BasicType::TypeStruct) {
-            
+            structName = "test";
+        } else if (type == BasicType::TypePointer) {
+
         }
     }
 };
+#endif
