@@ -6,7 +6,7 @@
 
     #include <string>
 
-    #include "compiler/node.h"
+    #include "compiler/Node.h"
     #include "syntax.tab.h"
 
     int yycolno = 1;

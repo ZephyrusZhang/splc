@@ -4,7 +4,7 @@ FLEX=flex
 BISON=bison
 OUT_NAME=splc
 BUILDDIR=build
-SRCS=syntax.tab compiler/container compiler/main compiler/node compiler/specifier compiler/scope
+SRCS=syntax.tab compiler/Container compiler/main compiler/Node compiler/Specifier compiler/Scope compiler/SymbolTable
 OBJS=$(SRCS:%=$(BUILDDIR)/%.o)
 
 ADDRESS_SANITIZER = -O0 -g -fsanitize=address -fno-omit-frame-pointer

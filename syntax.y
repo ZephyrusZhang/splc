@@ -1,6 +1,6 @@
 %{
     #include "lex.yy.c"
-    #include "compiler/node.h"
+    #include "compiler/Node.h"
 
     #define YYINITDEPTH 40960
     #define YYSTACK_ALLOC
