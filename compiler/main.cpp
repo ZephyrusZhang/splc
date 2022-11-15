@@ -1,7 +1,7 @@
 
 #include <cstdlib>
 #include <fstream>
-#include "node.h"
+#include "Node.h"
 #include "../syntax.tab.h"
 
 extern int errCount;

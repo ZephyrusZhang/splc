@@ -1,6 +1,6 @@
 #include <cassert>
-#include "type.h"
-#include "node.h"
+#include "Specifier.h"
+#include "Node.h"
 
 void Specifier::installChild(std::vector<Node *> children) {
 //    assert(node->tokenName == this->name);
@@ -24,9 +24,9 @@ void Specifier::installChild(std::vector<Node *> children) {
         } else throw std::invalid_argument("unexpected specifier, should be pointer");
     } else if (children.size() == 2) {
         assert(children[1]->tokenName == "MUL");
-        assert(children[0]->info);
+        assert(children[0]->container);
         this->type = TypePointer;
-        this->pointTo = children[0]->info->castTo<Specifier>();
+        this->pointTo = children[0]->container->castTo<Specifier>();
     } else throw std::invalid_argument("unexpected specifier");
 }
 

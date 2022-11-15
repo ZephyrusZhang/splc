@@ -1,5 +1,5 @@
-#include "node.h"
-#include "grammar.h"
+#include "Node.h"
+#include "Container.h"
 #include <utility>
 
 void Node::printTree(Node *root, std::ostream& outputStream) {
@@ -45,14 +45,14 @@ Node *Node::createNodeWithChildren(const std::string &tokenName, int lineno, Dat
         child->parent = parent;
         parent->children.push_back(child);
     }
-    if (parent->info) {
-        parent->info->installChild(std::vector(childList));
+    if (parent->container) {
+        parent->container->installChild(std::vector(childList));
     }
     return parent;
 }
 
 Node::Node(std::string tokenName, int lineno, DataType type, std::string data)
         : tokenName(std::move(tokenName)), lineno(lineno), type(type), data(std::move(data)) {
-    info = Container::generateContainer(this);
+    container = Container::generateContainer(this);
 }
 

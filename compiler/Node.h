@@ -33,7 +33,7 @@ public:
     DataType type;
     int lineno;
     Node *parent = nullptr;
-    std::shared_ptr<Container> info;
+    std::shared_ptr<Container> container;
     std::vector<Node *> children;
     explicit Node() = delete;
     Node(std::string tokenName, int lineno, DataType type, std::string data = "");

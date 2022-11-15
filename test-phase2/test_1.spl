@@ -3,7 +3,9 @@ struct qqq {
   float b[12];
 };
 
-int main() {
+int;
+
+int main(int argv, char** argc) {
   int array[114514][0x123];
   struct qqq asd;
   struct qqq* ptr = &asd;

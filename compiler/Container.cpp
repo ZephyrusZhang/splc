@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
-#include "grammar.h"
-#include "type.h"
+#include "Container.h"
+#include "Specifier.h"
 
 std::shared_ptr<Container> Container::generateContainer(const Node *node) {
     const std::string &tokenName = node->tokenName;
@@ -14,8 +14,4 @@ std::shared_ptr<Container> Container::generateContainer(const Node *node) {
 
 const std::string &Container::getTokenName() {
     return node->tokenName;
-}
-
-void Scope::installChild(std::vector<Node *>) {
-
 }

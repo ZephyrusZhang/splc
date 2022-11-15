@@ -4,7 +4,7 @@ FLEX=flex
 BISON=bison
 OUT_NAME=splc
 BUILDDIR=build
-SRCS=syntax.tab compiler/grammar compiler/main compiler/node compiler/type
+SRCS=syntax.tab compiler/container compiler/main compiler/node compiler/specifier compiler/scope
 OBJS=$(SRCS:%=$(BUILDDIR)/%.o)
 
 ADDRESS_SANITIZER = -O0 -g -fsanitize=address -fno-omit-frame-pointer
@@ -20,7 +20,7 @@ syntax.tab.c: syntax.y lex.l
 	@$(BISON) -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr
 
 $(BUILDDIR)/%.o : %.c syntax.tab.c
-	@echo "[g++] $<"
+	@echo "[gcc] $<"
 	@$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 $(BUILDDIR)/%.o : %.cpp syntax.tab.c

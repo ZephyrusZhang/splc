@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 #include <cassert>
-#include "node.h"
+#include "Node.h"
 
 enum class ContainerType {
     Specifier = 0,
@@ -33,18 +33,9 @@ public:
     std::shared_ptr<T> castTo() {
         static_assert(std::is_base_of<Container, T>::value, "T should inherit from Container");
         const ContainerType cType = T::containerType;
-        assert(this->node->info.get() == this);
+        assert(this->node->container.get() == this);
         assert(this->type == cType && "Type Casting Failed");
-        return std::dynamic_pointer_cast<T>(this->node->info);
+        return std::dynamic_pointer_cast<T>(this->node->container);
     }
 };
-
-class Scope : public Container {
-public:
-    static const ContainerType containerType = ContainerType::Scope;
-    explicit Scope(Node * node) : Container(node, containerType) {}
-    ~Scope() override = default;
-    void installChild(std::vector<Node *>) override;
-};
-
 #endif
