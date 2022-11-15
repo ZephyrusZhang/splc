@@ -18,12 +18,13 @@ enum BasicType {
 
 class Specifier : public Container {
 public:
-    const std::string name;
+    static const ContainerType containerType = ContainerType::Specifier;
     BasicType type;
-    std::string structName;
-    std::shared_ptr<Specifier> pointTo;
+    std::string structName; // for structure
+    std::shared_ptr<Specifier> pointTo; // for pointer
 
-    Specifier(std::string name, const BasicType type) : name(std::move(name)), type(type) {
+    explicit Specifier(const Node * node) : Container(node, containerType) {
+        type = TypeUnknown;
     }
     ~Specifier() override = default;
     void installChild(std::vector<Node *> children) override;

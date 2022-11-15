@@ -26,7 +26,7 @@ void Specifier::installChild(std::vector<Node *> children) {
         assert(children[1]->tokenName == "MUL");
         assert(children[0]->info);
         this->type = TypePointer;
-        this->pointTo = std::shared_ptr<Specifier>(dynamic_cast<Specifier *>(children[0]->info.get()));
+        this->pointTo = children[0]->info->castTo<Specifier>();
     } else throw std::invalid_argument("unexpected specifier");
 }
 

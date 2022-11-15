@@ -8,7 +8,6 @@
 #include <memory>
 #include <vector>
 #include <initializer_list>
-#include "grammar.h"
 
 extern std::ofstream outputFile;
 extern int errCount;
@@ -26,7 +25,7 @@ enum class DataType {
     PROD,
     ERR
 };
-
+class Container;
 class Node {
 public:
     const std::string tokenName;

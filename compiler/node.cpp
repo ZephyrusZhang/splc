@@ -53,6 +53,6 @@ Node *Node::createNodeWithChildren(const std::string &tokenName, int lineno, Dat
 
 Node::Node(std::string tokenName, int lineno, DataType type, std::string data)
         : tokenName(std::move(tokenName)), lineno(lineno), type(type), data(std::move(data)) {
-    info = Container::generateContainer(this->tokenName, type, this->data);
+    info = Container::generateContainer(this);
 }
 
