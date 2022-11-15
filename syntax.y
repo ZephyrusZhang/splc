@@ -140,6 +140,7 @@ Dec:
 DefOrExp:
     Specifier DecList                       { $$ = Node::createNodeWithChildren("DecOrExp", @$.first_line, DataType::PROD, {$1, $2}); }
     | Exp                                   { $$ = Node::createNodeWithChildren("DecOrExp", @$.first_line, DataType::PROD, {$1}); }
+    ;
 
 MultiExp:
      Exp                                    { $$ = Node::createNodeWithChildren("MultiExp", @$.first_line, DataType::PROD, {$1}); }
