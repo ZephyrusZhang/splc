@@ -1,6 +1,6 @@
 #include "Dec.h"
 
-void Dec::installChild(std::vector<Node *> children) {
+void Dec::installChild(const std::vector<Node *>& children) {
     if (this->getTokenName() == "VarDec") {
         if (children.size() == 1 && children[0]->tokenName == "ID") {
             this->identifier = std::make_unique<std::string>(children[0]->data);
@@ -26,9 +26,5 @@ void Dec::installChild(std::vector<Node *> children) {
 
 bool Dec::isArray() const noexcept {
     return arraySize && !arraySize->empty();
-}
-
-void Dec::parseTree() {
-
 }
 

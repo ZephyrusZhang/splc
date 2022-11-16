@@ -25,9 +25,9 @@ public:
 
     virtual ~Container() = default;
 
-    virtual void installChild(std::vector<Node *>) = 0;
+    virtual void installChild(const std::vector<Node *> &) = 0;
 
-    const std::string &getTokenName() const noexcept;
+    [[nodiscard]] const std::string &getTokenName() const noexcept;
 
     static std::shared_ptr<Container> generateContainer(const Node *node);
 
@@ -40,4 +40,5 @@ public:
         return std::dynamic_pointer_cast<T>(this->node->container);
     }
 };
+
 #endif

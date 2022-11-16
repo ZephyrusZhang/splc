@@ -5,11 +5,11 @@
 #include <vector>
 #include <iterator>
 
-void Node::printTree(Node *root, std::ostream& outputStream) {
+void Node::printTree(const Node *root, std::ostream& outputStream) {
     recursivePrint(root, 0, outputStream);
 }
 
-void Node::recursivePrint(Node *cur, int depth, std::ostream& outputStream) {
+void Node::recursivePrint(const Node *cur, int depth, std::ostream& outputStream) {
     if (cur->children.empty() && cur->type == DataType::PROD) return;
     if (cur->children.empty()) {
         for (int j = 0; j < depth; j++) {
@@ -49,7 +49,7 @@ Node *Node::createNodeWithChildren(const std::string &tokenName, int lineno, Dat
         parent->children.push_back(child);
     }
     if (parent->container) {
-        parent->container->installChild(std::vector(childList));
+        parent->container->installChild(parent->children);
     }
     return parent;
 }

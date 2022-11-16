@@ -3,7 +3,7 @@
 #include "Node.h"
 #include "Def.h"
 
-void Specifier::installChild(std::vector<Node *> children) {
+void Specifier::installChild(const std::vector<Node *>& children) {
 //    assert(node->tokenName == this->name);
     for (const auto &item: children)
         Node::printTree(item, std::cout);

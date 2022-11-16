@@ -1,7 +1,7 @@
 #include "Scope.h"
 #include "Node.h"
 
-void Scope::installChild(std::vector<Node *>) {
+void Scope::installChild(const std::vector<Node *>& children) {
 
 }
 

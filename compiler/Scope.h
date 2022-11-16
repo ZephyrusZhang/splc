@@ -14,7 +14,7 @@ public:
     static const ContainerType containerType = ContainerType::Scope;
     explicit Scope(Node * node) : Container(node, containerType) {}
     ~Scope() override = default;
-    void installChild(std::vector<Node *>) override;
+    void installChild(const std::vector<Node *>& children) override;
 
     std::shared_ptr<SymbolTable> getSymbol(const std::string identifier);
 };

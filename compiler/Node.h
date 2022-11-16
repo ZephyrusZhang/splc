@@ -38,10 +38,10 @@ public:
     explicit Node() = delete;
     Node(std::string tokenName, int lineno, DataType type, std::string data = "");
     static Node *createNodeWithChildren(const std::string &tokenName, int lineno, DataType type, std::initializer_list<Node *> childList, const std::string &data = "");
-    static void printTree(Node *root, std::ostream& outputStream = outputFile);
+    static void printTree(const Node *root, std::ostream& outputStream = outputFile);
     static std::vector<Node *> convertTreeToVector(const Node * root, const std::string& recursiveName, std::initializer_list<const std::string> acceptItemsToken);
 private:
-    static void recursivePrint(Node *cur, int depth, std::ostream& outputStream);
+    static void recursivePrint(const Node *cur, int depth, std::ostream& outputStream);
 };
 
 

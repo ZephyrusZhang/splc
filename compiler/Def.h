@@ -12,7 +12,7 @@ public:
     Def(const Def& defList) = default;
     Def(const Def&& defList) = delete;
     ~Def() override = default;
-    void installChild(std::vector<Node *> vector) override;
+    void installChild(const std::vector<Node *>& children) override;
 
     std::shared_ptr<Specifier> specifier;
     std::vector<std::shared_ptr<Dec>> declares;

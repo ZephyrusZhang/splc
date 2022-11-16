@@ -32,7 +32,7 @@ public:
     Specifier(const Specifier& copy);
     Specifier(const Specifier&&) = delete;
     ~Specifier() override = default;
-    void installChild(std::vector<Node *> children) override;
+    void installChild(const std::vector<Node *>& children) override;
 
     void parseStruct(Node *pNode);
 };

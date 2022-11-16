@@ -20,8 +20,7 @@ public:
     std::unique_ptr<Node> initialValue;
 
     bool isArray() const noexcept;
-    void installChild(std::vector<Node *> vector) override;
-    void parseTree();
+    void installChild(const std::vector<Node *>& children) override;
 };
 
 
