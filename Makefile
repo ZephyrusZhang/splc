@@ -4,12 +4,12 @@ FLEX=flex
 BISON=bison
 OUT_NAME=splc
 BUILDDIR=build
-SRCS=syntax.tab compiler/Container compiler/main compiler/Node compiler/Specifier compiler/Scope compiler/SymbolTable
+SRCS=syntax.tab compiler/Container compiler/main compiler/Node compiler/Specifier compiler/Scope compiler/SymbolTable compiler/Dec compiler/Def
 OBJS=$(SRCS:%=$(BUILDDIR)/%.o)
 
 ADDRESS_SANITIZER = -O0 -g -fsanitize=address -fno-omit-frame-pointer
-CXX_FLAGS = -std=c++17 -g
-LD_FLAGS  = -lfl -ly
+CXX_FLAGS = -std=c++17 -g $(ADDRESS_SANITIZER)
+LD_FLAGS  = -lfl -ly $(ADDRESS_SANITIZER)
 
 .DEFAULT_GOAL := release
 

@@ -6,6 +6,8 @@
 #include <vector>
 #include "Container.h"
 
+class Def;
+
 enum BasicType {
     TypeUnknown,
     TypeVoid,
@@ -20,12 +22,15 @@ class Specifier : public Container {
 public:
     static const ContainerType containerType = ContainerType::Specifier;
     BasicType type;
-    std::string structName; // for structure
-    std::shared_ptr<Specifier> pointTo; // for pointer
+    // for structure
+    std::string structName; // structure identifer
+    std::unique_ptr<Def> structDefList;
+    // for pointer
+    std::shared_ptr<Specifier> pointTo;
 
-    explicit Specifier(const Node * node) : Container(node, containerType) {
-        type = TypeUnknown;
-    }
+    explicit Specifier(const Node * node);
+    Specifier(const Specifier& copy);
+    Specifier(const Specifier&&) = delete;
     ~Specifier() override = default;
     void installChild(std::vector<Node *> children) override;
 

@@ -10,12 +10,14 @@
 enum class ContainerType {
     Specifier = 0,
     Scope,
+    DefList,
+    Dec,
 };
 
 enum class DataType;
 
 class Container {
-private:
+protected:
     const Node *node;
     const ContainerType type;
 public:
@@ -25,7 +27,7 @@ public:
 
     virtual void installChild(std::vector<Node *>) = 0;
 
-    const std::string &getTokenName();
+    const std::string &getTokenName() const noexcept;
 
     static std::shared_ptr<Container> generateContainer(const Node *node);
 

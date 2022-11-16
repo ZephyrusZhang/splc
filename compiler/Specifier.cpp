@@ -1,6 +1,7 @@
 #include <cassert>
 #include "Specifier.h"
 #include "Node.h"
+#include "Def.h"
 
 void Specifier::installChild(std::vector<Node *> children) {
 //    assert(node->tokenName == this->name);
@@ -20,7 +21,7 @@ void Specifier::installChild(std::vector<Node *> children) {
             this->structName = children[0]->children[1]->data;
             this->type = TypeStruct;
             if (children[0]->children.size() > 2)
-                parseStruct(children[0]->children[2]);
+                parseStruct(children[0]->children[3]);
         } else throw std::invalid_argument("unexpected specifier, should be pointer");
     } else if (children.size() == 2) {
         assert(children[1]->tokenName == "MUL");
@@ -34,4 +35,15 @@ void Specifier::parseStruct(Node *pNode) {
     std::cout << "TODO: parseStruct: " << std::endl;
     Node::printTree(pNode, std::cout);
     // TODO: Parse Struct Node
+}
+
+Specifier::Specifier(const Node *node)  : Container(node, containerType) {
+    type = TypeUnknown;
+}
+
+Specifier::Specifier(const Specifier &copy) : Specifier(copy.node) {
+    this->type = copy.type;
+    this->structName = copy.structName;
+    this->structDefList = std::make_unique<Def>(*copy.structDefList);
+    this->pointTo = copy.pointTo;
 }
