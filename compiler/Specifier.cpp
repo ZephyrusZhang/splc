@@ -31,19 +31,19 @@ void Specifier::installChild(std::vector<Node *> children) {
     } else throw std::invalid_argument("unexpected specifier");
 }
 
-void Specifier::parseStruct(Node *pNode) {
-    std::cout << "TODO: parseStruct: " << std::endl;
-    Node::printTree(pNode, std::cout);
-    // TODO: Parse Struct Node
+void Specifier::parseStruct(Node *defListRoot) {
+//    std::cout << "TODO: parseStruct: " << std::endl;
+//    Node::printTree(pNode, std::cout);
+//     TODO: Parse Struct Node
 }
 
-Specifier::Specifier(const Node *node)  : Container(node, containerType) {
+Specifier::Specifier(const Node *node) : Container(node, containerType) {
     type = TypeUnknown;
 }
 
 Specifier::Specifier(const Specifier &copy) : Specifier(copy.node) {
     this->type = copy.type;
     this->structName = copy.structName;
-    this->structDefList = std::make_unique<Def>(*copy.structDefList);
+    this->structDefList = std::make_unique<std::vector<std::shared_ptr<Def>>>(copy.structDefList.operator*());
     this->pointTo = copy.pointTo;
 }

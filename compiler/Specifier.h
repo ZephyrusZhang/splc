@@ -24,7 +24,7 @@ public:
     BasicType type;
     // for structure
     std::string structName; // structure identifer
-    std::unique_ptr<Def> structDefList;
+    std::unique_ptr<std::vector<std::shared_ptr<Def>>> structDefList;
     // for pointer
     std::shared_ptr<Specifier> pointTo;
 
