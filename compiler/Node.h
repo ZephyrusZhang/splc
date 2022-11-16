@@ -26,6 +26,7 @@ enum class DataType {
     ERR
 };
 class Container;
+class Scope;
 class Node {
 public:
     const std::string tokenName;

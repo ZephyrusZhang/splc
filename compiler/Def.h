@@ -8,7 +8,7 @@
 class Def : public Container {
 public:
     const static ContainerType containerType = ContainerType::DefList;
-    explicit Def(const Node* node);
+    explicit Def(Node* node);
     Def(const Def& defList) = default;
     Def(const Def&& defList) = delete;
     ~Def() override = default;

@@ -1,10 +1,59 @@
 #include "Scope.h"
 #include "Node.h"
+#include "Dec.h"
 
-void Scope::installChild(const std::vector<Node *>& children) {
+std::vector<std::shared_ptr<Scope>> Scope::globalScopes;
+
+void Scope::installChild(const std::vector<Node *> &children) {
 
 }
 
-std::shared_ptr<SymbolTable> Scope::getSymbol(const std::string identifier) {
-    return std::shared_ptr<SymbolTable>();
+bool Scope::isSymbolExists(const std::string &identifier) const {
+    return this->symbols.find(identifier) != this->symbols.end();
+}
+
+void Scope::insertSymbol(const std::string &identifier, const std::shared_ptr<Specifier>& specifier, const std::shared_ptr<Dec>& dec) {
+    assert(!isSymbolExists(identifier));
+    symbols[identifier] = std::make_pair(std::make_pair(specifier, dec), std::vector<SymbolAttribute>{});
+    printSymbolTable();
+}
+
+std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> Scope::lookupSymbol(const std::string &identifier) {
+    assert(!isSymbolExists(identifier));
+    return symbols[identifier].first;
+}
+
+Scope::Scope(Node *node) : Container(node, containerType) {
+
+}
+
+void Scope::onThisInstalled() {
+    // check owner and transfer owner
+    if (node->parent->tokenName == "StructSpecifier") {
+        // drop owner and assert this scope is not changed
+        assert(globalScopes.back().get() == this);
+        globalScopes.pop_back();
+        assert(node->container.use_count() == 1);
+        node->container = nullptr;
+    } else if (node->parent->tokenName == "CompSt") {
+        // transfer owner to CompSt
+        std::cout << "Transfer Scope ownership to CompSt" << std::endl;
+        assert(globalScopes.back().get() == this);
+        globalScopes.pop_back();
+        assert(node->container.use_count() == 1);
+        node->parent->container = std::move(node->container);
+        this->node = node->parent;
+    }
+}
+
+std::shared_ptr<Scope> Scope::getCurrentScope() {
+    assert(!globalScopes.empty());
+    return globalScopes.back();
+}
+
+void Scope::printSymbolTable() {
+    std::cout << "SymbolTable: " << std::endl;
+    for (const auto &item: this->symbols) {
+        std::cout << "\t" << item.first << ": " << *(item.second.first.first) << ", " << *(item.second.first.second) << std::endl;
+    }
 }

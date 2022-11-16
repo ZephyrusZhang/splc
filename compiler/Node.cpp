@@ -4,12 +4,13 @@
 #include <algorithm>
 #include <vector>
 #include <iterator>
+#include "Scope.h"
 
-void Node::printTree(const Node *root, std::ostream& outputStream) {
+void Node::printTree(const Node *root, std::ostream &outputStream) {
     recursivePrint(root, 0, outputStream);
 }
 
-void Node::recursivePrint(const Node *cur, int depth, std::ostream& outputStream) {
+void Node::recursivePrint(const Node *cur, int depth, std::ostream &outputStream) {
     if (cur->children.empty() && cur->type == DataType::PROD) return;
     if (cur->children.empty()) {
         for (int j = 0; j < depth; j++) {
@@ -51,12 +52,15 @@ Node *Node::createNodeWithChildren(const std::string &tokenName, int lineno, Dat
     if (parent->container) {
         parent->container->installChild(parent->children);
     }
+    for (const auto &item: parent->children) {
+        if (item->container) item->container->onThisInstalled();
+    }
     return parent;
 }
 
 Node::Node(std::string tokenName, int lineno, DataType type, std::string data)
         : tokenName(std::move(tokenName)), lineno(lineno), type(type), data(std::move(data)) {
-    container = Container::generateContainer(this);
+    Container::generateContainer(this);
 }
 
 std::vector<Node *>
@@ -66,7 +70,7 @@ Node::convertTreeToVector(const Node *root, const std::string &recursiveName,
     const Node *current = root;
     while (current != nullptr) {
         assert(current->tokenName == recursiveName);
-        const Node * next = nullptr;
+        const Node *next = nullptr;
         for (const auto &child: current->children) {
             const auto shouldAccept = [child](const std::string &str) { return child->tokenName == str; };
             if (std::any_of(acceptItemsToken.begin(), acceptItemsToken.end(), shouldAccept)) {

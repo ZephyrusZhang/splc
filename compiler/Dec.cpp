@@ -1,6 +1,6 @@
 #include "Dec.h"
 
-void Dec::installChild(const std::vector<Node *>& children) {
+void Dec::installChild(const std::vector<Node *> &children) {
     if (this->getTokenName() == "VarDec") {
         if (children.size() == 1 && children[0]->tokenName == "ID") {
             this->identifier = std::make_unique<std::string>(children[0]->data);
@@ -28,3 +28,17 @@ bool Dec::isArray() const noexcept {
     return arraySize && !arraySize->empty();
 }
 
+void Dec::installToSymbolTable(std::shared_ptr<Specifier> &specifier) {
+
+}
+
+std::ostream &operator<<(std::ostream &os, const Dec &dec) {
+    os << "Dec{id:" << *dec.identifier;
+    if (dec.arraySize) {
+        os << " ,arr";
+        for (const auto &item: *dec.arraySize)
+            os << "[" << item << "]";
+    }
+    os << "}";
+    return os;
+}

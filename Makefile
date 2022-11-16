@@ -4,12 +4,13 @@ FLEX=flex
 BISON=bison
 OUT_NAME=splc
 BUILDDIR=build
-SRCS=syntax.tab compiler/Container compiler/main compiler/Node compiler/Specifier compiler/Scope compiler/SymbolTable compiler/Dec compiler/Def
+SRCS=syntax.tab compiler/Container compiler/main compiler/Node compiler/Specifier compiler/Scope compiler/Dec compiler/Def
 OBJS=$(SRCS:%=$(BUILDDIR)/%.o)
 
 ADDRESS_SANITIZER = -O0 -g -fsanitize=address -fno-omit-frame-pointer
-CXX_FLAGS = -std=c++17 -g $(ADDRESS_SANITIZER)
-LD_FLAGS  = -lfl -ly $(ADDRESS_SANITIZER)
+CXXFLAGS := -g $(ADDRESS_SANITIZER)
+CXXFLAGS += -std=c++20
+LDFLAGS  = -lfl -ly $(ADDRESS_SANITIZER)
 
 .DEFAULT_GOAL := release
 
@@ -21,16 +22,16 @@ syntax.tab.c: syntax.y lex.l
 
 $(BUILDDIR)/%.o : %.c syntax.tab.c
 	@echo "[gcc] $<"
-	@$(CXX) $(CXX_FLAGS) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(BUILDDIR)/%.o : %.cpp syntax.tab.c
 	@echo "[g++] $<"
-	@$(CXX) $(CXX_FLAGS) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(OUT_NAME): $(OBJS)
 	@mkdir -p bin
 	@echo "[ld] linking splc"
-	@$(CXX) $(LD_FLAGS) $(OBJS) -o bin/$(OUT_NAME)
+	@$(CXX) $(LDFLAGS) $(OBJS) -o bin/$(OUT_NAME)
 
 release: $(OUT_NAME)
 

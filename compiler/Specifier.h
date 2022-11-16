@@ -9,7 +9,7 @@
 class Def;
 
 enum BasicType {
-    TypeUnknown,
+    TypeUnknown = 0,
     TypeVoid,
     TypeChar,
     TypeInt,
@@ -28,12 +28,14 @@ public:
     // for pointer
     std::shared_ptr<Specifier> pointTo;
 
-    explicit Specifier(const Node * node);
+    explicit Specifier(Node * node);
     Specifier(const Specifier& copy);
     Specifier(const Specifier&&) = delete;
     ~Specifier() override = default;
     void installChild(const std::vector<Node *>& children) override;
 
     void parseStruct(Node *pNode);
+
+    friend std::ostream& operator<<(std::ostream& os, const Specifier& specifier);
 };
 #endif

@@ -5,8 +5,8 @@
 
 void Specifier::installChild(const std::vector<Node *>& children) {
 //    assert(node->tokenName == this->name);
-    for (const auto &item: children)
-        Node::printTree(item, std::cout);
+//    for (const auto &item: children)
+//        Node::printTree(item, std::cout);
     if (children.size() == 1) {
         if (children[0]->tokenName == "TYPE") {
             const auto &t = children[0]->data;
@@ -37,7 +37,7 @@ void Specifier::parseStruct(Node *defListRoot) {
 //     TODO: Parse Struct Node
 }
 
-Specifier::Specifier(const Node *node) : Container(node, containerType) {
+Specifier::Specifier(Node *node) : Container(node, containerType) {
     type = TypeUnknown;
 }
 
@@ -47,3 +47,21 @@ Specifier::Specifier(const Specifier &copy) : Specifier(copy.node) {
     this->structDefList = std::make_unique<std::vector<std::shared_ptr<Def>>>(copy.structDefList.operator*());
     this->pointTo = copy.pointTo;
 }
+
+std::ostream& operator<<(std::ostream& os, const Specifier &specifier) {
+    os << "{";
+    switch (specifier.type) {
+        case TypeUnknown: os << "unknown"; break;
+        case TypeVoid:  os << "void"; break;
+        case TypeChar: os << "char"; break;
+        case TypeInt: os << "int"; break;
+        case TypeFloat: os << "float"; break;
+        case TypeStruct: os << "struct"; break;
+        case TypePointer: os << "point to"; break;
+    }
+    if (specifier.type == TypePointer) os << ": " << *specifier.pointTo;
+    else if (specifier.type == TypeStruct) os << ": " << specifier.structName;
+    os << "}";
+    return os;
+}
+

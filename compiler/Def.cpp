@@ -1,4 +1,5 @@
 #include "Def.h"
+#include "Scope.h"
 
 void Def::installChild(const std::vector<Node *>& children)  {
     assert(children.size() == 3);
@@ -7,11 +8,13 @@ void Def::installChild(const std::vector<Node *>& children)  {
     assert(children[2]->tokenName == "SEMI");
     this->specifier = children[0]->container->castTo<Specifier>();
     parseDecList();
-    for (const auto &item: declares)
-    std::cout << "dec: id:" << *item->identifier << std::endl;
+    // install decs into symbolTable
+    for (const auto &item: this->declares) {
+        Scope::getCurrentScope()->insertSymbol(*item->identifier, this->specifier, item->node->container->castTo<Dec>());
+    }
 }
 
-Def::Def(const Node *node) : Container(node, containerType) {
+Def::Def(Node *node) : Container(node, containerType) {
 
 }
 

@@ -1,14 +1,13 @@
 #ifndef SPLC_DEC_H
 #define SPLC_DEC_H
-
-
+#include "Specifier.h"
 #include "Container.h"
 
 // class Dec can be Dec or VarDec
 class Dec : public Container {
 public:
     const static ContainerType containerType = ContainerType::Dec;
-    explicit Dec(const Node* pNode) : Container(pNode, containerType) {
+    explicit Dec(Node* pNode) : Container(pNode, containerType) {
 
     }
     ~Dec() override = default;
@@ -21,6 +20,9 @@ public:
 
     bool isArray() const noexcept;
     void installChild(const std::vector<Node *>& children) override;
+    void installToSymbolTable(std::shared_ptr<Specifier>& specifier);
+
+    friend std::ostream& operator<<(std::ostream& os, const Dec& dec);
 };
 
 

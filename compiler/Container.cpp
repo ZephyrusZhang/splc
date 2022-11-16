@@ -3,15 +3,20 @@
 #include "Container.h"
 #include "Specifier.h"
 #include "Def.h"
+#include "Scope.h"
 
-std::shared_ptr<Container> Container::generateContainer(const Node *node) {
+std::shared_ptr<Container> Container::generateContainer(Node *node) {
     const std::string &tokenName = node->tokenName;
     if (tokenName == "Specifier") {
-        return std::make_shared<Specifier>(node);
+        node->container = std::make_shared<Specifier>(node);
     } else if (tokenName == "Def") {
-        return std::make_shared<Def>(node);
+        node->container = std::make_shared<Def>(node);
     } else if (tokenName == "VarDec" || tokenName == "Dec") {
-        return std::make_shared<Dec>(node);
+        node->container = std::make_shared<Dec>(node);
+    } else if (tokenName == "LC") {
+        // generate Scope and bind it to '{' when bison meets LC.
+        node->container = std::make_shared<Scope>(node);
+        Scope::globalScopes.push_back(node->container->castTo<Scope>());
     }
     return nullptr;
 }
