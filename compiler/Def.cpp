@@ -11,10 +11,11 @@ void Def::installChild(const std::vector<Node *> &children) {
         parseDecList();
         // install decs into symbolTable
         for (const auto &item: this->declares) {
-            if (checkAlreadyDefined(*item->identifier))
+            if (checkAlreadyDefined(*item->identifier)) {
                 Scope::getCurrentScope()->insertSymbol(*item->identifier, this->specifier,
                                                        item->node->container->castTo<Dec>());
-            Scope::getCurrentScope()->setAttribute(*item->identifier, "type", "variable");
+                Scope::getCurrentScope()->setAttribute(*item->identifier, "type", "variable");
+            }
         }
     } else if (getTokenName() == "ExtDef") {
         // ExtDef
@@ -25,10 +26,11 @@ void Def::installChild(const std::vector<Node *> &children) {
             // install extDecs into symbolTable
             for (const auto &item: this->declares) {
                 const auto id = *item->identifier;
-                if (checkAlreadyDefined(*item->identifier))
-                    Scope::getCurrentScope()
-                    ->insertSymbol(*item->identifier, this->specifier, item->node->container->castTo<Dec>());
-                Scope::getCurrentScope()->setAttribute(*item->identifier, "type", "variable");
+                if (checkAlreadyDefined(*item->identifier)) {
+                    Scope::getCurrentScope()->insertSymbol(*item->identifier, this->specifier,
+                                                           item->node->container->castTo<Dec>());
+                    Scope::getCurrentScope()->setAttribute(*item->identifier, "type", "variable");
+                }
             }
         } else if (children[1]->tokenName == "SEMI") {
             if (this->specifier->type == TypeStruct) {
@@ -36,13 +38,19 @@ void Def::installChild(const std::vector<Node *> &children) {
                     Scope::getCurrentScope()->insertSymbol(this->specifier->structName, this->specifier, nullptr);
                     Scope::getCurrentScope()->setAttribute(this->specifier->structName, "type", "struct");
                 } else {
-                    std::cerr << "Error: struct " << this->specifier->structName << " already defined." << std::endl;
+                    std::cerr << "Type 15 Error" << std::endl;
                 }
             } else {
-                std::cerr << "Warning: useless definition at line " << this->node->lineno << " " << *this->specifier << std::endl;
+                std::cerr << "Warning: useless definition at line " << this->node->lineno << " " << *this->specifier
+                          << std::endl;
             }
         } else if (children[1]->tokenName == "FunDec") {
-
+            const auto &funcDec = children[1]->container->castTo<Dec>();
+            const auto &identifier = *funcDec->identifier;
+            if (checkAlreadyDefined(identifier)) {
+                Scope::getGlobalScope()->insertSymbol(identifier, this->specifier, funcDec);
+                Scope::getGlobalScope()->setAttribute(identifier, "type", "function");
+            }
         }
     }
 }

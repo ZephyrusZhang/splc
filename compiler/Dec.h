@@ -15,12 +15,16 @@ public:
     std::unique_ptr<const std::string> identifier;
     std::unique_ptr<std::vector<int>> arraySize;
 
-    // Only available when Dec -> VarDec ASSIGN Exp
+    // Only available when Dec -> VarDec ASSIGN Exp, Node is an Exp node
     std::unique_ptr<Node> initialValue;
 
-    bool isArray() const noexcept;
+    // Function Dec:
+    typedef std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> ParmaDec;
+    std::unique_ptr<std::vector<ParmaDec>> funcDec;
+
+    [[nodiscard]] bool isFunction() const noexcept;
+    [[nodiscard]] bool isArray() const noexcept;
     void installChild(const std::vector<Node *>& children) override;
-    void installToSymbolTable(std::shared_ptr<Specifier>& specifier);
 
     friend std::ostream& operator<<(std::ostream& os, const Dec& dec);
 };

@@ -34,6 +34,7 @@ public:
     std::string getAttribute(const std::string &identifier, const std::string &key) const;
 
     static std::shared_ptr<Scope> getCurrentScope();
+    static std::shared_ptr<Scope> getGlobalScope();
 
     void printSymbolTable();
 };

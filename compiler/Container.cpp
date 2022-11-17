@@ -11,7 +11,7 @@ std::shared_ptr<Container> Container::generateContainer(Node *node) {
         node->container = std::make_shared<Specifier>(node);
     } else if (tokenName == "Def" || tokenName == "ExtDef") {
         node->container = std::make_shared<Def>(node);
-    } else if (tokenName == "VarDec" || tokenName == "Dec") {
+    } else if (tokenName == "VarDec" || tokenName == "Dec" || tokenName == "FunDec") {
         node->container = std::make_shared<Dec>(node);
     } else if (tokenName == "LC") {
         // generate Scope and bind it to '{' when bison meets LC.

@@ -51,6 +51,11 @@ std::shared_ptr<Scope> Scope::getCurrentScope() {
     return globalScopes.back();
 }
 
+std::shared_ptr<Scope> Scope::getGlobalScope() {
+    assert(!globalScopes.empty());
+    return globalScopes[0];
+}
+
 void Scope::printSymbolTable() {
     std::cout << "SymbolTable: " << std::endl;
     for (const auto &item: this->symbols) {

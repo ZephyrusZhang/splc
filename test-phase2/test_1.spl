@@ -3,9 +3,10 @@ struct qqq {
   float b[12];
 };
 
-struct AAA {
+struct qqq {
     struct AAA {
         int a;
+        char * b;
     } insta;
 };
 int;
