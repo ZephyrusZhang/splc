@@ -21,8 +21,6 @@ private:
     void parseDecList();
 
     void parseExtDecList();
-
-    static bool checkAlreadyDefined(const std::string &identifier);
 };
 
 

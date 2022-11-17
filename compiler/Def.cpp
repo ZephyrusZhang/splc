@@ -11,10 +11,12 @@ void Def::installChild(const std::vector<Node *> &children) {
         parseDecList();
         // install decs into symbolTable
         for (const auto &item: this->declares) {
-            if (checkAlreadyDefined(*item->identifier)) {
+            if (!Scope::getCurrentScope()->isSymbolExists(*item->identifier)) {
                 Scope::getCurrentScope()->insertSymbol(*item->identifier, this->specifier,
                                                        item->node->container->castTo<Dec>());
                 Scope::getCurrentScope()->setAttribute(*item->identifier, "type", "variable");
+            } else {
+                std::cerr << "Error type 3 at line " << this->node->lineno << ": variable " << *item->identifier << " is already defined" << std::endl;
             }
         }
     } else if (getTokenName() == "ExtDef") {
@@ -26,19 +28,21 @@ void Def::installChild(const std::vector<Node *> &children) {
             // install extDecs into symbolTable
             for (const auto &item: this->declares) {
                 const auto id = *item->identifier;
-                if (checkAlreadyDefined(*item->identifier)) {
+                if (!Scope::getCurrentScope()->isSymbolExists(*item->identifier)) {
                     Scope::getCurrentScope()->insertSymbol(*item->identifier, this->specifier,
                                                            item->node->container->castTo<Dec>());
                     Scope::getCurrentScope()->setAttribute(*item->identifier, "type", "variable");
+                } else {
+                    std::cerr << "Error type 3 at line " << this->node->lineno << ": variable " << *item->identifier << " is already defined" << std::endl;
                 }
             }
         } else if (children[1]->tokenName == "SEMI") {
             if (this->specifier->type == TypeStruct) {
-                if (checkAlreadyDefined(this->specifier->structName)) {
+                if (!Scope::getCurrentScope()->isSymbolExists(this->specifier->structName)) {
                     Scope::getCurrentScope()->insertSymbol(this->specifier->structName, this->specifier, nullptr);
                     Scope::getCurrentScope()->setAttribute(this->specifier->structName, "type", "struct");
                 } else {
-                    std::cerr << "Type 15 Error" << std::endl;
+                    std::cerr << "Error type 15 at line " << this->node->lineno << ": structure " << this->specifier->structName << " is already defined" << std::endl;
                 }
             } else {
                 std::cerr << "Warning: useless definition at line " << this->node->lineno << " " << *this->specifier
@@ -47,9 +51,11 @@ void Def::installChild(const std::vector<Node *> &children) {
         } else if (children[1]->tokenName == "FunDec") {
             const auto &funcDec = children[1]->container->castTo<Dec>();
             const auto &identifier = *funcDec->identifier;
-            if (checkAlreadyDefined(identifier)) {
+            if (!Scope::getGlobalScope()->isSymbolExists(identifier)) {
                 Scope::getGlobalScope()->insertSymbol(identifier, this->specifier, funcDec);
                 Scope::getGlobalScope()->setAttribute(identifier, "type", "function");
+            } else {
+                std::cerr << "Error type 4 at line " << this->node->lineno << ": function " << identifier << " is already defined" << std::endl;
             }
         }
     }
@@ -73,15 +79,4 @@ void Def::parseExtDecList() {
     for (const auto &item: extDecNodes) {
         this->declares.push_back(item->container->castTo<Dec>());
     }
-}
-
-bool Def::checkAlreadyDefined(const std::string &identifier) {
-    if (Scope::getCurrentScope()->isSymbolExists(identifier)) {
-        auto predefined = Scope::getCurrentScope()->lookupSymbol(identifier);
-        std::cerr << "Error: identifier " << identifier
-                  << " is already defined at line " << predefined.first->node->lineno
-                  << ": " << predefined << std::endl;
-        return false;
-    }
-    return true;
 }
