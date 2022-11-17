@@ -1,4 +1,5 @@
 #include "Dec.h"
+#include "Scope.h"
 
 void Dec::installChild(const std::vector<Node *> &children) {
     if (this->getTokenName() == "VarDec") {
@@ -23,21 +24,20 @@ void Dec::installChild(const std::vector<Node *> &children) {
         // contains initialValue
     } else if (this->getTokenName() == "FunDec") {
         this->identifier = std::make_unique<const std::string>(children[0]->data);
-        this->funcDec = std::make_unique<std::vector<Dec::ParmaDec>>();
         if (children.size() == 4) {
+            // parse function args and insert into symbol table
             assert(children[2]->tokenName == "VarList");
+            assert(Scope::getCurrentScope()->generateWithToken == "FunDec");
             auto parmadecs = Node::convertTreeToVector(children[2], "VarList", {"ParamDec"});
             for (const auto &item: parmadecs) {
                 assert(item->children.size() == 2);
                 assert(item->children[0]->tokenName == "Specifier" && item->children[1]->tokenName == "VarDec");
-                this->funcDec->emplace_back(item->children[0]->container->castTo<Specifier>(),
-                                            item->children[1]->container->castTo<Dec>());
+                auto& id = *item->children[1]->container->castTo<Dec>()->identifier;
+                Scope::getCurrentScope()->insertSymbol(id,
+                                                       item->children[0]->container->castTo<Specifier>(),
+                                                       item->children[1]->container->castTo<Dec>());
+                Scope::getCurrentScope()->setAttribute(id, "type", "arg");
             }
-        }
-        // install FunDec to SymbolTable
-        std::cout << "FunDec: id:" << *this->identifier << std::endl;
-        for (const auto &item: *this->funcDec) {
-            std::cout << "\t" << *item.first << ": " << *item.second << std::endl;
         }
     } else throw std::runtime_error("bad Type in Dec: " + this->getTokenName());
 }
@@ -58,8 +58,4 @@ std::ostream &operator<<(std::ostream &os, const Dec &dec) {
     }
     os << "}";
     return os;
-}
-
-bool Dec::isFunction() const noexcept {
-    return !this->funcDec->empty();
 }

@@ -2,11 +2,7 @@
 #include "Node.h"
 #include "Dec.h"
 
-std::vector<std::shared_ptr<Scope>> Scope::globalScopes{std::make_shared<Scope>(nullptr)};
-
-void Scope::installChild(const std::vector<Node *> &children) {
-
-}
+std::vector<std::shared_ptr<Scope>> Scope::globalScopes{std::make_shared<Scope>(nullptr, "Global")};
 
 bool Scope::isSymbolExists(const std::string &identifier) const {
     return this->symbols.find(identifier) != this->symbols.end();
@@ -16,21 +12,20 @@ void Scope::insertSymbol(const std::string &identifier, const std::shared_ptr<Sp
                          const std::shared_ptr<Dec> &dec) {
     assert(!isSymbolExists(identifier));
     // Set Specifier::isArray
-    specifier->isArray = dec->isArray();
+    specifier->isArray = dec && dec->isArray();
     symbols[identifier] = std::make_pair(std::make_pair(specifier, dec), std::vector<SymbolAttribute>{});
-    printSymbolTable();
 }
 
 bool Scope::isSymbolExistsRecursively(const std::string &identifier) const {
-    const Scope* current = this;
-    while(current != nullptr && !current->isSymbolExists(identifier))
+    const Scope *current = this;
+    while (current != nullptr && !current->isSymbolExists(identifier))
         current = current->parentScope.get();
     return current != nullptr;
 }
 
 std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> Scope::lookupSymbol(const std::string &identifier) {
-    Scope* current = this;
-    while(current != nullptr && !current->isSymbolExists(identifier))
+    Scope *current = this;
+    while (current != nullptr && !current->isSymbolExists(identifier))
         current = current->parentScope.get();
     assert(current != nullptr);
     return current->symbols[identifier].first;
@@ -41,21 +36,27 @@ Scope::Scope(Node *node) : Container(node, containerType) {
     parentScope = globalScopes.back();
 }
 
+Scope::Scope(Node *node, const std::string &generateWithToken) : Scope(node) {
+    this->generateWithToken = generateWithToken;
+}
+
 void Scope::onThisInstalled() {
-    // check owner and transfer owner
-    if (node->parent->tokenName == "StructSpecifier") {
-        // drop owner and assert this scope is not changed
-        assert(globalScopes.back().get() == this);
-        globalScopes.pop_back();
-        node->container = nullptr;
-    } else if (node->parent->tokenName == "CompSt") {
-        // transfer owner to CompSt
-        std::cout << "Transfer Scope ownership to CompSt " << node->tokenName << std::endl;
-        assert(globalScopes.back().get() == this);
-        globalScopes.pop_back();
-        node->parent->container = std::move(node->container);
-        this->node = node->parent;
+    // When LC is reduced into CompSt/StructSpecifier, pop myself from globalScopes;
+    if (generateWithToken == "LC" && node != nullptr) {
+        if (node->parent->tokenName == "StructSpecifier") {
+            // drop owner for Struct->LC, and delete myself
+            assert(globalScopes.back().get() == this);
+            node->container = nullptr;
+            node = nullptr;
+            // Release ownership of this Scope.
+            // This Scope should be deleted
+        }
     }
+    globalScopes.pop_back();
+}
+
+void Scope::installChild(const std::vector<Node *> &children) {
+
 }
 
 std::shared_ptr<Scope> Scope::getCurrentScope() {
@@ -69,11 +70,14 @@ std::shared_ptr<Scope> Scope::getGlobalScope() {
 }
 
 void Scope::printSymbolTable() {
-    std::cout << "SymbolTable: " << std::endl;
+    std::cout << "SymbolTable for token " << this->generateWithToken << ":" << std::endl;
     for (const auto &item: this->symbols) {
         std::cout << "\t" << item.first << ": " << *(item.second.first.first);
         if (item.second.first.second)
             std::cout << ", " << *(item.second.first.second);
+        std::cout << "\n\t\tAttrs: ";
+        for (const auto &attr: item.second.second)
+            std::cout << "{" << attr.first << ":" << attr.second << "} ";
         std::cout << std::endl;
     }
 }
@@ -81,6 +85,7 @@ void Scope::printSymbolTable() {
 void Scope::setAttribute(const std::string &identifier, const std::string &key, const std::string &value) {
     assert(isSymbolExists(identifier));
     symbols[identifier].second.emplace_back(key, value);
+    printSymbolTable();
 }
 
 std::string Scope::getAttribute(const std::string &identifier, const std::string &key) const {

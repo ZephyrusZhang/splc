@@ -18,9 +18,11 @@ public:
     const static ContainerType containerType = ContainerType::Scope;
     static std::vector<std::shared_ptr<Scope>> globalScopes;
 
+    std::string generateWithToken;
     std::shared_ptr<Scope> parentScope;
 
     explicit Scope(Node * node);
+    explicit Scope(Node * node, const std::string& generateWithToken);
     ~Scope() override {
         std::cout << "delete Scope!" << std::endl;
     };

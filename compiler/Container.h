@@ -29,7 +29,7 @@ public:
 
     ContainerType getContainerType() { return this->type; }
     [[nodiscard]] const std::string &getTokenName() const noexcept;
-    static std::shared_ptr<Container> generateContainer(Node *node);
+    static void generateContainer(Node *node);
 
     template<typename T>
     std::shared_ptr<T> castTo() {
