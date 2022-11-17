@@ -51,14 +51,14 @@ void Def::installChild(const std::vector<Node *> &children) {
             }
         } else if (children[1]->tokenName == "FunDec") {
             // insert function definition.
-            const auto &funcDec = children[1]->container->castTo<Dec>();
-            const auto &identifier = *funcDec->identifier;
-            if (!Scope::getGlobalScope()->isSymbolExists(identifier)) {
-                Scope::getGlobalScope()->insertSymbol(identifier, this->specifier, funcDec);
-                Scope::getGlobalScope()->setAttribute(identifier, "type", "function");
-            } else {
-                std::cerr << "Error type 4 at line " << this->node->lineno << ": function " << identifier << " is already defined" << std::endl;
-            }
+//            const auto &funcDec = children[1]->container->castTo<Dec>();
+//            const auto &identifier = *funcDec->identifier;
+//            if (!Scope::getGlobalScope()->isSymbolExists(identifier)) {
+//                Scope::getGlobalScope()->insertSymbol(identifier, this->specifier, funcDec);
+//                Scope::getGlobalScope()->setAttribute(identifier, "type", "function");
+//            } else {
+//                std::cerr << "Error type 4 at line " << this->node->lineno << ": function " << identifier << " is already defined" << std::endl;
+//            }
         }
     } else if (getTokenName() == "DefOrExp") {
         if (children.size() == 2 && children[1]->tokenName == "DecList") {

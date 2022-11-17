@@ -10,6 +10,7 @@
 
     extern Node* root;
     int errCount = 0;
+    Node** yystack;
 %}
 %locations
 
@@ -82,8 +83,8 @@ VarDec:
     | ERR                                   { outputFile << "Error type B at Line " << @$.first_line << ": bad identifier\n" << std::endl; errCount++; }
     ;
 FunDec:
-      ID LP VarList RP                      { $$ = Node::createNodeWithChildren("FunDec", @$.first_line, DataType::PROD, {$1, $2, $3, $4}); }
-    | ID LP RP                              { $$ = Node::createNodeWithChildren("FunDec", @$.first_line, DataType::PROD, {$1, $2, $3}); }
+      ID LP VarList RP                      { yystack = yyvsp; $$ = Node::createNodeWithChildren("FunDec", @$.first_line, DataType::PROD, {$1, $2, $3, $4}); }
+    | ID LP RP                              { yystack = yyvsp; $$ = Node::createNodeWithChildren("FunDec", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     | ID LP error                           { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')'" << std::endl; errCount++; }
     | ID LP VarList error                   { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')'" << std::endl; errCount++; }
     ;

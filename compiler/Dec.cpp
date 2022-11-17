@@ -28,6 +28,9 @@ void Dec::installChild(const std::vector<Node *> &children) {
     } else if (this->getTokenName() == "FunDec") {
         this->identifier = std::make_unique<const std::string>(children[0]->data);
         this->funcDec = std::make_unique<std::vector<ParmaDec>>();
+        extern Node **yystack;
+        Node *specifierNode = yystack[-children.size()];
+        assert(specifierNode->tokenName == "Specifier");
         if (children.size() == 4) {
             // parse function args and insert into symbol table
             assert(children[2]->tokenName == "VarList");
@@ -39,12 +42,21 @@ void Dec::installChild(const std::vector<Node *> &children) {
             for (const auto &item: parmadecs) {
                 assert(item->children.size() == 2);
                 assert(item->children[0]->tokenName == "Specifier" && item->children[1]->tokenName == "VarDec");
-                auto& id = *item->children[1]->container->castTo<Dec>()->identifier;
+                auto &id = *item->children[1]->container->castTo<Dec>()->identifier;
                 Scope::getCurrentScope()->insertSymbol(id,
                                                        item->children[0]->container->castTo<Specifier>(),
                                                        item->children[1]->container->castTo<Dec>());
                 Scope::getCurrentScope()->setAttribute(id, "type", "arg");
             }
+        }
+        // insert function definition even when CompSt is not reduced in grammar "ExtDef -> Specifier FunDec CompSt".
+        // we stole Specifier from bison's stack yyvsp.
+        if (!Scope::getGlobalScope()->isSymbolExists(*identifier)) {
+            Scope::getGlobalScope()->insertSymbol(*identifier, specifierNode->container->castTo<Specifier>(), castTo<Dec>());
+            Scope::getGlobalScope()->setAttribute(*identifier, "type", "function");
+        } else {
+            std::cerr << "Error type 4 at line " << this->node->lineno << ": function " << *identifier
+                      << " is already defined" << std::endl;
         }
     } else throw std::runtime_error("bad Type in Dec: " + this->getTokenName());
 }

@@ -19,9 +19,6 @@ struct case1 {
     struct qqq a;
 };
 
-void test(int i, char**c) {
-
-}
 
 int main(int argv, char** argc) {
   int array[114514][0x123], basd[999], cc;
@@ -40,9 +37,9 @@ int main(int argv, char** argc) {
         int c = 1234;
         c++;
         ptr->a[0] = 12;
-        test(0, ss);
+        main(0, ss);
         char * StrArr[10];
-        test(114514, c);
+        main(114514, c);
     }
   }
   return 0;
