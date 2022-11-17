@@ -4,7 +4,7 @@ FLEX=flex
 BISON=bison
 OUT_NAME=splc
 BUILDDIR=build
-SRCS=syntax.tab compiler/Container compiler/main compiler/Node compiler/Specifier compiler/Scope compiler/Dec compiler/Def
+SRCS=syntax.tab compiler/Container compiler/main compiler/Node compiler/Specifier compiler/Scope compiler/Dec compiler/Def compiler/Exp
 OBJS=$(SRCS:%=$(BUILDDIR)/%.o)
 
 ADDRESS_SANITIZER = -O0 -g -fsanitize=address -fno-omit-frame-pointer
@@ -14,19 +14,23 @@ LDFLAGS  = -lfl -ly $(ADDRESS_SANITIZER)
 
 .DEFAULT_GOAL := release
 
-syntax.tab.c: syntax.y lex.l
+bison: syntax.y lex.l
 	@echo "[flex] $<"
-	@$(FLEX) lex.l
+	@$(FLEX) -o build/lex.yy.c lex.l
 	@echo "[bison] $<"
-	@$(BISON) -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr
+	@$(BISON) -o build/syntax.tab.c -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr
 
-$(BUILDDIR)/%.o : %.c syntax.tab.c
+build/syntax.tab.o: bison
+	@echo "[g++] syntax.tab.c"
+	@$(CXX) $(CXXFLAGS) -I. -c build/syntax.tab.c -o build/syntax.tab.o
+
+$(BUILDDIR)/%.o : %.c bison
 	@echo "[gcc] $<"
-	@$(CXX) $(CXXFLAGS) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) -Ibuild -c $< -o $@
 
-$(BUILDDIR)/%.o : %.cpp syntax.tab.c
+$(BUILDDIR)/%.o : %.cpp bison
 	@echo "[g++] $<"
-	@$(CXX) $(CXXFLAGS) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) -Ibuild -c $< -o $@
 
 $(OUT_NAME): $(OBJS)
 	@mkdir -p bin

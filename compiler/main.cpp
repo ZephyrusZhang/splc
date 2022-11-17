@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <fstream>
 #include "Node.h"
-#include "../syntax.tab.h"
+#include "syntax.tab.h"
 
 extern int errCount;
 extern FILE *yyin, *yyout;

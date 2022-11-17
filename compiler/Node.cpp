@@ -5,6 +5,7 @@
 #include <vector>
 #include <iterator>
 #include "Scope.h"
+#include "Exp.h"
 
 void Node::printTree(const Node *root, std::ostream &outputStream) {
     recursivePrint(root, 0, outputStream);
@@ -57,6 +58,21 @@ Node *Node::createNodeWithChildren(const std::string &tokenName, int lineno, Dat
     }
     return parent;
 }
+
+Node *Node::createExpNodeWithChildren(const std::string &tokenName, int lineno, ExpType expType,
+                                      std::initializer_list<Node *> childList) {
+    Node *parent = new Node(tokenName, lineno, DataType::PROD, "");
+    for (Node *child: childList) {
+        child->parent = parent;
+        parent->children.push_back(child);
+    }
+    parent->container = std::make_shared<Exp>(parent, expType);
+    parent->container->installChild(parent->children);
+    for (const auto &item: parent->children) {
+        if (item->container) item->container->onThisInstalled();
+    }
+    return parent;}
+
 
 Node::Node(std::string tokenName, int lineno, DataType type, std::string data)
         : tokenName(std::move(tokenName)), lineno(lineno), type(type), data(std::move(data)) {
