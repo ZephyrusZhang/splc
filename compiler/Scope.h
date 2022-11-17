@@ -6,14 +6,16 @@
 #include "Node.h"
 #include "Container.h"
 #include "Specifier.h"
+#include "CompoundType.h"
 
 class Dec;
 class Scope : public Container {
 public:
-    typedef std::pair<std::string, std::string> SymbolAttribute;
-    typedef std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> SymbolType;
+    typedef std::map<std::string, std::string> SymbolAttribute;
+    typedef std::shared_ptr<CompoundType> SymbolType;
 private:
-    std::map<std::string, std::pair<SymbolType, std::vector<SymbolAttribute>>> symbols;
+    std::map<std::string, std::pair<SymbolType, SymbolAttribute>> symbols;
+    std::map<std::string, SymbolType> symbolAttributes;
 public:
     const static ContainerType containerType = ContainerType::Scope;
     static std::vector<std::shared_ptr<Scope>> globalScopes;

@@ -12,7 +12,10 @@ void Dec::installChild(const std::vector<Node *> &children) {
             this->identifier = std::move(parent->identifier);
             if (parent->arraySize) this->arraySize = std::move(parent->arraySize);
             else this->arraySize = std::make_unique<std::vector<int>>();
-            this->arraySize->push_back(std::stoi(children[2]->data));
+            int arrSize = std::stoi(children[2]->data);
+            if (arrSize <= 0)
+                std::cerr << "Error: Array Size " << arrSize << " is invalid at " << node->lineno << std::endl;
+            this->arraySize->push_back(arrSize);
         }
     } else if (this->getTokenName() == "Dec") {
         assert(children[0]->tokenName == "VarDec");
@@ -24,11 +27,15 @@ void Dec::installChild(const std::vector<Node *> &children) {
         // contains initialValue
     } else if (this->getTokenName() == "FunDec") {
         this->identifier = std::make_unique<const std::string>(children[0]->data);
+        this->funcDec = std::make_unique<std::vector<ParmaDec>>();
         if (children.size() == 4) {
             // parse function args and insert into symbol table
             assert(children[2]->tokenName == "VarList");
             assert(Scope::getCurrentScope()->generateWithToken == "FunDec");
             auto parmadecs = Node::convertTreeToVector(children[2], "VarList", {"ParamDec"});
+            for (const auto &item: parmadecs) {
+                funcDec->emplace_back(item->children[0]->container->castTo<Specifier>(), item->children[1]->container->castTo<Dec>());
+            }
             for (const auto &item: parmadecs) {
                 assert(item->children.size() == 2);
                 assert(item->children[0]->tokenName == "Specifier" && item->children[1]->tokenName == "VarDec");

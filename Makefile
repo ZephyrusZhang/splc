@@ -4,7 +4,7 @@ FLEX=flex
 BISON=bison
 OUT_NAME=bin/splc
 BUILDDIR=build
-SRCS=syntax.tab compiler/Container compiler/main compiler/Node compiler/Specifier compiler/Scope compiler/Dec compiler/Def compiler/Exp
+SRCS=syntax.tab compiler/Container compiler/main compiler/Node compiler/Specifier compiler/Scope compiler/Dec compiler/Def compiler/Exp compiler/CompoundType
 OBJS=$(SRCS:%=$(BUILDDIR)/%.o)
 
 ADDRESS_SANITIZER = -O0 -g -fsanitize=address -fno-omit-frame-pointer

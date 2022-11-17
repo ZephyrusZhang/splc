@@ -2,7 +2,7 @@
 #define SPLC_EXP_H
 #include "Container.h"
 #include "Node.h"
-#include "Specifier.h"
+#include "CompoundType.h"
 
 enum class ValueType {
     Unknown,
@@ -13,7 +13,7 @@ enum class ValueType {
 class Exp : public Container {
 private:
     ValueType valueType = ValueType::Unknown;
-    std::shared_ptr<Specifier> expSpecifier;
+    std::shared_ptr<const CompoundType> expCompoundType;
 public:
     const static ContainerType containerType = ContainerType::Exp;
     ExpType expType;

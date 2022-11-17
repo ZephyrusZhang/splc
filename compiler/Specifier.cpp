@@ -32,9 +32,11 @@ void Specifier::installChild(const std::vector<Node *>& children) {
 }
 
 void Specifier::parseStruct(Node *defListRoot) {
-//    std::cout << "TODO: parseStruct: " << std::endl;
-//    Node::printTree(pNode, std::cout);
-//     TODO: Parse Struct Node
+    auto defs = Node::convertTreeToVector(defListRoot, "DefList", {"Def"});
+    this->structDefList = std::make_unique<std::vector<std::shared_ptr<Def>>>();
+    for (const auto &item: defs) {
+        this->structDefList->push_back(item->container->castTo<Def>());
+    }
 }
 
 Specifier::Specifier(Node *node) : Container(node, containerType) {

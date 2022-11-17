@@ -18,6 +18,10 @@ public:
     // Only available when Dec -> VarDec ASSIGN Exp, Node is an Exp node
     std::unique_ptr<Node> initialValue;
 
+    // Function Dec:
+    typedef std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> ParmaDec;
+    std::unique_ptr<std::vector<ParmaDec>> funcDec;
+
     [[nodiscard]] bool isArray() const noexcept;
     void installChild(const std::vector<Node *>& children) override;
 
