@@ -27,6 +27,8 @@ public:
     std::unique_ptr<std::vector<std::shared_ptr<Def>>> structDefList;
     // for pointer
     std::shared_ptr<Specifier> pointTo;
+    // set this isArray field when insertSymbol, easier to do type checking
+    bool isArray = false;
 
     explicit Specifier(Node * node);
     Specifier(const Specifier& copy);

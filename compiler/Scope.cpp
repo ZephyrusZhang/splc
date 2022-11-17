@@ -15,13 +15,25 @@ bool Scope::isSymbolExists(const std::string &identifier) const {
 void Scope::insertSymbol(const std::string &identifier, const std::shared_ptr<Specifier> &specifier,
                          const std::shared_ptr<Dec> &dec) {
     assert(!isSymbolExists(identifier));
+    // Set Specifier::isArray
+    specifier->isArray = dec->isArray();
     symbols[identifier] = std::make_pair(std::make_pair(specifier, dec), std::vector<SymbolAttribute>{});
     printSymbolTable();
 }
 
+bool Scope::isSymbolExistsRecursively(const std::string &identifier) const {
+    const Scope* current = this;
+    while(current != nullptr && !current->isSymbolExists(identifier))
+        current = current->parentScope.get();
+    return current != nullptr;
+}
+
 std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> Scope::lookupSymbol(const std::string &identifier) {
-    assert(isSymbolExists(identifier));
-    return symbols[identifier].first;
+    Scope* current = this;
+    while(current != nullptr && !current->isSymbolExists(identifier))
+        current = current->parentScope.get();
+    assert(current != nullptr);
+    return current->symbols[identifier].first;
 }
 
 Scope::Scope(Node *node) : Container(node, containerType) {

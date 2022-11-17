@@ -28,8 +28,9 @@ public:
     void onThisInstalled() override;
 
     bool isSymbolExists(const std::string& identifier) const;
+    bool isSymbolExistsRecursively(const std::string& identifier) const;
     void insertSymbol(const std::string &identifier, const std::shared_ptr<Specifier>& specifier, const std::shared_ptr<Dec>& dec);
-    std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> lookupSymbol(const std::string &identifier);
+    SymbolType lookupSymbol(const std::string &identifier);
     void setAttribute(const std::string &identifier, const std::string &key, const std::string& value);
     std::string getAttribute(const std::string &identifier, const std::string &key) const;
 
