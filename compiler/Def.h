@@ -5,6 +5,7 @@
 #include "Specifier.h"
 #include "Dec.h"
 
+// Def instance could be ExtDef and Def in grammar
 class Def : public Container {
 public:
     const static ContainerType containerType = ContainerType::DefList;
@@ -18,6 +19,10 @@ public:
     std::vector<std::shared_ptr<Dec>> declares;
 private:
     void parseDecList();
+
+    void parseExtDecList();
+
+    static bool checkAlreadyDefined(const std::string &identifier);
 };
 
 

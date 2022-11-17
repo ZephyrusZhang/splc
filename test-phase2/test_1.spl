@@ -3,12 +3,19 @@ struct qqq {
   float b[12];
 };
 
+struct AAA {
+    struct AAA {
+        int a;
+    } insta;
+};
 int;
 
 int main(int argv, char** argc) {
   int array[114514][0x123], basd[999], cc;
   struct qqq asd;
   struct qqq* ptr = &asd;
+  ptr = NULL;
+  char * asd;
   for (int i=0,j=1;i<123;i++,j++) {
     char * b = "asdasd";
     char ** ss = &b;

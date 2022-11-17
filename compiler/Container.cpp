@@ -9,7 +9,7 @@ std::shared_ptr<Container> Container::generateContainer(Node *node) {
     const std::string &tokenName = node->tokenName;
     if (tokenName == "Specifier") {
         node->container = std::make_shared<Specifier>(node);
-    } else if (tokenName == "Def") {
+    } else if (tokenName == "Def" || tokenName == "ExtDef") {
         node->container = std::make_shared<Def>(node);
     } else if (tokenName == "VarDec" || tokenName == "Dec") {
         node->container = std::make_shared<Dec>(node);

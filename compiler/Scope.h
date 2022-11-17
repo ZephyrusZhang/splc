@@ -9,9 +9,10 @@
 
 class Dec;
 class Scope : public Container {
-private:
+public:
     typedef std::pair<std::string, std::string> SymbolAttribute;
     typedef std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> SymbolType;
+private:
     std::map<std::string, std::pair<SymbolType, std::vector<SymbolAttribute>>> symbols;
 public:
     const static ContainerType containerType = ContainerType::Scope;
@@ -29,13 +30,13 @@ public:
     bool isSymbolExists(const std::string& identifier) const;
     void insertSymbol(const std::string &identifier, const std::shared_ptr<Specifier>& specifier, const std::shared_ptr<Dec>& dec);
     std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> lookupSymbol(const std::string &identifier);
-    void setAttribute(const std::string &identifier, const std::string &key, const std::string value);
+    void setAttribute(const std::string &identifier, const std::string &key, const std::string& value);
     std::string getAttribute(const std::string &identifier, const std::string &key) const;
 
     static std::shared_ptr<Scope> getCurrentScope();
 
     void printSymbolTable();
 };
-
+std::ostream& operator<<(std::ostream& os, Scope::SymbolType& symbolType);
 
 #endif //SPLC_SCOPE_H

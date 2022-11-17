@@ -33,6 +33,9 @@ void Dec::installToSymbolTable(std::shared_ptr<Specifier> &specifier) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Dec &dec) {
+    if (!dec.identifier) {
+        return os;
+    }
     os << "Dec{id:" << *dec.identifier;
     if (dec.arraySize) {
         os << " ,arr";
