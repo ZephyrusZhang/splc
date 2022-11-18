@@ -19,12 +19,12 @@ public:
     typedef std::pair<std::string, CompoundType> StructDefList;
     std::shared_ptr<std::vector<StructDefList>> structDefLists;
     // for function definition:
-    std::unique_ptr<std::vector<CompoundType>> funcArgs;
+    std::shared_ptr<std::vector<CompoundType>> funcArgs;
 
     explicit CompoundType(const Specifier& specifier);
     explicit CompoundType(const Specifier& specifier, const Dec& dec);
 
-    CompoundType(const CompoundType& compoundType) = delete;
+    CompoundType(const CompoundType& compoundType) = default;
     CompoundType(CompoundType&& compoundType) = default;
     CompoundType& operator=(const CompoundType& compoundType) = delete;
     CompoundType& operator=(CompoundType&& compoundType) = default;
@@ -36,6 +36,8 @@ public:
     bool canDoArithmetic() const;
     bool canDoBoolean() const;
     bool canCompare() const;
+
+    static bool canAssignment(const CompoundType& left, const CompoundType& right);
 };
 
 #endif //SPLC_COMPOUNDTYPE_H

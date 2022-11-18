@@ -20,6 +20,8 @@ public:
     explicit Exp(Node *node, ExpType expType);
     ~Exp() override = default;
 
+    [[nodiscard]] const CompoundType &getCompoundType() const;
+
     void installChild(const std::vector<Node *> &vector) override;
 };
 

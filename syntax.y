@@ -31,7 +31,7 @@
 %token RP RB RC
 
 %right ASSIGN
-%left PTRACS
+%left PTRACS DOT
 %left INCREASE DECREASE
 %left OR
 %left AND
@@ -40,7 +40,7 @@
 %left PLUS MINUS
 %left MUL DIV
 %right NOT ADDROF
-%left LP RP LB RB DOT
+%left LP RP LB RB
 
 %nonassoc LOWER_ELSE
 %nonassoc ELSE
@@ -182,7 +182,7 @@ Exp:
     | Exp PTRACS ID                         { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::PTR_ACCESS, {$1, $2, $3}); }
     | ADDROF Exp                            { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::ADDRESS_OF, {$1, $2}); }
     | MUL Exp                               { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::DEREF, {$1, $2}); }
-    | LP Specifier RP Exp                   { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::TYPE_CAST, {$1, $2}); }
+    | LP Specifier RP Exp                   { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::TYPE_CAST, {$1, $2, $3, $4}); }
     | LP Exp error                          { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')'" << std::endl; errCount++; }
     | ID LP Args error                      { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')''" << std::endl; errCount++; }
     | ID LP error                           { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')''" << std::endl; errCount++; }

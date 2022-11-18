@@ -1,5 +1,6 @@
 #include "Def.h"
 #include "Scope.h"
+#include "Exp.h"
 
 void Def::installChild(const std::vector<Node *> &children) {
     if (getTokenName() == "Def") {
@@ -15,6 +16,16 @@ void Def::installChild(const std::vector<Node *> &children) {
                 Scope::getCurrentScope()->insertSymbol(*item->identifier, this->specifier,
                                                        item->node->container->castTo<Dec>());
                 Scope::getCurrentScope()->setAttribute(*item->identifier, "type", "variable");
+                // Type Checking for DecList
+                if (item->node->container->castTo<Dec>()->hasInitialValue) {
+                    CompoundType left(*this->specifier, *item->node->container->castTo<Dec>());
+                    const auto &right = item->node->children[2]->container->castTo<Exp>()->getCompoundType();
+                    if (!CompoundType::canAssignment(left, right)) {
+                        std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
+                                  << left
+                                  << " and " << right << " in the assignment." << std::endl;
+                    }
+                }
             } else {
                 std::cerr << "Error type 3 at line " << this->node->lineno << ": variable " << *item->identifier << " is already defined" << std::endl;
             }
@@ -70,6 +81,16 @@ void Def::installChild(const std::vector<Node *> &children) {
                     Scope::getCurrentScope()->insertSymbol(*item->identifier, this->specifier,
                                                            item->node->container->castTo<Dec>());
                     Scope::getCurrentScope()->setAttribute(*item->identifier, "type", "for variable");
+                    // Type Checking for DecList
+                    if (item->node->container->castTo<Dec>()->hasInitialValue) {
+                        CompoundType left(*this->specifier, *item->node->container->castTo<Dec>());
+                        const auto &right = item->node->children[2]->container->castTo<Exp>()->getCompoundType();
+                        if (!CompoundType::canAssignment(left, right)) {
+                            std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
+                                      << left
+                                      << " and " << right << " in the assignment." << std::endl;
+                        }
+                    }
                 } else {
                     std::cerr << "Error type 3 at line " << this->node->lineno << ": variable " << *item->identifier
                               << " is already defined" << std::endl;

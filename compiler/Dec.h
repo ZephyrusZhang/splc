@@ -15,8 +15,8 @@ public:
     std::unique_ptr<const std::string> identifier;
     std::unique_ptr<std::vector<int>> arraySize;
 
-    // Only available when Dec -> VarDec ASSIGN Exp, Node is an Exp node
-    std::unique_ptr<Node> initialValue;
+    // Only available when Dec -> VarDec ASSIGN Exp
+    bool hasInitialValue = false;
 
     // Function Dec:
     typedef std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> ParmaDec;

@@ -6,6 +6,7 @@
 #include "Def.h"
 #include <memory>
 #include <vector>
+#include <algorithm>
 
 Exp::Exp(Node *node, ExpType expType)
         : Container(node, containerType) {
@@ -21,21 +22,16 @@ void Exp::installChild(const std::vector<Node *> &children) {
             std::cerr << "Error type 6 at line " << this->node->lineno << ": rvalue type " << *left.expCompoundType
                       << " appears in the left side of assignment." << std::endl;
         }
-        if (!(left.expCompoundType == right.expCompoundType)) {
-            if (left.expCompoundType->type == TypePointer && right.expCompoundType->type == TypePointer
-                && right.expCompoundType->pointTo->type == TypeVoid) {
-                // allow assignment from void* to any pointer type
-            } else {
-                std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
-                          << *left.expCompoundType
-                          << " and " << *right.expCompoundType << "in the assignment." << std::endl;
-            }
+        if (!CompoundType::canAssignment(*left.expCompoundType, *right.expCompoundType)) {
+            std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
+                      << *left.expCompoundType
+                      << " and " << *right.expCompoundType << "in the assignment." << std::endl;
         }
         this->valueType = ValueType::RValue;
         this->expCompoundType = right.expCompoundType;
     } else if (expType == ExpType::AND || expType == ExpType::OR || expType == ExpType::NOT) {
         // Boolean Operation
-        this->valueType == ValueType::RValue;
+        this->valueType = ValueType::RValue;
         // TODO: Type Checking
     } else if (expType == ExpType::LT || expType == ExpType::LE
                || expType == ExpType::GT || expType == ExpType::GE
@@ -54,6 +50,7 @@ void Exp::installChild(const std::vector<Node *> &children) {
         // Binary Arithmetic Operation
         const Exp &left = children[0]->container->castTo<Exp>().operator*();
         const Exp &right = children[2]->container->castTo<Exp>().operator*();
+        this->valueType = ValueType::RValue;
         if (*left.expCompoundType == *right.expCompoundType && left.expCompoundType->canDoArithmetic())
             this->expCompoundType = left.expCompoundType;
         // TODO: do type checking, be careful that left and right are Reference of Exp
@@ -61,7 +58,7 @@ void Exp::installChild(const std::vector<Node *> &children) {
         // You need to dereference it first to get a reference to CompoundType, and use operator== to check type equality
     } else if (expType == ExpType::INCREASE || expType == ExpType::DECREASE) {
         // Unary Arithmetic Operation
-        auto &operand = children[1]->container->castTo<Exp>().operator*();
+        auto &operand = children[0]->container->castTo<Exp>().operator*();
         this->valueType = ValueType::LValue;
         this->expCompoundType = operand.expCompoundType;
         // TODO: Type Checking for ++ and --
@@ -109,7 +106,7 @@ void Exp::installChild(const std::vector<Node *> &children) {
                       << std::endl;
         } else {
             if (array.expCompoundType->maxIndex > 0 && index.expType == ExpType::LITERAL_INT) {
-                int value = std::stoi(index.node->data);
+                int value = std::stoi(index.node->children[0]->data);
                 if (value >= array.expCompoundType->maxIndex) {
                     std::cerr << "Warning: index out of bound at line " << this->node->lineno << " ,maxSize "
                               << array.expCompoundType->maxIndex << " but given " << value << "." << std::endl;
@@ -139,20 +136,67 @@ void Exp::installChild(const std::vector<Node *> &children) {
         this->valueType = ValueType::RValue;
         this->expCompoundType = std::make_shared<CompoundType>(TypePointer);
         this->expCompoundType->pointTo = std::make_shared<CompoundType>(TypeChar);
-    } else if (expType == ExpType::DOT_ACCESS) {
-
-    } else if (expType == ExpType::PTR_ACCESS) {
-
+    } else if (expType == ExpType::DOT_ACCESS || expType == ExpType::PTR_ACCESS) {
+        this->valueType = ValueType::LValue;
+        auto *leftType = children[0]->container->castTo<Exp>().operator*().expCompoundType.get();
+        auto &id = children[2]->data;
+        if (expType == ExpType::PTR_ACCESS) {
+            if (leftType->type == TypePointer && leftType->pointTo->type == TypeStruct)
+                leftType = leftType->pointTo.get();
+            else {
+                std::cerr << "Error type 13 at line " << this->node->lineno
+                          << ": accessing members of a non-structure pointer." << std::endl;
+            }
+        }
+        if (leftType->type == TypeStruct) {
+            const auto &defList = *leftType->structDefLists;
+            const auto findId = [&id](const CompoundType::StructDefList &defList) { return defList.first == id; };
+            const auto &result = std::find_if(defList.begin(), defList.end(), findId);
+            if (result == defList.end()) {
+                std::cerr << "Error type 14 at line " << this->node->lineno <<
+                          ": accessing an undefined structure member " << id << " at " << leftType
+                          << std::endl;
+                this->expCompoundType = std::make_shared<CompoundType>(TypeInt);
+            } else {
+                this->expCompoundType = std::make_shared<CompoundType>(result->second);
+                // warning: copy of CompoundType
+            }
+        } else {
+            std::cerr << "Error type 13 at line " << this->node->lineno
+                      << ": accessing members of a non-structure variable." << std::endl;
+            this->expCompoundType = std::make_shared<CompoundType>(TypeInt);
+        }
     } else if (expType == ExpType::ADDRESS_OF) {
-
+        this->valueType = ValueType::RValue;
+        auto &rightExp = children[1]->container->castTo<Exp>().operator*();
+        if (rightExp.valueType == ValueType::RValue) {
+            std::cerr << "Error type ? at line " << this->node->lineno
+                      << ": cannot get address of rvalue expression." << std::endl;
+        }
+        this->expCompoundType = std::make_shared<CompoundType>(TypePointer);
+        this->expCompoundType->pointTo = rightExp.expCompoundType;
     } else if (expType == ExpType::DEREF) {
-
+        this->valueType = ValueType::LValue;
+        auto &ptrExp = children[1]->container->castTo<Exp>().operator*();
+        if (ptrExp.expCompoundType->type == TypePointer) {
+            this->expCompoundType = ptrExp.expCompoundType->pointTo;
+        } else {
+            std::cerr << "Error type ? at line " << this->node->lineno
+                      << ": cannot dereference of a non-pointer" << std::endl;
+            this->expCompoundType = std::make_shared<CompoundType>(TypeInt);
+        }
     } else if (expType == ExpType::TYPE_CAST) {
         auto &specifier = children[1]->container->castTo<Specifier>().operator*();
+        auto &castedExp = children[3]->container->castTo<Exp>().operator*();
         this->expCompoundType = std::make_shared<CompoundType>(specifier);
+        this->valueType = castedExp.valueType;
         // TODO: Check Casting
     } else throw std::runtime_error("unexpected ExpType ");
     // assert all properties are set
     assert(this->valueType != ValueType::Unknown);
     assert(this->expCompoundType != nullptr);
+}
+
+const CompoundType &Exp::getCompoundType() const {
+    return *expCompoundType;
 }

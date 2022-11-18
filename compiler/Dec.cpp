@@ -23,7 +23,10 @@ void Dec::installChild(const std::vector<Node *> &children) {
         // parent Dec instance
         this->identifier = std::move(parent->identifier);
         this->arraySize = std::move(parent->arraySize);
-        if (children.size() == 3) this->initialValue = std::unique_ptr<Node>(children[2]);
+        if (children.size() == 3) {
+            // need Type Checking for ASSIGN, defer it to be done when Def->Dec and install Symbol
+            this->hasInitialValue = true;
+        }
         // contains initialValue
     } else if (this->getTokenName() == "FunDec") {
         this->identifier = std::make_unique<const std::string>(children[0]->data);

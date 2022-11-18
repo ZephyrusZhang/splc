@@ -26,7 +26,7 @@ CompoundType::CompoundType(const Specifier &specifier, const Dec &dec) : Compoun
         }
     } else if (dec.funcDec) {
         // Function Args
-        this->funcArgs = std::make_unique<std::vector<CompoundType>>();
+        this->funcArgs = std::make_shared<std::vector<CompoundType>>();
         for (const auto &item: dec.funcDec.operator*()) {
             this->funcArgs->emplace_back(CompoundType(*item.first, *item.second));
         }
@@ -104,4 +104,14 @@ bool CompoundType::canDoBoolean() const {
 
 bool CompoundType::canCompare() const {
     return false;
+}
+
+bool CompoundType::canAssignment(const CompoundType &left, const CompoundType &right) {
+    if (left == right) return true;
+    if (left.type == TypePointer && right.type == TypePointer && right.pointTo->type == TypeVoid) {
+        // allow assignment from void* to any pointer type
+        return true;
+    } else {
+        return false;
+    }
 }
