@@ -13,7 +13,7 @@ enum class ValueType {
 class Exp : public Container {
 private:
     ValueType valueType = ValueType::Unknown;
-    std::shared_ptr<const CompoundType> expCompoundType;
+    std::shared_ptr<CompoundType> expCompoundType;
 public:
     const static ContainerType containerType = ContainerType::Exp;
     ExpType expType;

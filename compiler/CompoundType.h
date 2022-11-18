@@ -31,7 +31,11 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const CompoundType& type);
 
+    // Type Checking
     friend bool operator==(const CompoundType& o1, const CompoundType& o2);
+    bool canDoArithmetic() const;
+    bool canDoBoolean() const;
+    bool canCompare() const;
 };
 
 #endif //SPLC_COMPOUNDTYPE_H

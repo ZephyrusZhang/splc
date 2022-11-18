@@ -93,3 +93,15 @@ bool operator==(const CompoundType &o1, const CompoundType &o2) {
     if (o1.type == TypePointer) return *o1.pointTo == *o2.pointTo;
     return o1.type == o2.type;
 }
+
+bool CompoundType::canDoArithmetic() const {
+    return true;
+}
+
+bool CompoundType::canDoBoolean() const {
+    return true;
+}
+
+bool CompoundType::canCompare() const {
+    return false;
+}
