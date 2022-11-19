@@ -15,6 +15,9 @@ public:
 
     void installChild(const std::vector<Node *> &vector) override;
 
+    bool isWhileStmt() const;
+    bool isForStmt() const;
+
 };
 
 

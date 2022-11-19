@@ -66,10 +66,12 @@ void Exp::installChild(const std::vector<Node *> &children) {
         // TODO: do type checking, be careful that left and right are Reference of Exp
         // and Exp&.expCompoundType is a POINTER,
         // You need to dereference it first to get a reference to CompoundType, and use operator== to check type equality
-        if (!(*left.expCompoundType == *right.expCompoundType && left.expCompoundType->canDoArithmetic() && right.expCompoundType->canDoArithmetic())) {
+        if (!(*left.expCompoundType == *right.expCompoundType) && (left.expCompoundType->canDoArithmetic() && right.expCompoundType->canDoArithmetic())) {
             std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
                       << *left.expCompoundType << " and " << *right.expCompoundType
                       << " in the arithmetic operation." << std::endl;
+        } else if (!(left.expCompoundType->canDoArithmetic() && right.expCompoundType->canDoArithmetic())) {
+            std::cerr << "Error type 7 at line " << this->node->lineno << ": binary operation on non-number variables." << std::endl;
         }
     } else if (expType == ExpType::INCREASE || expType == ExpType::DECREASE) {
         // Unary Arithmetic Operation

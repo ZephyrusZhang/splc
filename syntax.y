@@ -110,8 +110,8 @@ Stmt:
     | CompSt                                { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1}, "CompSt"); }
     | RETURN Exp SEMI                       { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3}, "RETURN"); }
     | RETURN SEMI                           { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2}, "RETURN"); }
-    | CONTINUE SEMI                         { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2}, "CONTINUE"); }
-    | BREAK SEMI                            { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2}, "BREAK"); }
+    | CONTINUE SEMI                         { yystack = yyvsp; $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2}, "CONTINUE"); }
+    | BREAK SEMI                            { yystack = yyvsp; $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2}, "BREAK"); }
     | IF LP Exp RP Stmt %prec LOWER_ELSE    { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}, "IF"); }
     | IF LP Exp RP Stmt ELSE Stmt           { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5, $6, $7}, "IFELSE"); }
     | WHILE LP Exp RP Stmt                  { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}, "WHILE"); }
