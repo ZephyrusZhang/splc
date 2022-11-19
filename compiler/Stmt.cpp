@@ -6,17 +6,8 @@ void Stmt::installChild(const std::vector<Node *> &children) {
     if (this->node->data == "BREAK" || this->node->data == "CONTINUE") {
         int idx = 0;
         extern Node **yystack;
-
-        bool isWithinLoop = false;
-        Node *cur;
-        while ((cur = yystack[idx]) != NULL) {
-            if (cur->tokenName == "WHILE" || cur->tokenName == "FOR") {
-                isWithinLoop = true;
-                break;
-            }
-            idx--;
-        }
-        if (!isWithinLoop) {
+        std::string generateWithToken = Scope::getCurrentScope()->generateWithToken;
+        if (!(generateWithToken == "WHILE" || generateWithToken == "FOR")) {
             std::cerr << "Error at line " << this->node->lineno << ": "
                       << "break or continue statement not within loop." << std::endl;
         }
