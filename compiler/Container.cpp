@@ -8,12 +8,19 @@
 
 void Container::generateContainer(Node *node) {
     const std::string &tokenName = node->tokenName;
-    if (tokenName == "FunDec" || tokenName == "FOR") {
-        // generate Scope for FunDec/For to install FunctionArgs/ForDef into its SymbolTable
+    if (tokenName == "FunDec" || tokenName == "FOR" || tokenName == "WHILE") {
+        // Earlier to generate Scope for FunDec/FOR/WHILE to install FunctionArgs/ForDef into its SymbolTable
         // It's ownership should be transfer to LC when LC trying to create its own Scope.
-        auto scope = std::make_shared<Scope>(nullptr, tokenName);
+        auto scope = std::make_shared<Scope>(node, tokenName);
         Scope::globalScopes.push_back(scope);
-        // The Scope is "orphan" because its node is nullptr, but later the LC will take it.
+        if (tokenName == "FunDec") {
+            // set functionName for generated Scope, we use FunDec -> ID LP VarList RP | ID LP RP to get the Node* of ID.
+            extern Node **yystack;
+            Node * identifier = yystack[-2];
+            if (identifier->tokenName == "LP") identifier = yystack[-3];
+            assert(identifier->tokenName == "ID");
+            scope->functionName = identifier->data;
+        }
     }
     if (tokenName == "Specifier") {
         node->container = std::make_shared<Specifier>(node);
@@ -25,13 +32,15 @@ void Container::generateContainer(Node *node) {
         node->container = std::make_shared<Stmt>(node);
     } else if (tokenName == "LC") {
         // generate Scope and bind it to '{' when bison meets LC.
-        // FunDec/FOR: Take ownership of already generated Scope from FunDec/FOR to myself(LC)
-        if (Scope::getCurrentScope()->generateWithToken == "FunDec" || Scope::getCurrentScope()->generateWithToken == "FOR") {
-            // Don't generate Scope if another Scope is already generated in FOR/FunDec.
-            auto scope = Scope::getCurrentScope();
+        // FunDec/FOR/WHILE: Take ownership of already generated Scope from FunDec/FOR to myself(LC)
+        auto scope = Scope::getCurrentScope();
+        if (scope->node && (scope->node->tokenName == "FunDec"
+                            || scope->node->tokenName == "FOR"
+                            || scope->node->tokenName == "WHILE")) {
+            // Transfer ownership of Scope from FunDec/FOR/WHILE to LC
+            scope->node->container = nullptr;
             scope->node = node;
             node->container = scope;
-            scope->generateWithToken = "LC";
         } else {
             node->container = std::make_shared<Scope>(node, tokenName);
             Scope::globalScopes.push_back(node->container->castTo<Scope>());

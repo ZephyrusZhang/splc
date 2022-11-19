@@ -1,4 +1,6 @@
 #include "Scope.h"
+
+#include <utility>
 #include "Node.h"
 #include "Dec.h"
 #include "CompoundType.h"
@@ -34,13 +36,10 @@ Scope::SymbolType Scope::lookupSymbol(const std::string &identifier) {
     return current->symbols[identifier].first;
 }
 
-Scope::Scope(Node *node) : Container(node, containerType) {
-    if (globalScopes.empty()) return;
-    parentScope = globalScopes.back();
-}
-
-Scope::Scope(Node *node, const std::string &generateWithToken) : Scope(node) {
-    this->generateWithToken = generateWithToken;
+Scope::Scope(Node *node, std::string generateWithToken)
+        : Container(node, containerType), generateWithToken(std::move(generateWithToken)) {
+    if (!globalScopes.empty())
+        parentScope = globalScopes.back();
 }
 
 void Scope::onThisInstalled() {
@@ -57,7 +56,7 @@ std::shared_ptr<Scope> Scope::getCurrentScope() {
 }
 
 std::shared_ptr<Scope> Scope::getCurrentFunctionScope() {
-    for(auto it = Scope::globalScopes.rbegin(); it != Scope::globalScopes.rend(); ++it ) {
+    for (auto it = Scope::globalScopes.rbegin(); it != Scope::globalScopes.rend(); ++it) {
         if (!it->get()->functionName.empty()) return *it;
     }
 }
