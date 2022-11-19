@@ -37,6 +37,7 @@ enum class ExpType {
     PLUS,
     INCREASE,
     DECREASE,
+    NEGATIVE_SIGN,
     MINUS,
     MUL,
     DIV,

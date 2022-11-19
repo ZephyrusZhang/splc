@@ -44,18 +44,7 @@ Scope::Scope(Node *node, const std::string &generateWithToken) : Scope(node) {
 }
 
 void Scope::onThisInstalled() {
-    // When LC is reduced into CompSt/StructSpecifier, pop myself from globalScopes;
-    if (generateWithToken == "LC" && node != nullptr) {
-        if (node->parent->tokenName == "StructSpecifier") {
-            // drop owner for Struct->LC, and delete myself
-            assert(globalScopes.back().get() == this);
-            node->container = nullptr;
-            node = nullptr;
-            // Release ownership of this Scope.
-            // This Scope should be deleted
-        }
-    }
-    globalScopes.pop_back();
+
 }
 
 void Scope::installChild(const std::vector<Node *> &children) {
@@ -65,6 +54,12 @@ void Scope::installChild(const std::vector<Node *> &children) {
 std::shared_ptr<Scope> Scope::getCurrentScope() {
     assert(!globalScopes.empty());
     return globalScopes.back();
+}
+
+std::shared_ptr<Scope> Scope::getCurrentFunctionScope() {
+    for(auto it = Scope::globalScopes.rbegin(); it != Scope::globalScopes.rend(); ++it ) {
+        if (!it->get()->functionName.empty()) return *it;
+    }
 }
 
 std::shared_ptr<Scope> Scope::getGlobalScope() {

@@ -54,6 +54,9 @@ void Dec::installChild(const std::vector<Node *> &children) {
         }
         // insert function definition even when CompSt is not reduced in grammar "ExtDef -> Specifier FunDec CompSt".
         // we stole Specifier from bison's stack yyvsp.
+        assert(Scope::getCurrentScope()->generateWithToken == "FunDec");
+        Scope::getCurrentScope()->functionName = *identifier;
+        // set functionName for current identifier
         if (!Scope::getGlobalScope()->isSymbolExists(*identifier)) {
             Scope::getGlobalScope()->insertSymbol(*identifier, specifierNode->container->castTo<Specifier>(), castTo<Dec>());
             Scope::getGlobalScope()->setAttribute(*identifier, "type", "function");

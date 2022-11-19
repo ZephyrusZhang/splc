@@ -22,6 +22,7 @@ public:
 
     std::string generateWithToken;
     std::shared_ptr<Scope> parentScope;
+    std::string functionName;
 
     explicit Scope(Node * node);
     explicit Scope(Node * node, const std::string& generateWithToken);
@@ -39,6 +40,7 @@ public:
     std::string getAttribute(const std::string &identifier, const std::string &key) const;
 
     static std::shared_ptr<Scope> getCurrentScope();
+    static std::shared_ptr<Scope> getCurrentFunctionScope();
     static std::shared_ptr<Scope> getGlobalScope();
 
     void printSymbolTable();

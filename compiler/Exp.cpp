@@ -226,7 +226,12 @@ void Exp::installChild(const std::vector<Node *> &children) {
                       << specifier << " and " << *castedExp.expCompoundType
                       << " in the force cast operation." << std::endl;
         }
-    } else throw std::runtime_error("unexpected ExpType ");
+    } else if (expType == ExpType::NEGATIVE_SIGN) {
+        auto& right = children[1]->container->castTo<Exp>().operator*();
+        this->expCompoundType = right.expCompoundType;
+        this->valueType = ValueType::RValue;
+        // TODO: Check can do arithmetic
+    } else throw std::runtime_error("unexpected ExpType");
     // assert all properties are set
     assert(this->valueType != ValueType::Unknown);
     assert(this->expCompoundType != nullptr);

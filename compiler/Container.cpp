@@ -29,10 +29,12 @@ void Container::generateContainer(Node *node) {
             scope->node = node;
             node->container = scope;
             scope->generateWithToken = "LC";
-            return;
+        } else {
+            node->container = std::make_shared<Scope>(node, tokenName);
+            Scope::globalScopes.push_back(node->container->castTo<Scope>());
         }
-        node->container = std::make_shared<Scope>(node, tokenName);
-        Scope::globalScopes.push_back(node->container->castTo<Scope>());
+    } else if (tokenName == "RC") {
+        Scope::globalScopes.pop_back();
     }
 }
 
