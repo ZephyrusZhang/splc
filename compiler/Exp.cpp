@@ -25,14 +25,22 @@ void Exp::installChild(const std::vector<Node *> &children) {
         if (!CompoundType::canAssignment(*left.expCompoundType, *right.expCompoundType)) {
             std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
                       << *left.expCompoundType
-                      << " and " << *right.expCompoundType << "in the assignment." << std::endl;
+                      << " and " << *right.expCompoundType << " in the assignment." << std::endl;
         }
         this->valueType = ValueType::RValue;
         this->expCompoundType = right.expCompoundType;
     } else if (expType == ExpType::AND || expType == ExpType::OR || expType == ExpType::NOT) {
         // Boolean Operation
-        this->valueType = ValueType::RValue;
         // TODO: Type Checking
+        auto &left = children[0]->container->castTo<Exp>().operator*();
+        auto &right = children[2]->container->castTo<Exp>().operator*();
+        this->valueType = ValueType::RValue;
+        this->expCompoundType = left.expCompoundType;
+        if (!(left.expCompoundType->canDoBoolean() && right.expCompoundType->canDoBoolean())) {
+            std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
+                      << *left.expCompoundType << " and " << *right.expCompoundType
+                      << " in the boolean operation." << std::endl;
+        } 
     } else if (expType == ExpType::LT || expType == ExpType::LE
                || expType == ExpType::GT || expType == ExpType::GE
                || expType == ExpType::NE || expType == ExpType::EQ) {
@@ -44,6 +52,9 @@ void Exp::installChild(const std::vector<Node *> &children) {
         // convert current type to Int
         if (!(*left.expCompoundType == *right.expCompoundType && left.expCompoundType->canCompare())) {
             // TODO: Type Checking
+            std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
+                      << *left.expCompoundType << " and " << *right.expCompoundType
+                      << " in the compare operation." << std::endl;
         }
     } else if (expType == ExpType::PLUS || expType == ExpType::MINUS ||
                expType == ExpType::MUL || expType == ExpType::DIV) {
@@ -51,17 +62,25 @@ void Exp::installChild(const std::vector<Node *> &children) {
         const Exp &left = children[0]->container->castTo<Exp>().operator*();
         const Exp &right = children[2]->container->castTo<Exp>().operator*();
         this->valueType = ValueType::RValue;
-        if (*left.expCompoundType == *right.expCompoundType && left.expCompoundType->canDoArithmetic())
-            this->expCompoundType = left.expCompoundType;
+        this->expCompoundType = left.expCompoundType;
         // TODO: do type checking, be careful that left and right are Reference of Exp
         // and Exp&.expCompoundType is a POINTER,
         // You need to dereference it first to get a reference to CompoundType, and use operator== to check type equality
+        if (!(*left.expCompoundType == *right.expCompoundType && left.expCompoundType->canDoArithmetic() && right.expCompoundType->canDoArithmetic())) {
+            std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
+                      << *left.expCompoundType << " and " << *right.expCompoundType
+                      << " in the arithmetic operation." << std::endl;
+        }
     } else if (expType == ExpType::INCREASE || expType == ExpType::DECREASE) {
         // Unary Arithmetic Operation
         auto &operand = children[0]->container->castTo<Exp>().operator*();
-        this->valueType = ValueType::LValue;
+        this->valueType = ValueType::RValue;
         this->expCompoundType = operand.expCompoundType;
         // TODO: Type Checking for ++ and --
+        if (!(operand.expCompoundType->canDoArithmetic())) {
+            std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
+                      << *operand.expCompoundType << " in self arithmetic operation." << std::endl;
+        }
     } else if (expType == ExpType::SCOPE) {
         auto &operand = children[1]->container->castTo<Exp>().operator*();
         this->expCompoundType = operand.expCompoundType;
@@ -83,6 +102,14 @@ void Exp::installChild(const std::vector<Node *> &children) {
                     std::cerr << "Error type 9 at line " << this->node->lineno << ": function " << id
                               << "is called with mismatched args" << std::endl;
                 }
+            }
+        } else if (Scope::getCurrentScope()->isSymbolExistsRecursively(id)) {
+            const auto &variable = Scope::getCurrentScope()->lookupSymbol(id);
+            if (variable->funcArgs == NULL) {
+                std::cerr << "Error type 11 at line " << this->node->lineno
+                          << ": applying function invocation operator on non-function identifier "
+                          << "{" << id << "}" << std::endl;
+                this->expCompoundType = std::make_shared<CompoundType>(TypeInt);             
             }
         } else {
             std::cerr << "Error type 2 at line " << this->node->lineno << ": function " << id
@@ -191,6 +218,14 @@ void Exp::installChild(const std::vector<Node *> &children) {
         this->expCompoundType = std::make_shared<CompoundType>(specifier);
         this->valueType = castedExp.valueType;
         // TODO: Check Casting
+        if (!((specifier.type == TypeFloat && (castedExp.expCompoundType->type == TypeInt || castedExp.expCompoundType->type == TypeFloat)) ||
+              (specifier.type == TypeInt && (castedExp.expCompoundType->type == TypeFloat || castedExp.expCompoundType->type == TypeInt)) ||
+              (specifier.type == TypeChar && (castedExp.expCompoundType->type == TypeInt || castedExp.expCompoundType->type == TypeChar)) ||
+              (specifier.type == TypeInt && (castedExp.expCompoundType->type == TypeChar || castedExp.expCompoundType->type == TypeInt)))) {
+            std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type "
+                      << specifier << " and " << *castedExp.expCompoundType
+                      << " in the force cast operation." << std::endl;
+        }
     } else throw std::runtime_error("unexpected ExpType ");
     // assert all properties are set
     assert(this->valueType != ValueType::Unknown);

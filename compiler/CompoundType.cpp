@@ -95,15 +95,15 @@ bool operator==(const CompoundType &o1, const CompoundType &o2) {
 }
 
 bool CompoundType::canDoArithmetic() const {
-    return true;
+    return (this->type == TypeInt || this->type == TypeFloat);
 }
 
 bool CompoundType::canDoBoolean() const {
-    return true;
+    return this->type == TypeInt;
 }
 
 bool CompoundType::canCompare() const {
-    return false;
+    return (this->type == TypeInt || this->type == TypeFloat);
 }
 
 bool CompoundType::canAssignment(const CompoundType &left, const CompoundType &right) {
