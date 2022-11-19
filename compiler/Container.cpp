@@ -4,6 +4,7 @@
 #include "Specifier.h"
 #include "Def.h"
 #include "Scope.h"
+#include "Stmt.h"
 
 void Container::generateContainer(Node *node) {
     const std::string &tokenName = node->tokenName;
@@ -20,6 +21,8 @@ void Container::generateContainer(Node *node) {
         node->container = std::make_shared<Def>(node);
     } else if (tokenName == "VarDec" || tokenName == "Dec" || tokenName == "FunDec") {
         node->container = std::make_shared<Dec>(node);
+    } else if (tokenName == "Stmt") {
+        node->container = std::make_shared<Stmt>(node);
     } else if (tokenName == "LC") {
         // generate Scope and bind it to '{' when bison meets LC.
         // FunDec/FOR: Take ownership of already generated Scope from FunDec/FOR to myself(LC)

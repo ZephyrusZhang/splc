@@ -12,7 +12,8 @@ enum class ContainerType {
     Scope,
     DefList,
     Dec,
-    Exp
+    Exp,
+    Stmt,
 };
 
 enum class DataType;
