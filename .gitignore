@@ -58,6 +58,7 @@ lex.yy.*
 syntax.tab.*
 bin/
 *.output
+*.out
 
 # IDE Configuration
 .vscode/
