@@ -1,0 +1,6 @@
+int main()
+{
+    int arr[10];
+    float a = 1.0;
+    arr[a] = 1;
+}
