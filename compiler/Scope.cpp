@@ -83,7 +83,7 @@ void Scope::printSymbolTable() {
 void Scope::setAttribute(const std::string &identifier, const std::string &key, const std::string &value) {
     assert(isSymbolExists(identifier));
     symbols[identifier].second[key] = value;
-    printSymbolTable();
+    // printSymbolTable();
 }
 
 std::string Scope::getAttribute(const std::string &identifier, const std::string &key) const {

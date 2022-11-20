@@ -70,10 +70,13 @@ public:
     std::vector<Node *> children;
     explicit Node() = delete;
     Node(std::string tokenName, int lineno, DataType type, std::string data = "");
+
+    bool hasToken(std::initializer_list<const std::string> acceptItemsToken) const;
+
     static Node *createNodeWithChildren(const std::string &tokenName, int lineno, DataType type, std::initializer_list<Node *> childList, const std::string &data = "");
     static Node *createExpNodeWithChildren(const std::string &tokenName, int lineno, ExpType expType, std::initializer_list<Node *> childList);
     static void printTree(const Node *root, std::ostream& outputStream = outputFile);
-    static std::vector<Node *> convertTreeToVector(const Node * root, const std::string& recursiveName, std::initializer_list<const std::string> acceptItemsToken);
+    static std::vector<Node *> convertTreeToVector(const Node * root, const std::string& recursiveName, std::initializer_list<const std::string> acceptItemsToken, bool anyRecursiveName=false);
 private:
     static void recursivePrint(const Node *cur, int depth, std::ostream& outputStream);
 };

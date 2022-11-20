@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include <iterator>
+#include <queue>
 #include "Scope.h"
 #include "Exp.h"
 
@@ -81,18 +82,19 @@ Node::Node(std::string tokenName, int lineno, DataType type, std::string data)
 
 std::vector<Node *>
 Node::convertTreeToVector(const Node *root, const std::string &recursiveName,
-                          std::initializer_list<const std::string> acceptItemsToken) {
+                          std::initializer_list<const std::string> acceptItemsToken,
+                          bool anyRecursiveName) {
     std::vector<Node *> ret;
     const Node *current = root;
     while (current != nullptr) {
-        assert(current->tokenName == recursiveName);
+        assert(current->tokenName == recursiveName || anyRecursiveName);
         const Node *next = nullptr;
         for (const auto &child: current->children) {
             const auto shouldAccept = [child](const std::string &str) { return child->tokenName == str; };
             if (std::any_of(acceptItemsToken.begin(), acceptItemsToken.end(), shouldAccept)) {
                 ret.push_back(child);
             }
-            if (child->tokenName == recursiveName) next = child;
+            if (child->tokenName == recursiveName || anyRecursiveName) next = child;
         }
         current = next;
     }
@@ -101,5 +103,26 @@ Node::convertTreeToVector(const Node *root, const std::string &recursiveName,
                            [&item](const std::string &str) { return str == item->tokenName; }));
     }
     return ret;
+}
+
+bool Node::hasToken(std::initializer_list<const std::string> acceptItemsToken) const {
+    std::queue<const Node *> queue;
+    queue.push(this);
+    while (!queue.empty()) {
+        const Node *cur = queue.front();
+        queue.pop();
+        const auto shouldAccept = [cur] (const std::string &str) { return cur->tokenName == str; };
+        if (std::any_of(acceptItemsToken.begin(), acceptItemsToken.end(), shouldAccept)) {
+            return true;
+        }
+        for (const auto &next : cur->children) {
+            const auto shouldAccept = [next] (const std::string &str) { return next->tokenName == str; };
+            if (std::any_of(acceptItemsToken.begin(), acceptItemsToken.end(), shouldAccept)) {
+                return true;
+            }
+            queue.push(next);
+        }
+    }
+    return false;
 }
 

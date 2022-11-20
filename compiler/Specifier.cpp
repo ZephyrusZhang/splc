@@ -67,3 +67,18 @@ std::ostream& operator<<(std::ostream& os, const Specifier &specifier) {
     return os;
 }
 
+BasicType Specifier::getSpecifierType(Node *node) {
+    auto type = Node::convertTreeToVector(node, "Specifier", {"TYPE"});
+    assert(type.size() != 0);
+    std::string typeStr = type[0]->data;
+    if (typeStr == "int") {
+        return TypeInt;
+    } else if (typeStr == "float") {
+        return TypeFloat;
+    } else if (typeStr == "char") {
+        return TypeChar;
+    } else {
+        throw std::runtime_error("unexpected type");
+    }
+}
+

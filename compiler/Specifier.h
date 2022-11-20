@@ -37,5 +37,7 @@ public:
     void parseStruct(Node *pNode);
 
     friend std::ostream& operator<<(std::ostream& os, const Specifier& specifier);
+
+    static BasicType getSpecifierType(Node *node);
 };
 #endif

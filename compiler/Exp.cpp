@@ -116,6 +116,28 @@ void Exp::installChild(const std::vector<Node *> &children) {
         } else {
             std::cerr << "Error type 2 at line " << this->node->lineno << ": function " << id
                       << " is invoked without definition" << std::endl;
+            int idx = 0;
+            extern Node **yystack;
+            bool isAssign = false;
+            std::vector<Node *> exp;
+            Node *cur = yystack[idx];
+            while (!cur->hasToken({"SEMI", "LC"})) {
+                exp.push_back(cur);
+                cur = yystack[--idx];
+            }
+            std::reverse(exp.begin(), exp.end());
+
+            if (exp[0]->tokenName == "Specifier") {
+                this->expCompoundType = std::make_shared<CompoundType>(Specifier::getSpecifierType(exp[0]));
+            } else {
+                auto ids = Node::convertTreeToVector(exp[0], "", {"ID"}, true);
+                if (ids.size() > 0) {
+                    auto symbol = Scope::getCurrentScope()->lookupSymbol(ids[0]->data);
+                    this->expCompoundType = std::make_shared<CompoundType>(symbol->type);
+                } else {
+                    this->expCompoundType = std::make_shared<CompoundType>(TypeInt);
+                }
+            }
         }
     } else if (this->expType == ExpType::ARRAY_INDEX) {
         this->valueType = ValueType::LValue;
