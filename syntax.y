@@ -153,37 +153,37 @@ MultiExp:
 
 /* Expression */
 Exp:
-      Exp ASSIGN Exp                        { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::ASSIGN, {$1, $2, $3}); }
-    | Exp AND Exp                           { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::AND, {$1, $2, $3}); }
-    | Exp OR Exp                            { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::OR, {$1, $2, $3}); }
-    | NOT Exp                               { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::NOT, {$1, $2}); }
-    | Exp LT Exp                            { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LT, {$1, $2, $3}); }
-    | Exp LE Exp                            { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LE, {$1, $2, $3}); }
-    | Exp GT Exp                            { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::GT, {$1, $2, $3}); }
-    | Exp GE Exp                            { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::GE, {$1, $2, $3}); }
-    | Exp NE Exp                            { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::NE, {$1, $2, $3}); }
-    | Exp EQ Exp                            { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::EQ, {$1, $2, $3}); }
-    | Exp PLUS Exp                          { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::PLUS, {$1, $2, $3}); }
-    | Exp MINUS Exp                         { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::MINUS, {$1, $2, $3}); }
-    | Exp MUL Exp                           { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::MUL, {$1, $2, $3}); }
-    | Exp DIV Exp                           { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::DIV, {$1, $2, $3}); }
-    | Exp INCREASE                          { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::INCREASE, {$1, $2}); }
-    | Exp DECREASE                          { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::DECREASE, {$1, $2}); }
-    | MINUS Exp                             { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::NEGATIVE_SIGN, {$1, $2}); }
-    | LP Exp RP                             { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::SCOPE, {$1, $2, $3}); }
-    | ID LP Args RP                         { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::FUNC_INVOKE, {$1, $2, $3, $4}); }
-    | ID LP RP                              { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::FUNC_INVOKE, {$1, $2, $3}); }
-    | Exp LB Exp RB                         { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::ARRAY_INDEX, {$1, $2, $3, $4}); }
-    | ID                                    { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::IDENTIFIER, {$1}); }
-    | INT                                   { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_INT, {$1}); }
-    | FLOAT                                 { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_FLOAT, {$1}); }
-    | CHAR                                  { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_CHAR, {$1}); }
-    | STRING                                { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_STRING, {$1}); }
-    | Exp DOT ID                            { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::DOT_ACCESS, {$1, $2, $3}); }
-    | Exp PTRACS ID                         { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::PTR_ACCESS, {$1, $2, $3}); }
-    | ADDROF Exp                            { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::ADDRESS_OF, {$1, $2}); }
-    | MUL Exp                               { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::DEREF, {$1, $2}); }
-    | LP Specifier RP Exp                   { $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::TYPE_CAST, {$1, $2, $3, $4}); }
+      Exp ASSIGN Exp                        { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::ASSIGN, {$1, $2, $3}); }
+    | Exp AND Exp                           { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::AND, {$1, $2, $3}); }
+    | Exp OR Exp                            { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::OR, {$1, $2, $3}); }
+    | NOT Exp                               { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::NOT, {$1, $2}); }
+    | Exp LT Exp                            { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LT, {$1, $2, $3}); }
+    | Exp LE Exp                            { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LE, {$1, $2, $3}); }
+    | Exp GT Exp                            { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::GT, {$1, $2, $3}); }
+    | Exp GE Exp                            { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::GE, {$1, $2, $3}); }
+    | Exp NE Exp                            { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::NE, {$1, $2, $3}); }
+    | Exp EQ Exp                            { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::EQ, {$1, $2, $3}); }
+    | Exp PLUS Exp                          { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::PLUS, {$1, $2, $3}); }
+    | Exp MINUS Exp                         { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::MINUS, {$1, $2, $3}); }
+    | Exp MUL Exp                           { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::MUL, {$1, $2, $3}); }
+    | Exp DIV Exp                           { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::DIV, {$1, $2, $3}); }
+    | Exp INCREASE                          { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::INCREASE, {$1, $2}); }
+    | Exp DECREASE                          { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::DECREASE, {$1, $2}); }
+    | MINUS Exp                             { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::NEGATIVE_SIGN, {$1, $2}); }
+    | LP Exp RP                             { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::SCOPE, {$1, $2, $3}); }
+    | ID LP Args RP                         { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::FUNC_INVOKE, {$1, $2, $3, $4}); }
+    | ID LP RP                              { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::FUNC_INVOKE, {$1, $2, $3}); }
+    | Exp LB Exp RB                         { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::ARRAY_INDEX, {$1, $2, $3, $4}); }
+    | ID                                    { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::IDENTIFIER, {$1}); }
+    | INT                                   { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_INT, {$1}); }
+    | FLOAT                                 { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_FLOAT, {$1}); }
+    | CHAR                                  { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_CHAR, {$1}); }
+    | STRING                                { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_STRING, {$1}); }
+    | Exp DOT ID                            { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::DOT_ACCESS, {$1, $2, $3}); }
+    | Exp PTRACS ID                         { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::PTR_ACCESS, {$1, $2, $3}); }
+    | ADDROF Exp                            { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::ADDRESS_OF, {$1, $2}); }
+    | MUL Exp                               { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::DEREF, {$1, $2}); }
+    | LP Specifier RP Exp                   { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::TYPE_CAST, {$1, $2, $3, $4}); }
     | LP Exp error                          { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')'" << std::endl; errCount++; }
     | ID LP Args error                      { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')''" << std::endl; errCount++; }
     | ID LP error                           { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')''" << std::endl; errCount++; }
