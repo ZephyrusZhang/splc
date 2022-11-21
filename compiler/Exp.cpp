@@ -114,8 +114,6 @@ void Exp::installChild(const std::vector<Node *> &children) {
                 this->expCompoundType = std::make_shared<CompoundType>(TypeInt);             
             }
         } else {
-            std::cerr << "Error type 2 at line " << this->node->lineno << ": function " << id
-                      << " is invoked without definition" << std::endl;
             int idx = 0;
             extern Node **yystack;
             bool isAssign = false;
@@ -138,6 +136,9 @@ void Exp::installChild(const std::vector<Node *> &children) {
                     this->expCompoundType = std::make_shared<CompoundType>(TypeInt);
                 }
             }
+            std::cerr << "Error type 2 at line " << this->node->lineno << ": function " << id
+                      << " is invoked without definition, guess its return value type is "
+                      << *this->expCompoundType << std::endl;
         }
     } else if (this->expType == ExpType::ARRAY_INDEX) {
         this->valueType = ValueType::LValue;
