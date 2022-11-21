@@ -62,6 +62,7 @@
 - [x] break or continue statement not within loop
 - [x] dereference of a non-pointer
 - [x] 32-bit signed integer overflow
+- [x] non-boolean expression at the conditional statement
 
 ## Other Feature
 

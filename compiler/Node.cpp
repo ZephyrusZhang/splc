@@ -7,6 +7,7 @@
 #include <queue>
 #include "Scope.h"
 #include "Exp.h"
+#include "Stmt.h"
 
 void Node::printTree(const Node *root, std::ostream &outputStream) {
     recursivePrint(root, 0, outputStream);
@@ -72,7 +73,23 @@ Node *Node::createExpNodeWithChildren(const std::string &tokenName, int lineno, 
     for (const auto &item: parent->children) {
         if (item->container) item->container->onThisInstalled();
     }
-    return parent;}
+    return parent;
+}
+
+Node *Node::createStmtNodeWithChildren(const std::string &tokenName, int lineno, StmtType stmtType,
+                                       std::initializer_list<Node *> childlist) {
+    Node *parent = new Node(tokenName, lineno, DataType::PROD, "");
+    for (Node *child : childlist) {
+        child->parent = parent;
+        parent->children.push_back(child);
+    }
+    parent->container = std::make_shared<Stmt>(parent, stmtType);
+    parent->container->installChild(parent->children);
+    for (const auto &item : parent->children) {
+        if (item->container) item->container->onThisInstalled();
+    }
+    return parent;
+}
 
 
 Node::Node(std::string tokenName, int lineno, DataType type, std::string data)

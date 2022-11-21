@@ -7,8 +7,10 @@
 class Stmt : public Container {
 public:
     const static ContainerType containerType = ContainerType::Stmt;
+    StmtType stmtType;
 
     explicit Stmt(Node *node);
+    explicit Stmt(Node *node, StmtType stmtType);
 
 public:
     ~Stmt() override = default;

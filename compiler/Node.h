@@ -57,6 +57,19 @@ enum class ExpType {
     DEREF
 };
 
+enum class StmtType
+{
+    SINGLE = 0,
+    COMP,
+    RETURN,
+    CONTINUE,
+    BREAK,
+    IF,
+    IF_ELSE,
+    WHILE,
+    FOR
+};
+
 class Container;
 class Scope;
 class Node {
@@ -75,6 +88,7 @@ public:
 
     static Node *createNodeWithChildren(const std::string &tokenName, int lineno, DataType type, std::initializer_list<Node *> childList, const std::string &data = "");
     static Node *createExpNodeWithChildren(const std::string &tokenName, int lineno, ExpType expType, std::initializer_list<Node *> childList);
+    static Node *createStmtNodeWithChildren(const std::string &tokenName, int lineno, StmtType stmtType, std::initializer_list<Node *> childlist);
     static void printTree(const Node *root, std::ostream& outputStream = outputFile);
     static std::vector<Node *> convertTreeToVector(const Node * root, const std::string& recursiveName, std::initializer_list<const std::string> acceptItemsToken, bool anyRecursiveName=false);
 private:
