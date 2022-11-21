@@ -2,8 +2,40 @@
 #include "Exp.h"
 #include "Scope.h"
 
+Stmt::Stmt(Node *node, StmtType stmtType) : Container(node, containerType) {
+    this->stmtType = stmtType;
+}
+
 void Stmt::installChild(const std::vector<Node *> &children) {
-    if (this->node->data == "BREAK" || this->node->data == "CONTINUE") {
+    int conditionalExpIdx = -1;
+    switch (stmtType) {
+        case StmtType::IF:
+            conditionalExpIdx = 2;
+            break;
+        case StmtType::IF_ELSE:
+            conditionalExpIdx = 2;
+            break;
+        case StmtType::WHILE:
+            conditionalExpIdx = 2;
+            break;
+        case StmtType::FOR:
+            conditionalExpIdx = 4;
+            break;
+        default:
+            conditionalExpIdx = -1;
+            break;
+    }
+    if (conditionalExpIdx != -1) {
+        const auto &conditionalExp = children[conditionalExpIdx]->container->castTo<Exp>();
+        if (!(conditionalExp->expType == ExpType::AND || conditionalExp->expType == ExpType::OR ||
+              conditionalExp->expType == ExpType::LT || conditionalExp->expType == ExpType::LE ||
+              conditionalExp->expType == ExpType::GT || conditionalExp->expType == ExpType::GE ||
+              conditionalExp->expType == ExpType::EQ || conditionalExp->expType == ExpType::NE ||
+              conditionalExp->getCompoundType().type == TypeInt)) {
+            std::cerr << "Error at line " << this->node->lineno << ": "
+                      << "non-boolean expression at the conditional statement." << std::endl;
+        }
+    } else if (stmtType == StmtType::BREAK || stmtType == StmtType::CONTINUE) {
         auto curScope = Scope::getCurrentScope();
         bool isWithinLoop = false;
         while (curScope != Scope::getGlobalScope()) {
@@ -17,8 +49,7 @@ void Stmt::installChild(const std::vector<Node *> &children) {
             std::cerr << "Error at line " << this->node->lineno << ": "
                       << "break or continue statement not within loop." << std::endl;
         }
-    }
-    if (this->node->data == "RETURN") {
+    } else if (stmtType == StmtType::RETURN) {
         if (children.size() == 3) {
             const auto &exp = children[1]->container->castTo<Exp>();
             const auto &funcScope = Scope::getCurrentFunctionScope();

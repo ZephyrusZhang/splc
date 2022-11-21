@@ -106,16 +106,16 @@ StmtList:
     | Stmt StmtList                         { $$ = Node::createNodeWithChildren("StmtList", @$.first_line, DataType::PROD, {$1, $2}); }
     ;
 Stmt:
-      Exp SEMI                              { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2}, "Exp"); }
-    | CompSt                                { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1}, "CompSt"); }
-    | RETURN Exp SEMI                       { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3}, "RETURN"); }
-    | RETURN SEMI                           { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2}, "RETURN"); }
-    | CONTINUE SEMI                         { yystack = yyvsp; $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2}, "CONTINUE"); }
-    | BREAK SEMI                            { yystack = yyvsp; $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2}, "BREAK"); }
-    | IF LP Exp RP Stmt %prec LOWER_ELSE    { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}, "IF"); }
-    | IF LP Exp RP Stmt ELSE Stmt           { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5, $6, $7}, "IFELSE"); }
-    | WHILE LP Exp RP Stmt                  { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5}, "WHILE"); }
-    | FOR LP DefOrExp SEMI Exp SEMI MultiExp RP Stmt  { $$ = Node::createNodeWithChildren("Stmt", @$.first_line, DataType::PROD, {$1, $2, $3, $4, $5, $6, $7, $8, $9}, "FOR"); }
+      Exp SEMI                              { $$ = Node::createStmtNodeWithChildren("Stmt", @$.first_line, StmtType::SINGLE, {$1, $2}); }
+    | CompSt                                { $$ = Node::createStmtNodeWithChildren("Stmt", @$.first_line, StmtType::COMP, {$1}); }
+    | RETURN Exp SEMI                       { $$ = Node::createStmtNodeWithChildren("Stmt", @$.first_line, StmtType::RETURN, {$1, $2, $3}); }
+    | RETURN SEMI                           { $$ = Node::createStmtNodeWithChildren("Stmt", @$.first_line, StmtType::RETURN, {$1, $2}); }
+    | CONTINUE SEMI                         { yystack = yyvsp; $$ = Node::createStmtNodeWithChildren("Stmt", @$.first_line, StmtType::CONTINUE, {$1, $2}); }
+    | BREAK SEMI                            { yystack = yyvsp; $$ = Node::createStmtNodeWithChildren("Stmt", @$.first_line, StmtType::BREAK, {$1, $2}); }
+    | IF LP Exp RP Stmt %prec LOWER_ELSE    { $$ = Node::createStmtNodeWithChildren("Stmt", @$.first_line, StmtType::IF, {$1, $2, $3, $4, $5}); }
+    | IF LP Exp RP Stmt ELSE Stmt           { $$ = Node::createStmtNodeWithChildren("Stmt", @$.first_line, StmtType::IF_ELSE, {$1, $2, $3, $4, $5, $6, $7}); }
+    | WHILE LP Exp RP Stmt                  { $$ = Node::createStmtNodeWithChildren("Stmt", @$.first_line, StmtType::WHILE, {$1, $2, $3, $4, $5}); }
+    | FOR LP DefOrExp SEMI Exp SEMI MultiExp RP Stmt  { $$ = Node::createStmtNodeWithChildren("Stmt", @$.first_line, StmtType::FOR, {$1, $2, $3, $4, $5, $6, $7, $8, $9}); }
     | Exp error                             { outputFile << "Error type B at Line " << @$.first_line << ": Missing semicolon ';'" << std::endl; errCount++; }
     | RETURN Exp error                      { outputFile << "Error type B at Line " << @$.first_line << ": Missing semicolon ';'" << std::endl; errCount++; }
     | WHILE LP Exp error Stmt               { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')'" << std::endl; errCount++; }
