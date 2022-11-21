@@ -45,18 +45,20 @@ logger.addHandler(ch)
 
 
 def test(test_case_path: str, output_path: str, answer_path: str):
-    logger.info(f'Start to test case {test_case_path}')
-    os.system(f'bin/splc {test_case_path}')
+    logger.info(f'Start to test case {test_case_path}, write output to {output_path}')
+    cmd = f'bin/splc {test_case_path} 2>{output_path[:-4]} && mv {output_path[:-4]} {output_path}'
+    logger.info(f'cmd: {cmd}')
+    os.system(cmd)
     answer, out = '', ''
     with open(answer_path) as f:
         answer = f.read()
     with open(output_path) as f:
         out = f.read()
-    if answer == out:
-        logger.info(f'Pass test case {test_case_path}')
-    else:
-        logger.warning(f'Fail to pass test case {test_case_path}')
-        os.system(f'diff {output_path} {answer_path}')
+    
+    print(f'Content of {answer_path}')
+    print(CustomFormatter.yellow + answer + CustomFormatter.reset)
+    print(f'Content of {output_path}')
+    print(CustomFormatter.yellow + out + CustomFormatter.reset)
 
 
 if __name__ == "__main__":
@@ -70,7 +72,9 @@ if __name__ == "__main__":
     standard_output_dir = join(opt.file_dir, 'standard-out')
 
     for file_path in files_path:
-        file_name, _ = splitext(basename(file_path))
+        file_name, ext = splitext(basename(file_path))
+        if ext != '.spl':
+            continue
         print(file_name)
         test(test_case_path=file_path,
              output_path=join(opt.file_dir, f'{file_name}.out'),
