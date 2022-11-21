@@ -59,6 +59,7 @@ std::shared_ptr<Scope> Scope::getCurrentFunctionScope() {
     for (auto it = Scope::globalScopes.rbegin(); it != Scope::globalScopes.rend(); ++it) {
         if (!it->get()->functionName.empty()) return *it;
     }
+    throw std::runtime_error("can't get current scope");
 }
 
 std::shared_ptr<Scope> Scope::getGlobalScope() {

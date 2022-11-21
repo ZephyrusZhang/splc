@@ -1,9 +1,13 @@
 int main()
 {
-    while (1)
-    {
+    if (1) {
+        break;
+    }
+
+    while (1) {
         if (1) {
             break;
         }
+        break;
     }
 }

@@ -1,0 +1,25 @@
+struct Person
+{
+    int age;
+    float weight;
+    char name[32];
+};
+
+struct Person
+{
+    float age;
+    int weight;
+    char name[114514];
+};
+
+int main()
+{
+    int number = 0;
+    number.weight = 1;
+
+    struct Person person;
+    person.weight = 114;
+    person.gender = 35;
+
+    number = person + 1;
+}
