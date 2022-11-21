@@ -60,3 +60,9 @@
 
 
 - [x] **Type 16** break or continue statement not within loop
+- [x] **Type 17** dereference of a non-pointer
+
+## Other Feature
+
+- [x] forced type conversion
+- [x] return type guess of an undefined function
