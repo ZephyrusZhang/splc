@@ -59,8 +59,9 @@
 
 
 
-- [x] **Type 16** break or continue statement not within loop
-- [x] **Type 17** dereference of a non-pointer
+- [x] break or continue statement not within loop
+- [x] dereference of a non-pointer
+- [x] 32-bit signed integer overflow
 
 ## Other Feature
 

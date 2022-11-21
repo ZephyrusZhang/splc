@@ -4,6 +4,7 @@
 #include "Scope.h"
 #include "Dec.h"
 #include "Def.h"
+#include "util/Util.h"
 #include <memory>
 #include <vector>
 #include <algorithm>
@@ -178,6 +179,15 @@ void Exp::installChild(const std::vector<Node *> &children) {
     } else if (this->expType == ExpType::LITERAL_INT) {
         this->valueType = ValueType::RValue;
         this->expCompoundType = std::make_shared<CompoundType>(TypeInt);
+        std::string intStr = this->node->children[0]->data;
+        extern Node **yystack;
+        if (yystack[-1]->tokenName == "MINUS") {
+            intStr = "-" + intStr;
+        }
+        if (isIntStrOverflow(intStr)) {
+            std::cerr << "Error at line " << this->node->lineno << ": "
+                      << "32-bit integer " << intStr << " overflow." << std::endl;
+        }
     } else if (this->expType == ExpType::LITERAL_FLOAT) {
         this->valueType = ValueType::RValue;
         this->expCompoundType = std::make_shared<CompoundType>(TypeFloat);
