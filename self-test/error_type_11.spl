@@ -1,5 +1,0 @@
-int main(int argc)
-{
-    int foo = 1;
-    int a = foo();
-}
