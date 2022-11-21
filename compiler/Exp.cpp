@@ -102,7 +102,7 @@ void Exp::installChild(const std::vector<Node *> &children) {
                                     return defArg == *arg->container->castTo<Exp>()->expCompoundType;
                                 })) {
                     std::cerr << "Error type 9 at line " << this->node->lineno << ": function " << id
-                              << "is called with mismatched args" << std::endl;
+                              << " is called with mismatched args" << std::endl;
                 }
             }
         } else if (Scope::getCurrentScope()->isSymbolExistsRecursively(id)) {
