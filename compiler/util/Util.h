@@ -40,4 +40,13 @@ bool isIntStrOverflow(std::string intStr)
     }
 }
 
+bool isHexCharOverflow(std::string hexCharStr)
+{
+    if (hexCharStr[0] != '\\') return false;
+
+    std::string hex = hexCharStr.substr(2);
+    int charInt = std::stol(hex, 0, 16);
+    return !(0 <= charInt && charInt <= 255);
+}
+
 #endif
