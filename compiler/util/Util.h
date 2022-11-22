@@ -2,9 +2,10 @@
 #define SPLC_UTIL_H
 
 #include <string>
+#include <stdexcept>
 
-const std::string INT_MAX = "2147483647";
-const std::string INT_MIN = "-2147483648";
+const std::string STR_INT_MAX = "2147483647";
+const std::string STR_INT_MIN = "-2147483648";
 
 int compareTwoPositiveInt(std::string a, std::string b)
 {
@@ -30,12 +31,12 @@ bool isIntStrOverflow(std::string intStr)
 {
     if (intStr[0] == '-')
     {
-        return (compareTwoPositiveInt(intStr.substr(1), INT_MIN.substr(1)) == -1);
+        return (compareTwoPositiveInt(intStr.substr(1), STR_INT_MIN.substr(1)) == -1);
         // return intStr.substr(1) > INT_MIN.substr(1);
     }
     else
     {
-        return (compareTwoPositiveInt(intStr, INT_MAX) == -1);
+        return (compareTwoPositiveInt(intStr, STR_INT_MAX) == -1);
         // return intStr > INT_MAX;
     }
 }
