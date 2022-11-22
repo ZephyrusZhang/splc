@@ -4,21 +4,21 @@
 
 ### Data Types
 
-- [ ] `int`: decimal or hexadecimal, signed
+- [x] `int`: decimal or hexadecimal, signed
 
-- [ ] `float`: only dot form
-- [ ] `char`: normal character or hex-form character
-- [ ] `struct`
-- [ ] pointer: `int *`  ~~`float *``char *`~~. `&` for addressing, `*` for address resolution
+- [x] `float`: only dot form
+- [x] `char`: normal character or hex-form character
+- [x] `struct`
+- [x] pointer: `int *`  ~~`float *``char *`~~. `&` for addressing, `*` for address resolution
 
 ### Control Flow
 
-- [ ] `if`, ~~`else if`~~, `else`
+- [x] `if`, ~~`else if`~~, `else`
 
-- [ ] `while`
+- [x] `while`
 
-- [ ] `for`
-- [ ] `break`, `continue`
+- [x] `for`
+- [x] `break`, `continue`
 
 ### Comment
 
@@ -62,6 +62,7 @@
 - [x] break or continue statement not within loop
 - [x] dereference of a non-pointer
 - [x] 32-bit signed integer overflow
+- [x] hex char literal overflow
 - [x] non-boolean expression at the conditional statement
 
 ## Other Feature
