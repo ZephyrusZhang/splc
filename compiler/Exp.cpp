@@ -194,6 +194,11 @@ void Exp::installChild(const std::vector<Node *> &children) {
     } else if (this->expType == ExpType::LITERAL_CHAR) {
         this->valueType = ValueType::RValue;
         this->expCompoundType = std::make_shared<CompoundType>(TypeChar);
+        std::string charStr = this->node->children[0]->data;
+        if (isHexCharOverflow(charStr.substr(1, charStr.size() - 2))) {
+            std::cerr << "Error at line " << this->node->lineno << ": "
+                      << "hex char overflow." << std::endl;
+        }
     } else if (this->expType == ExpType::LITERAL_STRING) {
         this->valueType = ValueType::RValue;
         this->expCompoundType = std::make_shared<CompoundType>(TypePointer);
