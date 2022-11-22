@@ -8,6 +8,12 @@ int main()
         if (1) {
             break;
         }
+        for(int i=0;i<123;i=i+j)
+            for (int j=0;j<i;j++)
+                break;
+        i=i+1;
+        j++;
+        if (1) continue;
         break;
     }
 }
