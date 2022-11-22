@@ -38,6 +38,7 @@ void Container::generateContainer(Node *node) {
                             || scope->node->tokenName == "FOR"
                             || scope->node->tokenName == "WHILE")) {
             // Transfer ownership of Scope from FunDec/FOR/WHILE to LC
+            assert(scope->node->container == nullptr || scope->node->container->type != ContainerType::Scope);
             scope->node->container = nullptr;
             scope->node = node;
             node->container = scope;

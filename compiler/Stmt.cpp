@@ -7,6 +7,18 @@ Stmt::Stmt(Node *node, StmtType stmtType) : Container(node, containerType) {
 }
 
 void Stmt::installChild(const std::vector<Node *> &children) {
+    if (stmtType == StmtType::FOR || stmtType == StmtType::WHILE) {
+        Node *forOrWhile = children[0];
+        // RC should be met already and current Scope shouldn't be bound to forOrWhile node
+        auto scope = Scope::getCurrentScope();
+        if (scope->node == forOrWhile) {
+            std::cout << "pop orphan Scope for " << forOrWhile->tokenName << " at line " << forOrWhile->lineno
+                      << std::endl;
+            Scope::globalScopes.pop_back();
+            assert(scope->node->container == nullptr);
+            scope->node->container = scope;
+        }
+    }
     int conditionalExpIdx = -1;
     switch (stmtType) {
         case StmtType::IF:
