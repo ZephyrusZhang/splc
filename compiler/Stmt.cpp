@@ -19,31 +19,12 @@ void Stmt::installChild(const std::vector<Node *> &children) {
             scope->node->container = scope;
         }
     }
-    int conditionalExpIdx = -1;
-    switch (stmtType) {
-        case StmtType::IF:
-            conditionalExpIdx = 2;
-            break;
-        case StmtType::IF_ELSE:
-            conditionalExpIdx = 2;
-            break;
-        case StmtType::WHILE:
-            conditionalExpIdx = 2;
-            break;
-        case StmtType::FOR:
-            conditionalExpIdx = 4;
-            break;
-        default:
-            conditionalExpIdx = -1;
-            break;
-    }
-    if (conditionalExpIdx != -1) {
+
+    if (stmtType == StmtType::IF || stmtType == StmtType::IF_ELSE ||
+        stmtType == StmtType::WHILE || stmtType == StmtType::FOR) {
+        int conditionalExpIdx = (stmtType == StmtType::FOR) ? 4 : 2;
         const auto &conditionalExp = children[conditionalExpIdx]->container->castTo<Exp>();
-        if (!(conditionalExp->expType == ExpType::AND || conditionalExp->expType == ExpType::OR ||
-              conditionalExp->expType == ExpType::LT || conditionalExp->expType == ExpType::LE ||
-              conditionalExp->expType == ExpType::GT || conditionalExp->expType == ExpType::GE ||
-              conditionalExp->expType == ExpType::EQ || conditionalExp->expType == ExpType::NE ||
-              conditionalExp->getCompoundType().type == TypeInt)) {
+        if (!((1 <= (int) conditionalExp->expType && (int) conditionalExp->expType <= 8) || conditionalExp->getCompoundType().type == TypeInt)) {
             std::cerr << "Error at line " << this->node->lineno << ": "
                       << "non-boolean expression at the conditional statement." << std::endl;
         }
