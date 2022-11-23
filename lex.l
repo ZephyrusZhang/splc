@@ -86,8 +86,8 @@ basic-types         (void|char|int|float)
 }
 
 {decimal-literal}   { yylval = new Node("INT", yylloc.first_line, DataType::INT, yytext);       return INT; }
-{hex-literal}       { yylval = new Node("INT", yylloc.first_line, DataType::INT, std::to_string(stol(std::string(yytext), 0, 16)).c_str()); return INT; }
-{binary-literal}    { yylval = new Node("INT", yylloc.first_line, DataType::INT, std::to_string(stol(std::string(yytext), 0, 2)).c_str()); return INT; }
+{hex-literal}       { yylval = new Node("INT", yylloc.first_line, DataType::INT, yytext); return INT; }
+{binary-literal}    { yylval = new Node("INT", yylloc.first_line, DataType::INT, yytext); return INT; }
 
 {float-literal}     { yylval = new Node("FLOAT", yylloc.first_line, DataType::FLOAT, yytext);   return FLOAT; }
 {char}              {

@@ -4,7 +4,7 @@
 #include "Scope.h"
 #include "Dec.h"
 #include "Def.h"
-#include "util/Util.h"
+#include "Util.h"
 #include <memory>
 #include <vector>
 #include <algorithm>
