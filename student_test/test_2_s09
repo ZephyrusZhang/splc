@@ -1,0 +1,2 @@
+splc: compiler/Scope.cpp:35: Scope::SymbolType Scope::lookupSymbol(const string&): Assertion `current != nullptr' failed.
+Aborted
