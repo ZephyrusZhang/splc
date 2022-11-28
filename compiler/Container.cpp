@@ -13,14 +13,6 @@ void Container::generateContainer(Node *node) {
         // It's ownership should be transfer to LC when LC trying to create its own Scope.
         auto scope = std::make_shared<Scope>(node, tokenName);
         Scope::globalScopes.push_back(scope);
-        if (tokenName == "FunDec") {
-            // set functionName for generated Scope, we use FunDec -> ID LP VarList RP | ID LP RP to get the Node* of ID.
-            extern Node **yystack;
-            Node * identifier = yystack[-2];
-            if (identifier->tokenName == "LP") identifier = yystack[-3];
-            assert(identifier->tokenName == "ID");
-            scope->functionName = identifier->data;
-        }
     }
     if (tokenName == "Specifier") {
         node->container = std::make_shared<Specifier>(node);

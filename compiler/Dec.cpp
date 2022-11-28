@@ -31,6 +31,9 @@ void Dec::installChild(const std::vector<Node *> &children) {
     } else if (this->getTokenName() == "FunDec") {
         this->identifier = std::make_unique<const std::string>(children[0]->data);
         this->funcDec = std::make_unique<std::vector<ParmaDec>>();
+        // set functionName for current function Scope
+        assert(Scope::getCurrentScope()->node == this->node);
+        Scope::getCurrentScope()->functionName = children[0]->data;
         extern Node **yystack;
         Node *specifierNode = yystack[-children.size()];
         assert(specifierNode->tokenName == "Specifier");
