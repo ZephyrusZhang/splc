@@ -49,13 +49,18 @@ CompoundType::CompoundType(const Specifier &specifier) {
             }
         } else {
             // lookup SymbolTable to find Struct definition.
-            const auto& predefined = Scope::getCurrentScope()->lookupSymbol(specifier.structName);
-            this->structDefLists = predefined->structDefLists;
+            if (!Scope::getCurrentScope()->isSymbolExistsRecursively(specifier.structName)) {
+                this->unresolvedStructName = std::make_shared<std::string>(specifier.structName);
+                Scope::getCurrentScope()->unresolvedStructs.push_back(this);
+            } else {
+                const auto &predefined = Scope::getCurrentScope()->lookupSymbol(specifier.structName);
+                this->structDefLists = predefined->structDefLists;
+            }
         }
     }
 }
 
-std::ostream &operator<<(std::ostream &os, const CompoundType &type) {
+void print(std::ostream& os, const CompoundType& type, int depth) {
     switch (type.type) {
         case TypeUnknown: os << "unknown"; break;
         case TypeVoid:  os << "void"; break;
@@ -67,12 +72,16 @@ std::ostream &operator<<(std::ostream &os, const CompoundType &type) {
     }
     if (type.type == TypePointer) {
         if (type.maxIndex > 0) os << "[" << type.maxIndex << "]";
-        os << ":" << const_cast<const CompoundType &>(*type.pointTo);
+        os << ":";
+        print(os,  const_cast<const CompoundType &>(*type.pointTo), depth + 1);
     } else if (type.type == TypeStruct) {
         os << ": {";
-        for (const auto &item: type.structDefLists.operator*()) {
-            os << item.first << ":" << item.second << "; ";
-        }
+        if (depth <= 2)
+            for (const auto &item: type.structDefLists.operator*()) {
+                os << item.first << ":";
+                print(os, item.second, depth + 1);
+                os << "; ";
+            }
         os << "}";
     }
     if (type.funcArgs) {
@@ -83,13 +92,20 @@ std::ostream &operator<<(std::ostream &os, const CompoundType &type) {
         }
         os << ")";
     }
+}
+
+std::ostream &operator<<(std::ostream &os, const CompoundType &type) {
+    print(os, type, 0);
     return os;
 }
 
 bool operator==(const CompoundType &o1, const CompoundType &o2) {
     if (o1.type == BasicType::TypeUnknown || o2.type == BasicType::TypeUnknown) return false;
     if (o1.type != o2.type) return false;
-    if (o1.type == TypeStruct) return *o1.structDefLists == *o2.structDefLists;
+    if (o1.type == TypeStruct) {
+        if (o1.structDefLists == o2.structDefLists) return true;
+        return *o1.structDefLists == *o2.structDefLists;
+    }
     if (o1.type == TypePointer) return *o1.pointTo == *o2.pointTo;
     return o1.type == o2.type;
 }

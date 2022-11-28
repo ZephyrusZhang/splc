@@ -19,6 +19,23 @@ void Scope::insertSymbol(const std::string &identifier, const std::shared_ptr<Sp
         symbols[identifier] = std::make_pair(std::make_shared<CompoundType>(*specifier, *dec), SymbolAttribute{});
     else
         symbols[identifier] = std::make_pair(std::make_shared<CompoundType>(*specifier), SymbolAttribute{});
+    if (!unresolvedStructs.empty()) {
+        auto it = unresolvedStructs.begin();
+        while(it != unresolvedStructs.end()) {
+            const auto item = *it;
+            if (isSymbolExists(*item->unresolvedStructName)) {
+                const auto sym = symbols[*item->unresolvedStructName];
+                assert(sym.first->type == TypeStruct);
+                item->structDefLists = symbols[*item->unresolvedStructName].first->structDefLists;
+                unresolvedStructs.erase(it);
+                std::cerr << "resolve struct " << *item->unresolvedStructName << std::endl;
+            } else {
+                std::cerr << "unable to resolve struct " << *item->unresolvedStructName << std::endl;
+                item->structDefLists = std::make_shared<std::vector<CompoundType::StructDefList>>();
+                it++;
+            }
+        }
+    }
 }
 
 bool Scope::isSymbolExistsRecursively(const std::string &identifier) const {

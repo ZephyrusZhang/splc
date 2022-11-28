@@ -47,6 +47,11 @@ void Container::generateContainer(Node *node) {
             Scope::globalScopes.push_back(node->container->castTo<Scope>());
         }
     } else if (tokenName == "RC") {
+        assert(Scope::getCurrentScope()->node->tokenName == "LC");
+        auto& parent = Scope::getCurrentScope()->parentScope->unresolvedStructs;
+        auto& current = Scope::getCurrentScope()->unresolvedStructs;
+        parent.insert(parent.begin(), current.begin(), current.end());
+        current.clear();
         Scope::globalScopes.pop_back();
     }
 }

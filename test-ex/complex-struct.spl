@@ -1,0 +1,21 @@
+
+struct asd {
+    int a;
+    int b[123];
+} asd1;
+struct node {
+    struct node * prev;
+    struct node * next;
+    struct asd qqq;
+} noderoot;
+
+int main() {
+    struct node a;
+    a.qqq.b[0] = 123;
+    a.prev = &a;
+    a.next = a.prev;
+    struct node * ptr = &a;
+    ptr->qqq.a = 123;
+    ptr->qqq.b[0] = a.qqq.b[0];
+    ptr = 1;
+}

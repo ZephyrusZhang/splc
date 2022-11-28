@@ -18,6 +18,7 @@ public:
     // for struct:
     typedef std::pair<std::string, CompoundType> StructDefList;
     std::shared_ptr<std::vector<StructDefList>> structDefLists;
+    std::shared_ptr<std::string> unresolvedStructName;
     // for function definition:
     std::shared_ptr<std::vector<CompoundType>> funcArgs;
 
