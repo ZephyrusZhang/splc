@@ -1,0 +1,3 @@
+Error type 3 at line 2: variable redefined1 is already defined
+Error type 5 at line 2: unmatched type int and char in the assignment.
+Error type 3 at line 3: variable redefined2 is already defined

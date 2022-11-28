@@ -1,0 +1,2 @@
+Error type 14 at line 9: accessing an undefined structure member name at 0x6070000005e0
+Error type 5 at line 9: unmatched type int and char in the assignment.

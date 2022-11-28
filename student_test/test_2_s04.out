@@ -1,0 +1,2 @@
+Error type 9 at line 19: function sum is called with mismatched args
+Error type 5 at line 23: unmatched type ptrTo[3]:int and int in the assignment.

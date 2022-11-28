@@ -1,0 +1,4 @@
+Error type 12 at line 5: array indexing with a non-integer type expression
+Error type 3 at line 6: variable num4 is already defined
+Error type 5 at line 7: unmatched type int and float in the assignment.
+Error type 6 at line 9: rvalue type int appears in the left side of assignment.

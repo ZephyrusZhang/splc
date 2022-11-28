@@ -1,0 +1,6 @@
+Error type 8 at line 10: function hello should return float function() but given int
+Error type 4 at line 13: function hello is already defined
+Error type 14 at line 21: accessing an undefined structure member province at 0x607000001140
+Error type 1 at line 21: variable SiChuan is used without definition, guess its type to int
+Error type 13 at line 22: accessing members of a non-structure variable.
+Error type 6 at line 23: rvalue type int appears in the left side of assignment.
