@@ -35,6 +35,15 @@ void Def::installChild(const std::vector<Node *> &children) {
         assert(children[0]->tokenName == "Specifier");
         this->specifier = children[0]->container->castTo<Specifier>();
         if (children[1]->tokenName == "ExtDecList") {
+            if (this->specifier->type == TypeStruct) {
+                // insert struct definition.
+                if (!Scope::getCurrentScope()->isSymbolExists(this->specifier->structName)) {
+                    Scope::getCurrentScope()->insertSymbol(this->specifier->structName, this->specifier, nullptr);
+                    Scope::getCurrentScope()->setAttribute(this->specifier->structName, "type", "struct");
+                } else {
+                    std::cerr << "Error type 15 at line " << this->node->lineno << ": structure " << this->specifier->structName << " is already defined" << std::endl;
+                }
+            }
             parseExtDecList();
             // insert global variable definition into symbolTable
             for (const auto &item: this->declares) {
