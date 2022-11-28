@@ -221,7 +221,7 @@ void Exp::installChild(const std::vector<Node *> &children) {
             const auto &result = std::find_if(defList.begin(), defList.end(), findId);
             if (result == defList.end()) {
                 std::cerr << "Error type 14 at line " << this->node->lineno <<
-                          ": accessing an undefined structure member " << id << " at " << leftType
+                          ": accessing an undefined structure member " << id << " at " << *leftType
                           << std::endl;
                 this->expCompoundType = std::make_shared<CompoundType>(TypeInt);
             } else {
