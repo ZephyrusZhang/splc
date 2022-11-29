@@ -30,7 +30,15 @@ void Exp::installChild(const std::vector<Node *> &children) {
         }
         this->valueType = ValueType::RValue;
         this->expCompoundType = right.expCompoundType;
-    } else if (expType == ExpType::AND || expType == ExpType::OR || expType == ExpType::NOT) {
+    } else if (expType == ExpType::NOT) {
+        auto &right = children[1]->container->castTo<Exp>().operator*();
+        this->valueType = ValueType::RValue;
+        this->expCompoundType = right.expCompoundType;
+        if (!right.expCompoundType->canDoBoolean()) {
+            std::cerr << "Error type 5 at line " << this->node->lineno << ": unmatched type " << *right.expCompoundType
+                      << " in the NOT boolean operation." << std::endl;
+        }
+    } else if (expType == ExpType::AND || expType == ExpType::OR) {
         // Boolean Operation
         // TODO: Type Checking
         auto &left = children[0]->container->castTo<Exp>().operator*();
