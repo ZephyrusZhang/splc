@@ -4,10 +4,12 @@
 #include "Node.h"
 #include "Scope.h"
 #include "syntax.tab.h"
+#include "CodeBlock.h"
 
 extern int errCount;
 extern FILE *yyin, *yyout;
 std::string outputPath;
+std::string irOutputPath;
 std::ofstream outputFile;
 
 Node *root = nullptr;
@@ -19,6 +21,7 @@ void yyerror(const char *s) {
 void initArgs(const std::string &fileName) {
     size_t index = fileName.find_last_of('.');
     outputPath = fileName.substr(0, index + 1) + "out";
+    irOutputPath = fileName.substr(0, index + 1) + "ir";
     std::cout << "write to: " << outputPath << std::endl;
     outputFile.open(outputPath, std::ios::out);
 }
@@ -86,24 +89,27 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    Node *extDefList = root->children[0];
-    assert(extDefList->tokenName == "ExtDefList");
-    auto defLists = Node::convertTreeToVector(extDefList, "ExtDefList", {"ExtDef"});
-    for (const auto &item: defLists) {
-        if (item->children[1]->tokenName == "FunDec") {
-            const std::string functionName = item->children[1]->children[0]->data;
-            std::cout << "IRGen for function " << functionName << std::endl;
-            Node *LC = item->children[2]->children[0];
-            assert(LC->tokenName == "LC");
-            assert(LC->container && LC->container->getContainerType() == ContainerType::Scope);
-            LC->container->castTo<Scope>()->startCodeGen();
-        }
-    }
-
     if (errCount > 0) {
         std::cout << "Error Occur" << std::endl;
     } else {
         outputTree(root);
+        // Ir Generation
+        Node *extDefList = root->children[0];
+        assert(extDefList->tokenName == "ExtDefList");
+        auto defLists = Node::convertTreeToVector(extDefList, "ExtDefList", {"ExtDef"});
+        std::vector<std::shared_ptr<FunctionCodeBlock>> functions;
+        for (const auto &item: defLists) {
+            if (item->children[1]->tokenName == "FunDec") {
+                const std::string functionName = item->children[1]->children[0]->data;
+                std::cout << "IRGen for function " << functionName << std::endl;
+                functions.push_back(std::make_shared<FunctionCodeBlock>(item));
+                functions.back()->startTranslation();
+            }
+        }
+//        std::ofstream irOutFile(irOutputPath);
+        for (auto &item: functions) {
+            item->generateIr(std::cout);
+        }
     }
     outputFile.close();
     return 0;

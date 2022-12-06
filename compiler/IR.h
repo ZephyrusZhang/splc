@@ -4,9 +4,9 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include "../CompoundType.h"
+#include "CompoundType.h"
 
-enum IRType {
+enum class IRType {
     LabelDef,
     FunctionDef,
     Assign,
@@ -25,39 +25,44 @@ enum IRType {
     CallArg,
     FunctionCall,
     BuiltinRead,
-    BuiltinWrite
+    BuiltinWrite,
+    CodeBlock
 };
 
 class CodeBlock;
 class IR;
 
-enum IRVariableType {
+enum class IRVariableType {
     Int,
     BaseAddress,
+    Pointer,
     ArrayIndex,
     StructOffset
 };
-// i0 := *ptr
-// b0 := i0 + 1
-//
-// a[*ptr+1]
+
 class IRVariable : private std::enable_shared_from_this<IRVariable> {
 public:
-    const IRVariableType type;
+    IRVariableType type;
     const std::string name;
     const std::weak_ptr<CodeBlock> owner;
     std::vector<std::weak_ptr<IR>> references;
 
     IRVariable(const IRVariableType type, const std::string &name, const std::weak_ptr<CodeBlock> &owner);
+    IRVariable(const std::string& name, const CompoundType& compoundType, const std::weak_ptr<CodeBlock>& owner);
 };
 
-class IR : private std::enable_shared_from_this<IR> {
+class IRConstant : private std::enable_shared_from_this<IRVariable> {
+public:
+    std::string value;
+    std::vector<std::weak_ptr<IR>> references;
+
+    IRConstant(const std::string value) : value(std::move(value)) {};
+};
+
+class IR : public std::enable_shared_from_this<IR> {
 public:
     const IRType irType;
     std::string comment;
-    std::shared_ptr<IRVariable> target;
-    std::shared_ptr<IRVariable> op1;
-    std::shared_ptr<IRVariable> op2;
 
     explicit IR(IRType irType) : irType(irType) {};
 
@@ -65,6 +70,11 @@ public:
 
 protected:
     void insertComment(std::ostream &ostream) const;
+
+    template<class Derived>
+    std::shared_ptr<Derived> shared_from_base() {
+        return std::static_pointer_cast<Derived>(shared_from_this());
+    }
 
 public:
     template<typename T>
@@ -94,12 +104,45 @@ public:
     void generateIr(std::ostream &ostream) override;
 };
 
+class AssignIR : public IR {
+    const std::shared_ptr<IRVariable> target;
+    const std::shared_ptr<IRConstant> source;;
+    void generateIr(std::ostream &ostream) override;
+
+public:
+    explicit AssignIR(std::shared_ptr<IRVariable> target, std::shared_ptr<IRConstant> source)
+    : IR(IRType::Assign), target(target), source(source) {}
+};
+
 class AllocateIR : public IR {
 public:
     const size_t size;
     const std::shared_ptr<IRVariable> variable;
 
     explicit AllocateIR(const size_t size, std::shared_ptr<IRVariable>& variable, std::string& identifierName);
+    void generateIr(std::ostream &ostream) override;
+};
+
+class IfIR : public IR {
+public:
+    const std::shared_ptr<IRVariable> condition;
+    const std::shared_ptr<LabelDefIR> gotoLabel;
+
+    explicit IfIR(std::shared_ptr<IRVariable> condition, std::shared_ptr<LabelDefIR> gotoLabel)
+            : IR(IRType::If), condition(condition), gotoLabel(gotoLabel) {}
+
+    void generateIr(std::ostream &ostream) override;
+};
+
+class GotoIR : public IR {
+public:
+    const std::shared_ptr<LabelDefIR> gotoLabel;
+
+    explicit GotoIR(std::shared_ptr<LabelDefIR> gotoLabel)
+            : IR(IRType::Goto), gotoLabel(gotoLabel) {
+        assert(gotoLabel);
+    }
+
     void generateIr(std::ostream &ostream) override;
 };
 

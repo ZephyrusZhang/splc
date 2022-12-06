@@ -15,6 +15,9 @@ int main() {
     a.prev = &a;
     a.next = a.prev;
     struct node * ptr = &a;
+    if (a.prev) {
+        a.prev->qqq.a++;
+    } else a.prev->qqq.b[3]++;
     ptr->qqq.a = 123;
     ptr->qqq.b[0] = a.qqq.b[0];
     ptr->qqq.b[2] = read();

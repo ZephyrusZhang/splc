@@ -1,10 +1,18 @@
 #include <sstream>
 #include "IR.h"
-#include "../Scope.h"
+#include "Scope.h"
 
 IRVariable::IRVariable(const IRVariableType type, const std::string &name, const std::weak_ptr<CodeBlock> &owner)
         : type(type), name(name), owner(owner) {
 
+}
+
+IRVariable::IRVariable(const std::string& name, const CompoundType& compoundType, const std::weak_ptr<CodeBlock>& owner) : name(name), owner(owner) {
+    switch (compoundType.type) {
+        case BasicType::TypeStruct: type = IRVariableType::BaseAddress; break;
+        case BasicType::TypePointer: type = IRVariableType::Pointer; break;
+        default: type = IRVariableType::Int;
+    }
 }
 
 void IR::insertComment(std::ostream &ostream) const {
@@ -23,7 +31,7 @@ FunctionDefIR::FunctionDefIR(std::string& identifier) : IR(IRType::FunctionDef) 
     this->functionName = identifier;
     this->functionType = Scope::getGlobalScope()->lookupSymbol(identifier);
     std::ostringstream ss;
-    ss << "function " << identifier << *this->functionType << std::endl;
+    ss << "function " << identifier;
     this->comment = ss.str();
 }
 
@@ -37,15 +45,33 @@ void FunctionDefIR::generateIr(std::ostream &ostream) {
     }
 }
 
+void AssignIR::generateIr(std::ostream &ostream) {
+    ostream << target->name << " := " << source->value;
+    insertComment(ostream);
+    ostream << std::endl;
+}
+
 AllocateIR::AllocateIR(const size_t size, std::shared_ptr<IRVariable> &variable, std::string &identifierName)
         : IR(IRType::Allocate), variable(variable), size(size) {
     std::ostringstream ss;
-    ss << "allocate " << size << " bytes for " << identifierName;
+    ss << "allocate " << identifierName << ": " << size << " bytes";
     this->comment = ss.str();
 }
 
 void AllocateIR::generateIr(std::ostream &ostream) {
     ostream << "DEC " << variable->name << " " << this->size;
+    insertComment(ostream);
+    ostream << std::endl;
+}
+
+void IfIR::generateIr(std::ostream &ostream) {
+    ostream << "IF " << condition->name << " == 0 GOTO " << gotoLabel->label;
+    insertComment(ostream);
+    ostream << std::endl;
+}
+
+void GotoIR::generateIr(std::ostream &ostream) {
+    ostream << "GOTO " << gotoLabel->label;
     insertComment(ostream);
     ostream << std::endl;
 }
