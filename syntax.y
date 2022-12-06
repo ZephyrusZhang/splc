@@ -175,7 +175,7 @@ Exp:
     | ID LP RP                              { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::FUNC_INVOKE, {$1, $2, $3}); }
     | Exp LB Exp RB                         { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::ARRAY_INDEX, {$1, $2, $3, $4}); }
     | ID                                    { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::IDENTIFIER, {$1}); }
-    | INT_LITERAL                           { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_INT, {$1}); }
+    | INT                                   { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_INT, {$1}); }
     | FLOAT                                 { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_FLOAT, {$1}); }
     | CHAR                                  { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_CHAR, {$1}); }
     | STRING                                { yystack = yyvsp; $$ = Node::createExpNodeWithChildren("Exp", @$.first_line, ExpType::LITERAL_STRING, {$1}); }
@@ -188,17 +188,6 @@ Exp:
     | ID LP Args error                      { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')''" << std::endl; errCount++; }
     | ID LP error                           { outputFile << "Error type B at Line " << @$.first_line << ": Missing closing parenthesis ')''" << std::endl; errCount++; }
     ;
-
-INT_LITERAL:
-	  INT_FACTOR
-	| INT_LITERAL PLUS INT_FACTOR			{ $$ = $1 + $3; }
-	| INT_LITERAL MINUS INT_FACTOR			{ $$ = $1 - $3; }
-	;
-INT_FACTOR:
-	  INT
-	| INT_LITERAL MUL INT                          	{ $$ = $1 * $3; }
-	| INT_LITERAL DIV INT                           { $$ = $1 / $3; }
-	;
 Args:
       Exp COMMA Args                        { $$ = Node::createNodeWithChildren("Args", @$.first_line, DataType::PROD, {$1, $2, $3}); }
     | Exp                                   { $$ = Node::createNodeWithChildren("Args", @$.first_line, DataType::PROD, {$1}); }
