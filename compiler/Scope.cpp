@@ -14,6 +14,7 @@ bool Scope::isSymbolExists(const std::string &identifier) const {
 void Scope::insertSymbol(const std::string &identifier, const std::shared_ptr<Specifier> &specifier,
                          const std::shared_ptr<Dec> &dec) {
     assert(!isSymbolExists(identifier));
+    assert(specifier->type != TypeUnknown);
     // Set Specifier::isArray
     if (dec)
         symbols[identifier] = std::make_pair(std::make_shared<CompoundType>(*specifier, *dec), SymbolAttribute{});
@@ -28,9 +29,7 @@ void Scope::insertSymbol(const std::string &identifier, const std::shared_ptr<Sp
                 assert(sym.first->type == TypeStruct);
                 item->structDefLists = symbols[*item->unresolvedStructName].first->structDefLists;
                 unresolvedStructs.erase(it);
-                std::cerr << "resolve struct " << *item->unresolvedStructName << std::endl;
             } else {
-                std::cerr << "unable to resolve struct " << *item->unresolvedStructName << std::endl;
                 item->structDefLists = std::make_shared<std::vector<CompoundType::StructDefList>>();
                 it++;
             }
@@ -107,4 +106,8 @@ void Scope::setAttribute(const std::string &identifier, const std::string &key, 
 std::string Scope::getAttribute(const std::string &identifier, const std::string &key) const {
     assert(isSymbolExists(identifier));
     return "";
+}
+
+void Scope::startCodeGen() {
+    std::cout << "code gen for " << this->functionName << std::endl;
 }

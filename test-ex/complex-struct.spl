@@ -17,5 +17,6 @@ int main() {
     struct node * ptr = &a;
     ptr->qqq.a = 123;
     ptr->qqq.b[0] = a.qqq.b[0];
-    ptr = 1;
+    ptr->qqq.b[2] = read();
+    write(ptr->qqq.a);
 }

@@ -42,6 +42,8 @@ public:
     static std::shared_ptr<Scope> getCurrentFunctionScope();
     static std::shared_ptr<Scope> getGlobalScope();
 
+    void startCodeGen();
+
     void printSymbolTable();
 };
 std::ostream& operator<<(std::ostream& os, Scope::SymbolType& symbolType);
