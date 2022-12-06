@@ -26,9 +26,9 @@ CompoundType::CompoundType(const Specifier &specifier, const Dec &dec) : Compoun
         }
     } else if (dec.funcDec) {
         // Function Args
-        this->funcArgs = std::make_shared<std::vector<CompoundType>>();
+        this->funcArgs = std::make_shared<std::vector<FuncArg>>();
         for (const auto &item: dec.funcDec.operator*()) {
-            this->funcArgs->emplace_back(CompoundType(*item.first, *item.second));
+            this->funcArgs->emplace_back(*item.second->identifier, CompoundType(*item.first, *item.second));
         }
     }
 }
@@ -87,7 +87,7 @@ void print(std::ostream& os, const CompoundType& type, int depth) {
     if (type.funcArgs) {
         os << " function(";
         for (int i = 0; i < type.funcArgs->size(); i++) {
-            os << const_cast<const CompoundType&>(type.funcArgs.operator*()[i]);
+            os << const_cast<const CompoundType&>(type.funcArgs.operator*()[i].second);
             if (i != type.funcArgs->size() - 1) os << ", ";
         }
         os << ")";

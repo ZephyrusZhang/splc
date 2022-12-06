@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <fstream>
 #include "Node.h"
+#include "Scope.h"
 #include "syntax.tab.h"
 
 extern int errCount;

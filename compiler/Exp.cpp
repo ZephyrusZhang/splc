@@ -107,8 +107,8 @@ void Exp::installChild(const std::vector<Node *> &children) {
                 auto callArgs = Node::convertTreeToVector(children[2], "Args", {"Exp"});
                 const auto &defArgs = func->funcArgs.operator*();
                 if (!std::equal(defArgs.begin(), defArgs.end(), callArgs.begin(), callArgs.end(),
-                                [](const CompoundType &defArg, const Node *arg) {
-                                    return defArg == *arg->container->castTo<Exp>()->expCompoundType;
+                                [](const CompoundType::FuncArg &defArg, const Node *arg) {
+                                    return defArg.second == *arg->container->castTo<Exp>()->expCompoundType;
                                 })) {
                     std::cerr << "Error type 9 at line " << this->node->lineno << ": function " << id
                               << " is called with mismatched args" << std::endl;

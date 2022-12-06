@@ -4,8 +4,11 @@ FLEX=flex
 BISON=bison
 OUT_NAME=bin/splc
 BUILDDIR=build
-SRCS=syntax.tab compiler/Util compiler/Container compiler/main compiler/Node compiler/Specifier compiler/Scope compiler/Dec compiler/Def compiler/Exp compiler/CompoundType compiler/Stmt
-OBJS=$(SRCS:%=$(BUILDDIR)/%.o)
+SOURCEDIR := compiler/
+C_SOURCES := $(shell find $(SOURCEDIR) -name '*.c') syntax.tab.c
+CPP_SOURCES := $(shell find $(SOURCEDIR) -name '*.cpp')
+HEADERS := $(shell find $(SOURCEDIR) -name '*.h') $(shell find $(SOURCEDIR) -name '*.hpp')
+OBJS=$(C_SOURCES:%.c=$(BUILDDIR)/%.o) $(CPP_SOURCES:%.cpp=$(BUILDDIR)/%.o)
 
 ADDRESS_SANITIZER = -O0 -g -fsanitize=address -fno-omit-frame-pointer
 CXXFLAGS := -g $(ADDRESS_SANITIZER)
@@ -14,23 +17,23 @@ LDFLAGS  = -lfl -ly $(ADDRESS_SANITIZER)
 
 .DEFAULT_GOAL := release
 
-build/lex.yy.c: lex.l
+build/lex.yy.c: lex.l $(HEADERS)
 	@echo "[flex] $<"
 	@$(FLEX) -o build/lex.yy.c lex.l
 
-build/syntax.tab.c: syntax.y build/lex.yy.c
+build/syntax.tab.c: syntax.y build/lex.yy.c $(HEADERS)
 	@echo "[bison] $<"
 	@$(BISON) -o build/syntax.tab.c -d syntax.y --report all -Wcounterexamples -Wconflicts-sr -Wconflicts-rr
 
-build/syntax.tab.o: build/syntax.tab.c
+build/syntax.tab.o: build/syntax.tab.c $(HEADERS)
 	@echo "[g++] syntax.tab.c"
 	@$(CXX) $(CXXFLAGS) -I. -c build/syntax.tab.c -o build/syntax.tab.o
 
-$(BUILDDIR)/%.o : %.c build/syntax.tab.o
+$(BUILDDIR)/%.o : %.c build/syntax.tab.o $(HEADERS)
 	@echo "[gcc] $<"
 	@$(CXX) $(CXXFLAGS) -Ibuild -c $< -o $@
 
-$(BUILDDIR)/%.o : %.cpp build/syntax.tab.o
+$(BUILDDIR)/%.o : %.cpp build/syntax.tab.o $(HEADERS)
 	@echo "[g++] $<"
 	@$(CXX) $(CXXFLAGS) -Ibuild -c $< -o $@
 

@@ -20,7 +20,8 @@ public:
     std::shared_ptr<std::vector<StructDefList>> structDefLists;
     std::shared_ptr<std::string> unresolvedStructName;
     // for function definition:
-    std::shared_ptr<std::vector<CompoundType>> funcArgs;
+    typedef std::pair<std::string, CompoundType> FuncArg;
+    std::shared_ptr<std::vector<FuncArg>> funcArgs;
 
     explicit CompoundType(const Specifier& specifier);
     explicit CompoundType(const Specifier& specifier, const Dec& dec);

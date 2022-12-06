@@ -15,7 +15,6 @@ public:
     typedef std::shared_ptr<CompoundType> SymbolType;
 private:
     std::map<std::string, std::pair<SymbolType, SymbolAttribute>> symbols;
-    std::map<std::string, SymbolType> symbolAttributes;
 public:
     const static ContainerType containerType = ContainerType::Scope;
     static std::vector<std::shared_ptr<Scope>> globalScopes;
@@ -25,7 +24,6 @@ public:
     std::string functionName;
     std::vector<CompoundType *> unresolvedStructs;
 
-//    explicit Scope(Node * node);
     explicit Scope(Node * node, std::string generateWithToken);
     ~Scope() override {
         std::cout << "delete Scope!" << std::endl;
