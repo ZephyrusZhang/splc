@@ -39,6 +39,8 @@ public:
     bool canDoBoolean() const;
     bool canCompare() const;
 
+    [[nodiscard]] size_t sizeOf() const;
+
     static bool canAssignment(const CompoundType& left, const CompoundType& right);
 };
 

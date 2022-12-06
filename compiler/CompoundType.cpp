@@ -131,3 +131,21 @@ bool CompoundType::canAssignment(const CompoundType &left, const CompoundType &r
         return false;
     }
 }
+
+size_t CompoundType::sizeOf() const {
+    assert(type != TypeUnknown);
+    if (type == TypeInt) return 4;
+    if (type == TypeChar) return 4;
+    if (type == TypePointer) {
+        if (this->maxIndex != 0) return this->maxIndex * this->pointTo->sizeOf(); // array
+        else return 4; // basic pointer
+    }
+    if (type == TypeStruct) {
+        size_t cnt = 0;
+        for (const auto &item: this->structDefLists.operator*())
+            cnt += item.second.sizeOf();
+        return cnt;
+    }
+    if (type == TypeFloat) return 4;
+    return 0;
+}
