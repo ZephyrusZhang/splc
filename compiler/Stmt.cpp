@@ -9,14 +9,15 @@ Stmt::Stmt(Node *node, StmtType stmtType) : Container(node, containerType) {
 void Stmt::installChild(const std::vector<Node *> &children) {
     if (stmtType == StmtType::FOR || stmtType == StmtType::WHILE) {
         Node *forOrWhile = children[0];
-        // RC should be met already and current Scope shouldn't be bound to forOrWhile node
+        // If CompSt is present, RC should be met already, thus currentScope should be bound to LC, and current Scope shouldn't be bound to forOrWhile node
         auto scope = Scope::getCurrentScope();
         if (scope->node == forOrWhile) {
-            std::cout << "pop orphan Scope for " << forOrWhile->tokenName << " at line " << forOrWhile->lineno
+            std::cout << "transfer orphan Scope to " << forOrWhile->tokenName << " at line " << forOrWhile->lineno
                       << std::endl;
             Scope::globalScopes.pop_back();
             assert(scope->node->container == nullptr);
             scope->node->container = scope;
+            assert(forOrWhile->container == scope);
         }
     }
 
@@ -24,7 +25,7 @@ void Stmt::installChild(const std::vector<Node *> &children) {
         stmtType == StmtType::WHILE || stmtType == StmtType::FOR) {
         int conditionalExpIdx = (stmtType == StmtType::FOR) ? 4 : 2;
         const auto &conditionalExp = children[conditionalExpIdx]->container->castTo<Exp>();
-        if (!((1 <= (int) conditionalExp->expType && (int) conditionalExp->expType <= 8) || conditionalExp->getCompoundType().type == TypeInt)) {
+        if (!((1 <= (int) conditionalExp->expType && (int) conditionalExp->expType <= 8) || conditionalExp->getCompoundType().type == TypeInt || conditionalExp->getCompoundType().type == TypePointer)) {
             std::cerr << "Error at line " << this->node->lineno << ": "
                       << "non-boolean expression at the conditional statement." << std::endl;
         }
