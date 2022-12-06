@@ -14,6 +14,7 @@ class Exp : public Container {
 private:
     ValueType valueType = ValueType::Unknown;
     std::shared_ptr<CompoundType> expCompoundType;
+    int integerValue;
 public:
     const static ContainerType containerType = ContainerType::Exp;
     ExpType expType;

@@ -81,6 +81,11 @@ void Exp::installChild(const std::vector<Node *> &children) {
                       << " in the arithmetic operation." << std::endl;
         } else if (!(left.expCompoundType->canDoArithmetic() && right.expCompoundType->canDoArithmetic())) {
             std::cerr << "Error type 7 at line " << this->node->lineno << ": binary operation on non-number variables." << std::endl;
+        } else {
+            if (left.expType == ExpType::LITERAL_INT && right.expType == ExpType::LITERAL_INT) {
+                this->expType = ExpType::LITERAL_INT;
+                this->integerValue = left.integerValue + right.integerValue;
+            }
         }
     } else if (expType == ExpType::INCREASE || expType == ExpType::DECREASE) {
         // Unary Arithmetic Operation
@@ -195,6 +200,8 @@ void Exp::installChild(const std::vector<Node *> &children) {
         if (isIntStrOverflow(intStr)) {
             std::cerr << "Error at line " << this->node->lineno << ": "
                       << "32-bit integer " << intStr << " overflow." << std::endl;
+        } else {
+            this->integerValue = std::stoi(intStr);
         }
     } else if (this->expType == ExpType::LITERAL_FLOAT) {
         this->valueType = ValueType::RValue;

@@ -3,6 +3,7 @@
 #include <utility>
 #include "Node.h"
 #include "Dec.h"
+#include "ir/IR.h"
 #include "CompoundType.h"
 
 std::vector<std::shared_ptr<Scope>> Scope::globalScopes{std::make_shared<Scope>(nullptr, "Global")};
@@ -106,8 +107,4 @@ void Scope::setAttribute(const std::string &identifier, const std::string &key, 
 std::string Scope::getAttribute(const std::string &identifier, const std::string &key) const {
     assert(isSymbolExists(identifier));
     return "";
-}
-
-void Scope::startCodeGen() {
-    std::cout << "code gen for " << this->functionName << std::endl;
 }
