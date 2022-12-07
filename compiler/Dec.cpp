@@ -26,6 +26,7 @@ void Dec::installChild(const std::vector<Node *> &children) {
         if (children.size() == 3) {
             // need Type Checking for ASSIGN, defer it to be done when Def->Dec and install Symbol
             this->hasInitialValue = true;
+            this->initialValueExpNode = children[2];
         }
         // contains initialValue
     } else if (this->getTokenName() == "FunDec") {

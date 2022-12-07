@@ -17,6 +17,7 @@ public:
 
     // Only available when Dec -> VarDec ASSIGN Exp
     bool hasInitialValue = false;
+    Node * initialValueExpNode = nullptr;
 
     // Function Dec:
     typedef std::pair<std::shared_ptr<Specifier>, std::shared_ptr<Dec>> ParmaDec;

@@ -30,6 +30,28 @@ enum class IRType {
     CodeBlock
 };
 
+/*
+ * LABEL x :                define a label x
+ * FUNCTION f :             define a function f
+ * x := y                   assign value of y to x
+ * x := y + z               arithmetic addition
+ * x := y - z               arithmetic subtraction
+ * x := y * z               arithmetic multiplication
+ * x := y / z               arithmetic division
+ * x := &y                  assign address of y to x
+ * x := *y                  assign value stored in address y to x
+ * *x := y                  copy value y to address x
+ * GOTO x                   unconditional jump to label x
+ * IF x [relop] y GOTO z    if the condition (binary boolean) is true, jump to label z
+ * RETURN x                 exit the current function and return value x
+ * DEC x [size]             allocate space pointed by x, size must be a multiple of 4
+ * PARAM x                  declare a function parameter
+ * ARG x                    pass argument x
+ * x := CALL f              call a function, assign the return value to x
+ * READ x                   read x from console
+ * WRITE x                  print the value of x to console
+ */
+
 class CodeBlock;
 class IR;
 
@@ -65,6 +87,7 @@ class IR : public std::enable_shared_from_this<IR> {
 public:
     const IRType irType;
     std::string comment;
+    std::vector<std::weak_ptr<IR>> references;
 
     explicit IR(IRType irType) : irType(irType) {};
 
@@ -119,7 +142,7 @@ public:
 class AllocateIR : public IR {
 public:
     const size_t size;
-    const std::shared_ptr<IRVariable> variable;
+    std::shared_ptr<IRVariable> variable;
 
     explicit AllocateIR(size_t size, std::shared_ptr<IRVariable>& variable, std::string& identifierName);
     void generateIr(std::ostream &ostream) override;
@@ -131,7 +154,9 @@ public:
     const std::shared_ptr<LabelDefIR> gotoLabel;
 
     explicit IfIR(std::shared_ptr<IRVariable> condition, std::shared_ptr<LabelDefIR> gotoLabel)
-            : IR(IRType::If), condition(std::move(condition)), gotoLabel(std::move(gotoLabel)) {}
+            : IR(IRType::If), condition(std::move(condition)), gotoLabel(std::move(gotoLabel)) {
+        this->gotoLabel->references.push_back(shared_from_base<IR>());
+    }
 
     void generateIr(std::ostream &ostream) override;
 };
@@ -140,9 +165,10 @@ class GotoIR : public IR {
 public:
     const std::shared_ptr<LabelDefIR> gotoLabel;
 
-    explicit GotoIR(const std::shared_ptr<LabelDefIR>& gotoLabel)
-            : IR(IRType::Goto), gotoLabel(gotoLabel) {
-        assert(gotoLabel);
+    explicit GotoIR(std::shared_ptr<LabelDefIR> gotoLabel)
+            : IR(IRType::Goto), gotoLabel(std::move(gotoLabel)) {
+        assert(this->gotoLabel);
+        this->gotoLabel->references.push_back(shared_from_base<IR>());
     }
 
     void generateIr(std::ostream &ostream) override;

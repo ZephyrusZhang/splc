@@ -29,17 +29,46 @@ std::shared_ptr<LabelDefIR> CodeBlock::newLabel(LabelType type, int lineno) {
     else if (type == LabelType::IF_True) ss << "if_T_" ;
     else if (type == LabelType::IF_END) ss << "if_E_" ;
     ss << this->labelCounts[type]++ << "_" << lineno;
-    return std::make_shared<LabelDefIR>(ss.str());
+    auto label = std::make_shared<LabelDefIR>(ss.str());
+    this->labels.push_back(label);
+    return label;
+}
+
+std::shared_ptr<AllocateIR> CodeBlock::newAllocatedVariable(std::string identifier) {
+    if (this->allocatedVariables.find(identifier) != this->allocatedVariables.end()) {
+        throw std::runtime_error("identifier is already allocated");
+    }
+    auto cType = this->currentScope->lookupSymbol(identifier).operator*();
+    auto irVar = std::make_shared<IRVariable>(identifier, cType, shared_from_base<CodeBlock>());
+    auto allocateIr = std::make_shared<AllocateIR>(cType.sizeOf(), irVar, identifier);
+    this->variables.push_back(irVar);
+    this->allocatedVariables[identifier] = irVar;
+    return allocateIr;
+}
+
+std::shared_ptr<IRVariable> CodeBlock::getAllocatedVariable(const std::string& identifier) {
+    if (this->allocatedVariables.find(identifier) == this->allocatedVariables.end()) {
+        throw std::runtime_error("unallocated identifier when trying to get IRVariable");
+    } else {
+        return this->allocatedVariables[identifier];
+    }
 }
 
 void CodeBlock::generateIr(std::ostream &ostream) {
     for (const auto &item: this->content)
         item->generateIr(ostream);
-    for (const auto &item: this->nextBlocks)
-        item->generateIr(ostream);
 }
 
-void CodeBlock::translateExp(Node *expRoot) {
+void CodeBlock::translateExp(Node *expRoot, CodeBlockVector& target) {
+    return {};
+}
+
+void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariable> &assignTo,
+                                       CodeBlockVector &target) {
+    // Read the comment in header file
+}
+
+void CodeBlock::translateConditionExp(Node *expRoot, std::shared_ptr<LabelDefIR> &trueLabel, std::shared_ptr<LabelDefIR> &falseLabel, CodeBlockVector &target) {
 
 }
 
@@ -52,19 +81,19 @@ Node * getCompStOrStmt(Node* stmt) {
 void CodeBlock::translateStmt(Node* stmtNode) {
     // stmtNode may be def or Stmt
     if (stmtNode->tokenName == "Def") {
+        // Def -> Specifier DecList SEMI
         auto def = stmtNode->container->castTo<Def>();
-        for (const auto &item: def->declares) {
-            auto identifier = item->identifier.operator*();
-            auto cType = this->currentScope->lookupSymbol(identifier).operator*();
-            auto irVar = std::make_shared<IRVariable>(identifier, cType, shared_from_base<CodeBlock>());
-            auto allocateIr = std::make_shared<AllocateIR>(cType.sizeOf(), irVar, identifier);
-            this->variables.push_back(irVar);
+        for (const auto &dec: def->declares) {
+            auto identifier = dec->identifier.operator*();
+            auto allocateIr = newAllocatedVariable(identifier);
             this->content.push_back(allocateIr);
+            if (dec->hasInitialValue)
+                translateDecAssignment(dec->initialValueExpNode, allocateIr->variable, content);
         }
     } else { // Stmt
         auto& stmtObj = stmtNode->container->castTo<Stmt>().operator*();
         if (stmtObj.stmtType == StmtType::SINGLE) {
-            translateExp(stmtNode->children[0]);
+            translateExp(stmtNode->children[0], this->content);
         } else if (stmtObj.stmtType == StmtType::RETURN) {
 
         } else if (stmtObj.stmtType == StmtType::BREAK) {
@@ -76,16 +105,14 @@ void CodeBlock::translateStmt(Node* stmtNode) {
             this->content.push_back(compBlock);
             compBlock->startTranslation();
         } else if (stmtObj.stmtType == StmtType::IF || stmtObj.stmtType == StmtType::IF_ELSE) {
-            // TODO: Analyze if statement condition
-            auto condition = newVariable(IRVariableType::Int);
-            this->content.push_back(std::make_shared<AssignIR>(condition, std::make_shared<IRConstant>("1")));
-
+            auto thenLabel = newLabel(LabelType::IF_True, stmtObj.node->lineno);
             auto elseLabel = newLabel(LabelType::IF_False, stmtObj.node->lineno);
-            auto ifIr = std::make_shared<IfIR>(condition, elseLabel);
-            auto thenBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode->children[4]), shared_from_base<CodeBlock>());
             // append IF IR
-            this->content.push_back(ifIr);
-            // append thenBlock
+            translateConditionExp(stmtNode->children[2], thenLabel, elseLabel, this->content);
+            auto thenBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode->children[4]), shared_from_base<CodeBlock>());
+            // append thenLabel (if need), and thenBlock
+            if (!thenLabel->references.empty())
+                this->content.push_back(thenLabel);
             this->content.push_back(thenBlock);
             thenBlock->startTranslation();
             if (stmtObj.stmtType == StmtType::IF) {
@@ -97,6 +124,7 @@ void CodeBlock::translateStmt(Node* stmtNode) {
             } else {
                 // if-then-else:
                 // IF xx GOTO else_label
+                // then_label:
                 // then block
                 // GOTO if_end_label
                 // else_label:
@@ -146,11 +174,53 @@ void FunctionCodeBlock::startTranslation() {
 
 ForCodeBlock::ForCodeBlock(Node *stmtNode, const std::shared_ptr<CodeBlock>& parentBlock)
         : CodeBlock(CodeBlockType::For, stmtNode, parentBlock) {
-
+    if (stmtNode->children[0]->container && stmtNode->children[0]->container->getContainerType() == ContainerType::Scope) {
+        this->currentScope = stmtNode->children[0]->container->castTo<Scope>();
+    } else {
+        auto forBlockStmt = stmtNode->children[8];
+        assert(forBlockStmt->children[0]->tokenName == "CompSt");
+        assert(forBlockStmt->children[0]->children[0]->tokenName == "LC");
+        assert(forBlockStmt->children[0]->children[0]->container);
+        assert(forBlockStmt->children[0]->children[0]->container->getContainerType() == ContainerType::Scope);
+        this->currentScope = forBlockStmt->children[0]->children[0]->container->castTo<Scope>();
+    }
 }
 
 void ForCodeBlock::startTranslation() {
-
+    assert(rootNode->tokenName == "Stmt" && rootNode->children[0]->tokenName == "FOR");
+    // Stmt -> FOR LP DefOrExp SEMI Exp SEMI MultiExp RP Stmt
+    this->loopConditionLabel = newLabel(LabelType::LOOP_CONDITION, rootNode->lineno);
+    this->loopBlockLabel = newLabel(LabelType::LOOP_BLOCK, rootNode->children[4]->lineno);
+    this->loopEndLabel = newLabel(LabelType::LOOP_END, rootNode->children[8]->lineno);
+    // First, Generate loopEntry CodeBlock.
+    // DefOrExp -> Specifier DecList | Exp
+    auto defOrExp = rootNode->children[2];
+    if (defOrExp->children[0]->tokenName == "Exp") {
+        // DefOrExp -> Exp
+        translateExp(defOrExp->children[0], this->loopEntry);
+    } else {
+        // DefOrExp -> Specifier DecList
+        // allocate for Declares and assign initialValue
+        auto def = defOrExp->container->castTo<Def>();
+        for (const auto &dec: def->declares) {
+            auto allocateIr = newAllocatedVariable(dec->identifier.operator*());
+            this->loopEntry.push_back(allocateIr);
+            if (dec->hasInitialValue)
+                translateDecAssignment(dec->initialValueExpNode, allocateIr->variable, this->loopEntry);
+        }
+    }
+    // Second, Generate Loop_Condition CodeBlock
+    auto conditionalExp = rootNode->children[4];
+    // trueLabel -> loopBlockLabel, falseLabel -> loopEndLabel
+    translateConditionExp(conditionalExp, this->loopBlockLabel, this->loopEndLabel, this->loopCondition);
+    // Third, Generate Loop_Next CodeBlock
+    auto multiExp = rootNode->children[6];
+    auto exps = Node::convertTreeToVector(multiExp, "MultiExp", {"Exp"});
+    for (const auto &exp: exps)
+        translateExp(exp, this->loopNext);
+    // Forth, Generate For Statements
+    auto stmt = rootNode->children[8];
+    translateStmt(stmt);
 }
 
 void ForCodeBlock::generateIr(std::ostream &ostream) {
@@ -182,7 +252,17 @@ GeneralCodeBlock::GeneralCodeBlock(Node *rootNode, const std::shared_ptr<CodeBlo
 }
 
 void GeneralCodeBlock::startTranslation() {
-
+    if (rootNode->tokenName == "Stmt") {
+        translateStmt(rootNode);
+    } else if (rootNode->tokenName == "StmtList") {
+        auto stmts = Node::convertTreeToVector(rootNode, "StmtList", {"Stmt"});
+        for (const auto &stmt: stmts)
+            translateStmt(stmt);
+    } else if (rootNode->tokenName == "CompSt") {
+        auto stmts = Node::convertTreeToVector(rootNode->children[1], "StmtList", {"Stmt"});
+        for (const auto &stmt: stmts)
+            translateStmt(stmt);
+    }
 }
 
 void GeneralCodeBlock::generateIr(std::ostream &ostream) {

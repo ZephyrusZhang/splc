@@ -67,28 +67,28 @@
       <scope name="Compiler" level="WARNING" enabled="true" />
     </inspection_tool>
     <inspection_tool class="OCInconsistentNaming" enabled="true" level="WEAK WARNING" enabled_by_default="false">
-      <scope name="Compiler" level="WEAK WARNING" enabled="true" />
+      <scope name="Compiler" level="WEAK WARNING" enabled="false" />
     </inspection_tool>
     <inspection_tool class="OCUnusedConcept" enabled="true" level="WARNING" enabled_by_default="false">
-      <scope name="Compiler" level="WARNING" enabled="true" />
+      <scope name="Compiler" level="WARNING" enabled="true" editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES" />
     </inspection_tool>
     <inspection_tool class="OCUnusedGlobalDeclaration" enabled="true" level="WARNING" enabled_by_default="false">
-      <scope name="Compiler" level="WARNING" enabled="true" />
+      <scope name="Compiler" level="WARNING" enabled="true" editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES" />
     </inspection_tool>
     <inspection_tool class="OCUnusedIncludeDirective" enabled="true" level="WARNING" enabled_by_default="false">
       <scope name="Compiler" level="WARNING" enabled="true" />
     </inspection_tool>
     <inspection_tool class="OCUnusedMacro" enabled="true" level="WARNING" enabled_by_default="false">
-      <scope name="Compiler" level="WARNING" enabled="true" />
+      <scope name="Compiler" level="WARNING" enabled="true" editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES" />
     </inspection_tool>
     <inspection_tool class="OCUnusedStruct" enabled="true" level="WARNING" enabled_by_default="false">
-      <scope name="Compiler" level="WARNING" enabled="true" />
+      <scope name="Compiler" level="WARNING" enabled="true" editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES" />
     </inspection_tool>
     <inspection_tool class="OCUnusedTemplateParameter" enabled="true" level="WARNING" enabled_by_default="false">
-      <scope name="Compiler" level="WARNING" enabled="true" />
+      <scope name="Compiler" level="WARNING" enabled="true" editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES" />
     </inspection_tool>
     <inspection_tool class="OCUnusedTypeAlias" enabled="true" level="WARNING" enabled_by_default="false">
-      <scope name="Compiler" level="WARNING" enabled="true" />
+      <scope name="Compiler" level="WARNING" enabled="true" editorAttributes="NOT_USED_ELEMENT_ATTRIBUTES" />
     </inspection_tool>
     <inspection_tool class="PreprocessorComment" enabled="true" level="WARNING" enabled_by_default="false">
       <scope name="Compiler" level="WARNING" enabled="true" />
