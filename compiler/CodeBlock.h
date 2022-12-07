@@ -39,7 +39,6 @@ protected:
     std::shared_ptr<LabelDefIR> newLabel(LabelType type, int lineno);
     void translateExp(Node * expRoot);
     void translateStmt(Node * expRoot); // return false should stop generate from vector<Node * Stmt>
-    void translateFunction();
 public:
     explicit CodeBlock(CodeBlockType type, Node *rootNode, const std::shared_ptr<CodeBlock>& parentBlock);
     virtual void startTranslation() = 0;
@@ -56,14 +55,14 @@ public:
 
 class ForCodeBlock : public CodeBlock {
 public:
-    explicit ForCodeBlock(Node* stmtNode, std::shared_ptr<CodeBlock> parentBlock);
+    explicit ForCodeBlock(Node* stmtNode, const std::shared_ptr<CodeBlock>& parentBlock);
     void startTranslation() override;
     void generateIr(std::ostream &ostream) override;
 };
 
 class WhileCodeBlock : public CodeBlock {
 public:
-    explicit WhileCodeBlock(Node* stmtNode, std::shared_ptr<CodeBlock> parentBlock);
+    explicit WhileCodeBlock(Node* stmtNode, const std::shared_ptr<CodeBlock>& parentBlock);
     void startTranslation() override;
     void generateIr(std::ostream &ostream) override;
 };

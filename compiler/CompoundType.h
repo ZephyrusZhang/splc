@@ -40,6 +40,9 @@ public:
     bool canCompare() const;
 
     [[nodiscard]] size_t sizeOf() const;
+    [[nodiscard]] bool isArray() const {
+        return type == TypePointer && maxIndex > 0;
+    }
 
     static bool canAssignment(const CompoundType& left, const CompoundType& right);
 };

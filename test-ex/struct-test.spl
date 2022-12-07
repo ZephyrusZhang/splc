@@ -1,0 +1,16 @@
+struct a {
+    struct a * ptr;
+    int c;
+    int b;
+};
+int main() {
+    struct a a0;
+    int arr[123];
+    struct a {
+        struct a * ptr;
+        int c;
+        int b;
+    } bbb;
+    struct a * ptr;
+    a0 = bbb;
+}

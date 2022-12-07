@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <utility>
 #include <vector>
 #include "CompoundType.h"
 
@@ -48,6 +49,7 @@ public:
     std::vector<std::weak_ptr<IR>> references;
 
     IRVariable(IRVariableType type, std::string name, std::weak_ptr<CodeBlock> owner);
+    // Allocate space according to CompoundType
     IRVariable(std::string name, const CompoundType& compoundType, std::weak_ptr<CodeBlock> owner);
 };
 
@@ -56,7 +58,7 @@ public:
     std::string value;
     std::vector<std::weak_ptr<IR>> references;
 
-    IRConstant(const std::string value) : value(std::move(value)) {};
+    explicit IRConstant(std::string value) : value(std::move(value)) {};
 };
 
 class IR : public std::enable_shared_from_this<IR> {
@@ -111,7 +113,7 @@ class AssignIR : public IR {
 
 public:
     explicit AssignIR(std::shared_ptr<IRVariable> target, std::shared_ptr<IRConstant> source)
-    : IR(IRType::Assign), target(target), source(source) {}
+    : IR(IRType::Assign), target(std::move(target)), source(std::move(source)) {}
 };
 
 class AllocateIR : public IR {
@@ -119,7 +121,7 @@ public:
     const size_t size;
     const std::shared_ptr<IRVariable> variable;
 
-    explicit AllocateIR(const size_t size, std::shared_ptr<IRVariable>& variable, std::string& identifierName);
+    explicit AllocateIR(size_t size, std::shared_ptr<IRVariable>& variable, std::string& identifierName);
     void generateIr(std::ostream &ostream) override;
 };
 
@@ -129,7 +131,7 @@ public:
     const std::shared_ptr<LabelDefIR> gotoLabel;
 
     explicit IfIR(std::shared_ptr<IRVariable> condition, std::shared_ptr<LabelDefIR> gotoLabel)
-            : IR(IRType::If), condition(condition), gotoLabel(gotoLabel) {}
+            : IR(IRType::If), condition(std::move(condition)), gotoLabel(std::move(gotoLabel)) {}
 
     void generateIr(std::ostream &ostream) override;
 };
@@ -138,7 +140,7 @@ class GotoIR : public IR {
 public:
     const std::shared_ptr<LabelDefIR> gotoLabel;
 
-    explicit GotoIR(std::shared_ptr<LabelDefIR> gotoLabel)
+    explicit GotoIR(const std::shared_ptr<LabelDefIR>& gotoLabel)
             : IR(IRType::Goto), gotoLabel(gotoLabel) {
         assert(gotoLabel);
     }

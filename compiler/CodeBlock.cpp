@@ -81,10 +81,10 @@ void CodeBlock::translateStmt(Node* stmtNode) {
             this->content.push_back(std::make_shared<AssignIR>(condition, std::make_shared<IRConstant>("1")));
 
             auto elseLabel = newLabel(LabelType::IF_False, stmtObj.node->lineno);
-            auto irIf = std::make_shared<IfIR>(condition, elseLabel);
+            auto ifIr = std::make_shared<IfIR>(condition, elseLabel);
             auto thenBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode->children[4]), shared_from_base<CodeBlock>());
             // append IF IR
-            this->content.push_back(irIf);
+            this->content.push_back(ifIr);
             // append thenBlock
             this->content.push_back(thenBlock);
             thenBlock->startTranslation();
@@ -112,9 +112,13 @@ void CodeBlock::translateStmt(Node* stmtNode) {
                 this->content.push_back(endLabel);
             }
         } else if (stmtObj.stmtType == StmtType::FOR) {
-
+            auto forBlock = std::make_shared<ForCodeBlock>(stmtNode, shared_from_base<CodeBlock>());
+            this->content.push_back(forBlock);
+            forBlock->startTranslation();
         } else if (stmtObj.stmtType == StmtType::WHILE) {
-
+            auto whileBlock = std::make_shared<WhileCodeBlock>(stmtNode, shared_from_base<CodeBlock>());
+            this->content.push_back(whileBlock);
+            whileBlock->startTranslation();
         } else throw std::runtime_error("unexpected stmt");
     }
 }
@@ -140,8 +144,8 @@ void FunctionCodeBlock::startTranslation() {
     }
 }
 
-ForCodeBlock::ForCodeBlock(Node *stmtNode, std::shared_ptr<CodeBlock> parentBlock)
-        : CodeBlock(CodeBlockType::For, stmtNode, std::move(parentBlock)) {
+ForCodeBlock::ForCodeBlock(Node *stmtNode, const std::shared_ptr<CodeBlock>& parentBlock)
+        : CodeBlock(CodeBlockType::For, stmtNode, parentBlock) {
 
 }
 
@@ -153,8 +157,8 @@ void ForCodeBlock::generateIr(std::ostream &ostream) {
 
 }
 
-WhileCodeBlock::WhileCodeBlock(Node *stmtNode, std::shared_ptr<CodeBlock> parentBlock)
-        : CodeBlock(CodeBlockType::While, stmtNode, std::move(parentBlock)) {
+WhileCodeBlock::WhileCodeBlock(Node *stmtNode, const std::shared_ptr<CodeBlock>& parentBlock)
+        : CodeBlock(CodeBlockType::While, stmtNode, parentBlock) {
 
 }
 
