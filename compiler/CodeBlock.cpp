@@ -60,7 +60,7 @@ void CodeBlock::generateIr(std::ostream &ostream) {
 }
 
 void CodeBlock::translateExp(Node *expRoot, CodeBlockVector& target) {
-    return {};
+
 }
 
 void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariable> &assignTo,
@@ -110,9 +110,9 @@ void CodeBlock::translateStmt(Node* stmtNode) {
             // append IF IR
             translateConditionExp(stmtNode->children[2], thenLabel, elseLabel, this->content);
             auto thenBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode->children[4]), shared_from_base<CodeBlock>());
-            // append thenLabel (if need), and thenBlock
-            if (!thenLabel->references.empty())
-                this->content.push_back(thenLabel);
+            // append thenLabel (if needed), and thenBlock
+//            if (!thenLabel->references.empty())
+            this->content.push_back(thenLabel);
             this->content.push_back(thenBlock);
             thenBlock->startTranslation();
             if (stmtObj.stmtType == StmtType::IF) {
@@ -192,6 +192,7 @@ void ForCodeBlock::startTranslation() {
     this->loopConditionLabel = newLabel(LabelType::LOOP_CONDITION, rootNode->lineno);
     this->loopBlockLabel = newLabel(LabelType::LOOP_BLOCK, rootNode->children[4]->lineno);
     this->loopEndLabel = newLabel(LabelType::LOOP_END, rootNode->children[8]->lineno);
+    this->gotoLoopCondition = std::make_shared<GotoIR>(this->loopConditionLabel);
     // First, Generate loopEntry CodeBlock.
     // DefOrExp -> Specifier DecList | Exp
     auto defOrExp = rootNode->children[2];
@@ -224,7 +225,15 @@ void ForCodeBlock::startTranslation() {
 }
 
 void ForCodeBlock::generateIr(std::ostream &ostream) {
-
+    for (const auto &item: this->loopEntry) item->generateIr(ostream);
+    this->loopConditionLabel->generateIr(ostream);
+    for (const auto &item: this->loopCondition) item->generateIr(ostream);
+    this->loopBlockLabel->generateIr(ostream);
+    for (const auto &item: this->content) item->generateIr(ostream);
+    ostream << "; For Next Expressions" << std::endl;
+    for (const auto &item: this->loopNext) item->generateIr(ostream);
+    this->gotoLoopCondition->generateIr(ostream);
+    this->loopEndLabel->generateIr(ostream);
 }
 
 WhileCodeBlock::WhileCodeBlock(Node *stmtNode, const std::shared_ptr<CodeBlock>& parentBlock)

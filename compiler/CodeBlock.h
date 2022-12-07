@@ -93,6 +93,7 @@ private:
     std::shared_ptr<LabelDefIR> loopConditionLabel;
     std::shared_ptr<LabelDefIR> loopBlockLabel;
     std::shared_ptr<LabelDefIR> loopEndLabel;
+    std::shared_ptr<GotoIR> gotoLoopCondition;
     // structure:
     // <Loop_Entry>     ; DefOrExp
     // Loop_Condition:  ; label
