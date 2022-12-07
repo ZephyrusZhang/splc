@@ -4,11 +4,12 @@
 #include "Node.h"
 #include "Def.h"
 #include "Stmt.h"
+#include "Exp.h"
 
 CodeBlock::CodeBlock(CodeBlockType type, Node *rootNode, const std::shared_ptr<CodeBlock>& parentBlock)
         : IR(IRType::CodeBlock), codeBlockType(type), rootNode(rootNode), parentBlock(parentBlock) {}
 
-std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType) {
+std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType = IRVariableType::Temp) {
     size_t cnt = this->variableCounts[expectedType]++;
     std::ostringstream name;
     if (expectedType == IRVariableType::Int) name << 'i';
@@ -16,6 +17,7 @@ std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType) 
     else if (expectedType == IRVariableType::Pointer) name << "p";
     else if (expectedType == IRVariableType::BaseAddress) name << 'b';
     else if (expectedType == IRVariableType::StructOffset) name << 'o';
+    else if (expectedType == IRVariableType::Temp) name << "t";
     else name << "u";
     name << cnt;
     auto var = std::make_shared<IRVariable>(expectedType, name.str(), shared_from_base<CodeBlock>());
@@ -63,8 +65,15 @@ void CodeBlock::generateIr(std::ostream &ostream) {
         item->generateIr(ostream);
 }
 
-void CodeBlock::translateExp(Node *expRoot, CodeBlockVector& target) {
+std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVector& target) {
+    auto exp = expRoot->container->castTo<Exp>();
+    if (exp->expType == ExpType::LITERAL_INT) {
 
+    } else if (exp->expType == ExpType::IDENTIFIER) {
+        auto id = exp->node->children[0]->data;
+        auto addr = getAllocatedVariable(id);
+    }
+    return {};
 }
 
 void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariable> &assignTo,
@@ -73,7 +82,14 @@ void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariabl
 }
 
 void CodeBlock::translateConditionExp(Node *expRoot, std::shared_ptr<LabelDefIR> &trueLabel, std::shared_ptr<LabelDefIR> &falseLabel, CodeBlockVector &target) {
+    auto exp = expRoot->container->castTo<Exp>();
+    if (exp->expType == ExpType::AND) {
 
+    } else if (exp->expType == ExpType::OR) {
+
+    } else {
+
+    }
 }
 
 Node * getCompStOrStmt(Node* stmt) {

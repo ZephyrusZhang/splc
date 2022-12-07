@@ -22,6 +22,11 @@ IRVariable::IRVariable(std::string name, const CompoundType& compoundType, std::
     } else type = IRVariableType::Pointer;
 }
 
+IRVariable::IRVariable(uint32_t value, std::weak_ptr<CodeBlock> owner) :name("constant"), owner(std::move(owner)) {
+    this->type = IRVariableType::Constant;
+    this->value = std::to_string(value);
+}
+
 void IR::insertComment(std::ostream &ostream) const {
     if (!comment.empty()) ostream << " ; " << comment;
 }
@@ -53,7 +58,7 @@ void FunctionDefIR::generateIr(std::ostream &ostream) {
 }
 
 void AssignIR::generateIr(std::ostream &ostream) {
-    ostream << target->name << " := " << source->value;
+    ostream << target->name << " := " << op1->value;
     insertComment(ostream);
     ostream << std::endl;
 }
@@ -88,5 +93,24 @@ void IfIR::generateIr(std::ostream &ostream) {
 void GotoIR::generateIr(std::ostream &ostream) {
     ostream << "GOTO " << gotoLabel->label;
     insertComment(ostream);
+    ostream << std::endl;
+}
+
+void BinaryIR::generateIr(std::ostream &ostream) {
+    ostream << target->name << " := " << op1->name << " ";
+    if (irType == IRType::ArithAddition) ostream << "+";
+    else if (irType == IRType::ArithSubtraction) ostream << "-";
+    else if (irType == IRType::ArithMultiplication) ostream << "*";
+    else if (irType == IRType::ArithDivision) ostream << "/";
+    else ostream << "NOT IMPLEMENTED";
+    ostream << " " << op2->name << std::endl;
+}
+
+void UnaryIR::generateIr(std::ostream &ostream) {
+
+    if (irType == IRType::StoreAddress) ostream << "*";
+    ostream << target->name << " := " << op1->name << " ";
+    if (irType == IRType::AddressOf) ostream << "&";
+    else if (irType == IRType::ReadAddress) ostream << "*";
     ostream << std::endl;
 }

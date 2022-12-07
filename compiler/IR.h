@@ -60,28 +60,27 @@ enum class IRVariableType {
     BaseAddress,
     Pointer,
     ArrayIndex,
-    StructOffset
+    StructOffset,
+    Temp,
+    Constant
 };
 
-class IRVariable : private std::enable_shared_from_this<IRVariable> {
+class IRVariable : public std::enable_shared_from_this<IRVariable> {
 public:
     IRVariableType type;
     const std::string name;
     const std::weak_ptr<CodeBlock> owner;
     std::vector<std::weak_ptr<IR>> references;
+    std::string value;
 
     IRVariable(IRVariableType type, std::string name, std::weak_ptr<CodeBlock> owner);
     // Allocate space according to CompoundType
     IRVariable(std::string name, const CompoundType& compoundType, std::weak_ptr<CodeBlock> owner);
+    // Constant Value
+    IRVariable(uint32_t value, std::weak_ptr<CodeBlock> owner);
 };
 
-class IRConstant : private std::enable_shared_from_this<IRVariable> {
-public:
-    std::string value;
-    std::vector<std::weak_ptr<IR>> references;
-
-    explicit IRConstant(std::string value) : value(std::move(value)) {};
-};
+typedef std::shared_ptr<IRVariable> IRVariablePtr;
 
 class IR : public std::enable_shared_from_this<IR> {
 public:
@@ -129,31 +128,93 @@ public:
     void generateIr(std::ostream &ostream) override;
 };
 
-class AssignIR : public IR {
-    const std::shared_ptr<IRVariable> target;
-    const std::shared_ptr<IRConstant> source;;
-    void generateIr(std::ostream &ostream) override;
-
+class BinaryIR : public IR {
 public:
-    explicit AssignIR(std::shared_ptr<IRVariable> target, std::shared_ptr<IRConstant> source)
-    : IR(IRType::Assign), target(std::move(target)), source(std::move(source)) {}
+    IRVariablePtr target;
+    IRVariablePtr op1;
+    IRVariablePtr op2;
+
+    BinaryIR(IRType irType, IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
+            : IR(irType), target(std::move(target)), op1(std::move(op1)), op2(std::move(op2)) {}
+
+    void generateIr(std::ostream &ostream) override;
+};
+
+class UnaryIR : public IR {
+public:
+    IRVariablePtr target;
+    IRVariablePtr op1;
+
+    UnaryIR(IRType irType, IRVariablePtr target, IRVariablePtr op1)
+            : IR(irType), target(std::move(target)), op1(std::move(op1)) {}
+
+    void generateIr(std::ostream &ostream) override;
+};
+
+class AssignIR : public UnaryIR {
+public:
+    explicit AssignIR(IRVariablePtr target, IRVariablePtr source)
+            : UnaryIR(IRType::Assign, std::move(target), std::move(source)) {}
+    void generateIr(std::ostream &ostream) override;
+};
+
+class AddressOfIR : public UnaryIR {
+public:
+    explicit AddressOfIR(IRVariablePtr target, IRVariablePtr op1)
+            : UnaryIR(IRType::AddressOf, std::move(target), std::move(op1)) {}
+};
+
+class ReadAddressIR : public UnaryIR {
+public:
+    explicit ReadAddressIR(IRVariablePtr target, IRVariablePtr srcAddr)
+            : UnaryIR(IRType::ReadAddress, std::move(target), std::move(srcAddr)) {}
+};
+
+class StoreAddressIR : public UnaryIR {
+public:
+    explicit StoreAddressIR(IRVariablePtr dstAddr, IRVariablePtr value)
+            : UnaryIR(IRType::StoreAddress, std::move(dstAddr), std::move(value)) {}
+};
+
+class AdditionIR : public BinaryIR {
+public:
+    explicit AdditionIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
+        : BinaryIR(IRType::ArithAddition, std::move(target), std::move(op1), std::move(op2)) {}
+};
+
+class SubtractionIR : public BinaryIR {
+public:
+    explicit SubtractionIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
+            : BinaryIR(IRType::ArithSubtraction, std::move(target), std::move(op1), std::move(op2)) {}
+};
+
+class MultiplicationIR : public BinaryIR {
+public:
+    explicit MultiplicationIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
+            : BinaryIR(IRType::ArithMultiplication, std::move(target), std::move(op1), std::move(op2)) {}
+};
+
+class DivisionIR : public BinaryIR {
+public:
+    explicit DivisionIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
+            : BinaryIR(IRType::ArithDivision, std::move(target), std::move(op1), std::move(op2)) {}
 };
 
 class AllocateIR : public IR {
 public:
     const size_t size;
-    std::shared_ptr<IRVariable> variable;
+    IRVariablePtr variable;
 
-    explicit AllocateIR(size_t size, std::shared_ptr<IRVariable>& variable, std::string& identifierName);
+    explicit AllocateIR(size_t size, IRVariablePtr& variable, std::string& identifierName);
     void generateIr(std::ostream &ostream) override;
 };
 
 class IfIR : public IR {
 public:
-    const std::shared_ptr<IRVariable> condition;
+    const IRVariablePtr condition;
     const std::shared_ptr<LabelDefIR> gotoLabel;
 
-    explicit IfIR(std::shared_ptr<IRVariable> condition, std::shared_ptr<LabelDefIR> gotoLabel)
+    explicit IfIR(IRVariablePtr condition, std::shared_ptr<LabelDefIR> gotoLabel)
             : IR(IRType::If), condition(std::move(condition)), gotoLabel(std::move(gotoLabel)) {
 //        this->gotoLabel->references.push_back(shared_from_base<IR>());
     }

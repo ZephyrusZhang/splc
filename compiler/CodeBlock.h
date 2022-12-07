@@ -53,7 +53,7 @@ protected:
     std::shared_ptr<IRVariable> getAllocatedVariable(const std::string& identifier);
 
     // Translate given Exp into IRs and append to target, return the assigned IRVariable
-    void translateExp(Node * expRoot, CodeBlockVector& target);
+    std::shared_ptr<IRVariable> translateExp(Node * expRoot, CodeBlockVector& target);
 
     // Translate an Assign Expression, used in variable declared with initial value.
     // Note that the IrVariable assignTo is an address, usually a pointer. Since it is allocated in stack, the value of IrVariable is the allocated start address

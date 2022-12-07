@@ -24,6 +24,9 @@ public:
     [[nodiscard]] const CompoundType &getCompoundType() const;
 
     void installChild(const std::vector<Node *> &vector) override;
+    [[nodiscard]] int getIntegerValue() const {
+        return this->integerValue;
+    }
 };
 
 
