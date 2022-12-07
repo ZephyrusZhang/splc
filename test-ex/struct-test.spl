@@ -13,4 +13,5 @@ int main() {
     } bbb;
     struct a * ptr;
     a0 = bbb;
+    for(int i = 0; i<123;i++) arr[i] = i;
 }

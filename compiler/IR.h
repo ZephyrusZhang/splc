@@ -155,7 +155,7 @@ public:
 
     explicit IfIR(std::shared_ptr<IRVariable> condition, std::shared_ptr<LabelDefIR> gotoLabel)
             : IR(IRType::If), condition(std::move(condition)), gotoLabel(std::move(gotoLabel)) {
-        this->gotoLabel->references.push_back(shared_from_base<IR>());
+//        this->gotoLabel->references.push_back(shared_from_base<IR>());
     }
 
     void generateIr(std::ostream &ostream) override;
@@ -168,7 +168,7 @@ public:
     explicit GotoIR(std::shared_ptr<LabelDefIR> gotoLabel)
             : IR(IRType::Goto), gotoLabel(std::move(gotoLabel)) {
         assert(this->gotoLabel);
-        this->gotoLabel->references.push_back(shared_from_base<IR>());
+//        this->gotoLabel->references.push_back(shared_from_this());
     }
 
     void generateIr(std::ostream &ostream) override;

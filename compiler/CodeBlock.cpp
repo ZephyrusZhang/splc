@@ -25,9 +25,13 @@ std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType) 
 
 std::shared_ptr<LabelDefIR> CodeBlock::newLabel(LabelType type, int lineno) {
     std::stringstream ss;
-    if (type == LabelType::IF_False) ss << "if_F_" ;
-    else if (type == LabelType::IF_True) ss << "if_T_" ;
-    else if (type == LabelType::IF_END) ss << "if_E_" ;
+    if (type == LabelType::IF_False) ss << "IF_F_" ;
+    else if (type == LabelType::IF_True) ss << "IF_T_" ;
+    else if (type == LabelType::IF_END) ss << "IF_E_" ;
+    else if (type == LabelType::LOOP_END) ss << "FOR_END_";
+    else if (type == LabelType::LOOP_BLOCK) ss << "FOR_BLK_";
+    else if (type == LabelType::LOOP_CONDITION) ss << "FOR_COND_";
+    else ss << (int) type;
     ss << this->labelCounts[type]++ << "_" << lineno;
     auto label = std::make_shared<LabelDefIR>(ss.str());
     this->labels.push_back(label);
@@ -174,7 +178,9 @@ void FunctionCodeBlock::startTranslation() {
 
 ForCodeBlock::ForCodeBlock(Node *stmtNode, const std::shared_ptr<CodeBlock>& parentBlock)
         : CodeBlock(CodeBlockType::For, stmtNode, parentBlock) {
-    if (stmtNode->children[0]->container && stmtNode->children[0]->container->getContainerType() == ContainerType::Scope) {
+    if (stmtNode->children[0]->container) {
+        assert(stmtNode->children[0]->container->getContainerType() == ContainerType::Scope);
+        // if the Scope object is bound to FOR node
         this->currentScope = stmtNode->children[0]->container->castTo<Scope>();
     } else {
         auto forBlockStmt = stmtNode->children[8];

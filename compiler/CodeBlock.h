@@ -14,7 +14,7 @@ enum class CodeBlockType {
 };
 
 enum class LabelType {
-    IF_False,
+    IF_False = 0,
     IF_True,
     IF_END,
     LOOP_CONDITION,
