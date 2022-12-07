@@ -38,10 +38,10 @@ protected:
     std::shared_ptr<IRVariable> newVariable(IRVariableType expectedType);
     std::shared_ptr<LabelDefIR> newLabel(LabelType type, int lineno);
     void translateExp(Node * expRoot);
-    bool translateStmt(Node * expRoot); // return false should stop generate from vector<Node * Stmt>
+    void translateStmt(Node * expRoot); // return false should stop generate from vector<Node * Stmt>
     void translateFunction();
 public:
-    explicit CodeBlock(CodeBlockType type, Node *rootNode, std::shared_ptr<CodeBlock> parentBlock);
+    explicit CodeBlock(CodeBlockType type, Node *rootNode, const std::shared_ptr<CodeBlock>& parentBlock);
     virtual void startTranslation() = 0;
 
     void generateIr(std::ostream &ostream) override;
@@ -50,27 +50,27 @@ public:
 
 class FunctionCodeBlock : public CodeBlock {
 public:
-    explicit FunctionCodeBlock(Node* ExtDefNode);
+    explicit FunctionCodeBlock(Node* extDefNode);
     void startTranslation() override;
 };
 
 class ForCodeBlock : public CodeBlock {
 public:
-    explicit ForCodeBlock(Node* StmtNode, std::shared_ptr<CodeBlock> parentBlock);
+    explicit ForCodeBlock(Node* stmtNode, std::shared_ptr<CodeBlock> parentBlock);
     void startTranslation() override;
     void generateIr(std::ostream &ostream) override;
 };
 
 class WhileCodeBlock : public CodeBlock {
 public:
-    explicit WhileCodeBlock(Node* StmtNode, std::shared_ptr<CodeBlock> parentBlock);
+    explicit WhileCodeBlock(Node* stmtNode, std::shared_ptr<CodeBlock> parentBlock);
     void startTranslation() override;
     void generateIr(std::ostream &ostream) override;
 };
 
 class GeneralCodeBlock : public CodeBlock {
 public:
-    explicit GeneralCodeBlock(Node* StmtListNode, std::shared_ptr<CodeBlock> parentBlock);
+    explicit GeneralCodeBlock(Node* StmtListNode, const std::shared_ptr<CodeBlock>& parentBlock);
     void startTranslation() override;
 
     void generateIr(std::ostream &ostream) override;

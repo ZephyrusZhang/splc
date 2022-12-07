@@ -10,7 +10,13 @@ struct node {
 } noderoot;
 
 int main() {
-    struct node a;
+    struct node b;
+    struct node {
+        struct node * prev;
+        struct node * next;
+        struct asd qqq;
+    } a;
+    a = b;
     a.qqq.b[0] = 123;
     a.prev = &a;
     a.next = a.prev;

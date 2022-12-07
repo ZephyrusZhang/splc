@@ -1,17 +1,18 @@
 #include <sstream>
+#include <utility>
 #include "IR.h"
 #include "Scope.h"
 
-IRVariable::IRVariable(const IRVariableType type, const std::string &name, const std::weak_ptr<CodeBlock> &owner)
-        : type(type), name(name), owner(owner) {
+IRVariable::IRVariable(IRVariableType type, std::string name, std::weak_ptr<CodeBlock> owner)
+        : type(type), name(std::move(name)), owner(std::move(owner)) {
 
 }
 
-IRVariable::IRVariable(const std::string& name, const CompoundType& compoundType, const std::weak_ptr<CodeBlock>& owner) : name(name), owner(owner) {
+IRVariable::IRVariable(std::string name, const CompoundType& compoundType, std::weak_ptr<CodeBlock> owner) : name(std::move(name)), owner(std::move(owner)) {
     switch (compoundType.type) {
         case BasicType::TypeStruct: type = IRVariableType::BaseAddress; break;
         case BasicType::TypePointer: type = IRVariableType::Pointer; break;
-        default: type = IRVariableType::Int;
+        default: type = IRVariableType::Pointer;
     }
 }
 

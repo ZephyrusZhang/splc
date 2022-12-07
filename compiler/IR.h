@@ -47,8 +47,8 @@ public:
     const std::weak_ptr<CodeBlock> owner;
     std::vector<std::weak_ptr<IR>> references;
 
-    IRVariable(const IRVariableType type, const std::string &name, const std::weak_ptr<CodeBlock> &owner);
-    IRVariable(const std::string& name, const CompoundType& compoundType, const std::weak_ptr<CodeBlock>& owner);
+    IRVariable(IRVariableType type, std::string name, std::weak_ptr<CodeBlock> owner);
+    IRVariable(std::string name, const CompoundType& compoundType, std::weak_ptr<CodeBlock> owner);
 };
 
 class IRConstant : private std::enable_shared_from_this<IRVariable> {

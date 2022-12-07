@@ -1,10 +1,11 @@
 #include <sstream>
+#include <utility>
 #include "CodeBlock.h"
 #include "Node.h"
 #include "Def.h"
 #include "Stmt.h"
 
-CodeBlock::CodeBlock(CodeBlockType type, Node *rootNode, std::shared_ptr<CodeBlock> parentBlock)
+CodeBlock::CodeBlock(CodeBlockType type, Node *rootNode, const std::shared_ptr<CodeBlock>& parentBlock)
         : IR(IRType::CodeBlock), codeBlockType(type), rootNode(rootNode), parentBlock(parentBlock) {}
 
 std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType) {
@@ -48,7 +49,7 @@ Node * getCompStOrStmt(Node* stmt) {
     return stmt;
 }
 
-bool CodeBlock::translateStmt(Node* stmtNode) {
+void CodeBlock::translateStmt(Node* stmtNode) {
     // stmtNode may be def or Stmt
     if (stmtNode->tokenName == "Def") {
         auto def = stmtNode->container->castTo<Def>();
@@ -60,7 +61,6 @@ bool CodeBlock::translateStmt(Node* stmtNode) {
             this->variables.push_back(irVar);
             this->content.push_back(allocateIr);
         }
-        return true;
     } else { // Stmt
         auto& stmtObj = stmtNode->container->castTo<Stmt>().operator*();
         if (stmtObj.stmtType == StmtType::SINGLE) {
@@ -75,7 +75,6 @@ bool CodeBlock::translateStmt(Node* stmtNode) {
             auto compBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode), shared_from_base<CodeBlock>());
             this->content.push_back(compBlock);
             compBlock->startTranslation();
-            return false;
         } else if (stmtObj.stmtType == StmtType::IF || stmtObj.stmtType == StmtType::IF_ELSE) {
             // TODO: Analyze if statement condition
             auto condition = newVariable(IRVariableType::Int);
@@ -116,18 +115,17 @@ bool CodeBlock::translateStmt(Node* stmtNode) {
 
         } else if (stmtObj.stmtType == StmtType::WHILE) {
 
-        }
-        return true;
+        } else throw std::runtime_error("unexpected stmt");
     }
 }
 
-FunctionCodeBlock::FunctionCodeBlock(Node *ExtDefNode)
-        : CodeBlock(CodeBlockType::Function, ExtDefNode, nullptr) {
+FunctionCodeBlock::FunctionCodeBlock(Node *extDefNode)
+        : CodeBlock(CodeBlockType::Function, extDefNode, nullptr) {
     this->currentScope = rootNode->children[2]->children[0]->container->castTo<Scope>();
     std::string funcName = rootNode->children[1]->children[0]->data;
-    auto funDefIR = std::make_shared<FunctionDefIR>(funcName);
-    this->content.push_back(funDefIR);
-    for (const auto &item: funDefIR->functionType->funcArgs.operator*()) {
+    auto funDefIr = std::make_shared<FunctionDefIR>(funcName);
+    this->content.push_back(funDefIr);
+    for (const auto &item: funDefIr->functionType->funcArgs.operator*()) {
         auto irVar = std::make_shared<IRVariable>(item.first, item.second, shared_from_base<CodeBlock>());
         this->variables.push_back(irVar);
     }
@@ -142,8 +140,8 @@ void FunctionCodeBlock::startTranslation() {
     }
 }
 
-ForCodeBlock::ForCodeBlock(Node *StmtNode, std::shared_ptr<CodeBlock> parentBlock)
-        : CodeBlock(CodeBlockType::For, StmtNode, parentBlock) {
+ForCodeBlock::ForCodeBlock(Node *stmtNode, std::shared_ptr<CodeBlock> parentBlock)
+        : CodeBlock(CodeBlockType::For, stmtNode, std::move(parentBlock)) {
 
 }
 
@@ -155,8 +153,8 @@ void ForCodeBlock::generateIr(std::ostream &ostream) {
 
 }
 
-WhileCodeBlock::WhileCodeBlock(Node *StmtNode, std::shared_ptr<CodeBlock> parentBlock)
-        : CodeBlock(CodeBlockType::While, StmtNode, parentBlock) {
+WhileCodeBlock::WhileCodeBlock(Node *stmtNode, std::shared_ptr<CodeBlock> parentBlock)
+        : CodeBlock(CodeBlockType::While, stmtNode, std::move(parentBlock)) {
 
 }
 
@@ -168,7 +166,7 @@ void WhileCodeBlock::generateIr(std::ostream &ostream) {
 
 }
 
-GeneralCodeBlock::GeneralCodeBlock(Node *rootNode, std::shared_ptr<CodeBlock> parentBlock)
+GeneralCodeBlock::GeneralCodeBlock(Node *rootNode, const std::shared_ptr<CodeBlock>& parentBlock)
         : CodeBlock(CodeBlockType::General, rootNode, parentBlock) {
     if (rootNode->tokenName == "CompSt") {
         this->currentScope = rootNode->children[0]->container->castTo<Scope>();
