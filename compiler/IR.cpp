@@ -69,6 +69,7 @@ std::ostream& operator<<(std::ostream& os, const IRVariableType& type) {
     else if (type == IRVariableType::BaseAddress) os << "base";
     else if (type == IRVariableType::StructOffset) os << "off";
     else if (type == IRVariableType::ArrayIndex) os << "idx";
+    return os;
 }
 
 AllocateIR::AllocateIR(const size_t size, std::shared_ptr<IRVariable> &variable, std::string &identifierName)
