@@ -128,12 +128,12 @@ bool Node::hasToken(std::initializer_list<const std::string> acceptItemsToken) c
     while (!queue.empty()) {
         const Node *cur = queue.front();
         queue.pop();
-        const auto shouldAccept = [cur] (const std::string &str) { return cur->tokenName == str; };
+        const auto shouldAccept = [&cur] (const std::string &str) { return cur->tokenName == str; };
         if (std::any_of(acceptItemsToken.begin(), acceptItemsToken.end(), shouldAccept)) {
             return true;
         }
         for (const auto &next : cur->children) {
-            const auto shouldAccept = [next] (const std::string &str) { return next->tokenName == str; };
+            const auto shouldAccept = [&next] (const std::string &str) { return next->tokenName == str; };
             if (std::any_of(acceptItemsToken.begin(), acceptItemsToken.end(), shouldAccept)) {
                 return true;
             }
