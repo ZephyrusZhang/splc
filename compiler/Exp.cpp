@@ -83,8 +83,21 @@ void Exp::installChild(const std::vector<Node *> &children) {
             std::cerr << "Error type 7 at line " << this->node->lineno << ": binary operation on non-number variables." << std::endl;
         } else {
             if (left.expType == ExpType::LITERAL_INT && right.expType == ExpType::LITERAL_INT) {
+                if (expType == ExpType::PLUS) {
+                    this->integerValue = left.integerValue + right.integerValue;
+                } else if (expType == ExpType::MINUS){
+                    this->integerValue = left.integerValue - right.integerValue;
+                } else if (expType == ExpType::MUL) {
+                    this->integerValue = left.integerValue * right.integerValue;
+                } else if (expType == ExpType::DIV) {
+                    if (right.integerValue == 0) {
+                        std::cerr << "Divided by zero at line " << this->node->lineno << "." << std::endl;
+                    }
+                    else {
+                        this->integerValue = left.integerValue / right.integerValue;
+                    }
+                }
                 this->expType = ExpType::LITERAL_INT;
-                this->integerValue = left.integerValue + right.integerValue;
             }
         }
     } else if (expType == ExpType::INCREASE || expType == ExpType::DECREASE) {
@@ -101,6 +114,10 @@ void Exp::installChild(const std::vector<Node *> &children) {
         auto &operand = children[1]->container->castTo<Exp>().operator*();
         this->expCompoundType = operand.expCompoundType;
         this->valueType = operand.valueType;
+        if (operand.expType == ExpType::LITERAL_INT) {
+            this->integerValue = operand.integerValue;
+            this->expType = ExpType::LITERAL_INT;
+        }
     } else if (this->expType == ExpType::FUNC_INVOKE) {
         this->valueType = ValueType::RValue;
         const auto &id = children[0]->data;
@@ -194,9 +211,7 @@ void Exp::installChild(const std::vector<Node *> &children) {
         this->expCompoundType = std::make_shared<CompoundType>(TypeInt);
         std::string intStr = this->node->children[0]->data;
         extern Node **yystack;
-        if (yystack[-1]->tokenName == "MINUS") {
-            intStr = "-" + intStr;
-        }
+
         if (isIntStrOverflow(intStr)) {
             std::cerr << "Error at line " << this->node->lineno << ": "
                       << "32-bit integer " << intStr << " overflow." << std::endl;
@@ -286,6 +301,10 @@ void Exp::installChild(const std::vector<Node *> &children) {
         this->expCompoundType = right.expCompoundType;
         this->valueType = ValueType::RValue;
         // TODO: Check can do arithmetic
+        if (right.expType == ExpType::LITERAL_INT) {
+            this->integerValue = - right.integerValue;
+            this->expType = ExpType::LITERAL_INT;
+        }
     } else throw std::runtime_error("unexpected ExpType");
     // assert all properties are set
     assert(this->valueType != ValueType::Unknown);
