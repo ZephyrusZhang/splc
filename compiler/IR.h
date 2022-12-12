@@ -91,6 +91,7 @@ public:
     explicit IR(IRType irType) : irType(irType) {};
 
     virtual void generateIr(std::ostream &ostream) = 0;
+    virtual ~IR() = default;
 
 protected:
     void insertComment(std::ostream &ostream) const;
@@ -116,6 +117,8 @@ public:
 
     explicit LabelDefIR(std::string label) : IR(IRType::LabelDef), label(std::move(label)) {};
     void generateIr(std::ostream &ostream) override;
+
+    ~LabelDefIR() override = default;
 };
 
 class FunctionDefIR : public IR {
@@ -126,6 +129,8 @@ public:
     explicit FunctionDefIR(std::string &identifier);
 
     void generateIr(std::ostream &ostream) override;
+
+    ~FunctionDefIR() override = default;
 };
 
 class BinaryIR : public IR {
@@ -138,6 +143,7 @@ public:
             : IR(irType), target(std::move(target)), op1(std::move(op1)), op2(std::move(op2)) {}
 
     void generateIr(std::ostream &ostream) override;
+    ~BinaryIR() override = default;
 };
 
 class UnaryIR : public IR {
@@ -149,6 +155,7 @@ public:
             : IR(irType), target(std::move(target)), op1(std::move(op1)) {}
 
     void generateIr(std::ostream &ostream) override;
+    ~UnaryIR() override = default;
 };
 
 class AssignIR : public UnaryIR {
@@ -156,48 +163,56 @@ public:
     explicit AssignIR(IRVariablePtr target, IRVariablePtr source)
             : UnaryIR(IRType::Assign, std::move(target), std::move(source)) {}
     void generateIr(std::ostream &ostream) override;
+    ~AssignIR() override = default;
 };
 
 class AddressOfIR : public UnaryIR {
 public:
     explicit AddressOfIR(IRVariablePtr target, IRVariablePtr op1)
             : UnaryIR(IRType::AddressOf, std::move(target), std::move(op1)) {}
+    ~AddressOfIR() override = default;
 };
 
 class ReadAddressIR : public UnaryIR {
 public:
     explicit ReadAddressIR(IRVariablePtr target, IRVariablePtr srcAddr)
             : UnaryIR(IRType::ReadAddress, std::move(target), std::move(srcAddr)) {}
+    ~ReadAddressIR() override = default;
 };
 
 class StoreAddressIR : public UnaryIR {
 public:
     explicit StoreAddressIR(IRVariablePtr dstAddr, IRVariablePtr value)
             : UnaryIR(IRType::StoreAddress, std::move(dstAddr), std::move(value)) {}
+    ~StoreAddressIR() override = default;
 };
 
 class AdditionIR : public BinaryIR {
 public:
     explicit AdditionIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
         : BinaryIR(IRType::ArithAddition, std::move(target), std::move(op1), std::move(op2)) {}
+    ~AdditionIR() override = default;
 };
 
 class SubtractionIR : public BinaryIR {
 public:
     explicit SubtractionIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
             : BinaryIR(IRType::ArithSubtraction, std::move(target), std::move(op1), std::move(op2)) {}
+    ~SubtractionIR() override = default;
 };
 
 class MultiplicationIR : public BinaryIR {
 public:
     explicit MultiplicationIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
             : BinaryIR(IRType::ArithMultiplication, std::move(target), std::move(op1), std::move(op2)) {}
+    ~MultiplicationIR() override = default;
 };
 
 class DivisionIR : public BinaryIR {
 public:
     explicit DivisionIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
             : BinaryIR(IRType::ArithDivision, std::move(target), std::move(op1), std::move(op2)) {}
+    ~DivisionIR() override = default;
 };
 
 class AllocateIR : public IR {
@@ -207,6 +222,7 @@ public:
 
     explicit AllocateIR(size_t size, IRVariablePtr& variable, std::string& identifierName);
     void generateIr(std::ostream &ostream) override;
+    ~AllocateIR() override = default;
 };
 
 class IfIR : public IR {
@@ -220,6 +236,7 @@ public:
     }
 
     void generateIr(std::ostream &ostream) override;
+    ~IfIR() override = default;
 };
 
 class GotoIR : public IR {
@@ -233,6 +250,7 @@ public:
     }
 
     void generateIr(std::ostream &ostream) override;
+    ~GotoIR() override = default;
 };
 
 #endif //SPLC_IR_H
