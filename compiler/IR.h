@@ -109,6 +109,7 @@ public:
         assert(_irType == this->irType);
         return std::dynamic_pointer_cast<T>(shared_from_this());
     }
+    virtual void countReference() {}
 };
 
 class LabelDefIR : public IR {
@@ -144,6 +145,12 @@ public:
 
     void generateIr(std::ostream &ostream) override;
     ~BinaryIR() override = default;
+
+    void countReference() override {
+        target->references.push_back(shared_from_this());
+        op1->references.push_back(shared_from_this());
+        op2->references.push_back(shared_from_this());
+    }
 };
 
 class UnaryIR : public IR {
@@ -156,6 +163,11 @@ public:
 
     void generateIr(std::ostream &ostream) override;
     ~UnaryIR() override = default;
+
+    void countReference() override {
+        target->references.push_back(shared_from_this());
+        op1->references.push_back(shared_from_this());
+    }
 };
 
 class AssignIR : public UnaryIR {
@@ -223,6 +235,10 @@ public:
     explicit AllocateIR(size_t size, IRVariablePtr& variable, std::string& identifierName);
     void generateIr(std::ostream &ostream) override;
     ~AllocateIR() override = default;
+
+    void countReference() override {
+        variable->references.push_back(shared_from_this());
+    }
 };
 
 class IfIR : public IR {
@@ -232,11 +248,15 @@ public:
 
     explicit IfIR(IRVariablePtr condition, std::shared_ptr<LabelDefIR> gotoLabel)
             : IR(IRType::If), condition(std::move(condition)), gotoLabel(std::move(gotoLabel)) {
-//        this->gotoLabel->references.push_back(shared_from_base<IR>());
     }
 
     void generateIr(std::ostream &ostream) override;
     ~IfIR() override = default;
+
+    void countReference() override {
+        condition->references.push_back(shared_from_this());
+        gotoLabel->references.push_back(shared_from_this());
+    }
 };
 
 class GotoIR : public IR {
@@ -246,11 +266,14 @@ public:
     explicit GotoIR(std::shared_ptr<LabelDefIR> gotoLabel)
             : IR(IRType::Goto), gotoLabel(std::move(gotoLabel)) {
         assert(this->gotoLabel);
-//        this->gotoLabel->references.push_back(shared_from_this());
     }
 
     void generateIr(std::ostream &ostream) override;
     ~GotoIR() override = default;
+
+    void countReference() override {
+        gotoLabel->references.push_back(shared_from_this());
+    }
 };
 
 #endif //SPLC_IR_H

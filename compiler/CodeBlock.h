@@ -48,6 +48,14 @@ protected:
     std::shared_ptr<LabelDefIR> newLabel(LabelType type, int lineno);
     // Generate Allocated variable
     std::shared_ptr<AllocateIR> newAllocatedVariable(std::string identifier);
+
+    template<typename T, typename... Args>
+    std::shared_ptr<T> newIR(Args&&... args) {
+        static_assert(std::is_base_of<IR, T>::value, "T should inherit from IR");
+        auto ptr = std::make_shared<T>(std::forward<Args>(args)...);
+        ptr->countReference();
+        return ptr;
+    }
     // These three methods shouldn't modify any CodeBlockVector
 
     std::shared_ptr<IRVariable> getAllocatedVariable(const std::string& identifier);

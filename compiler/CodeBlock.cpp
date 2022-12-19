@@ -46,7 +46,7 @@ std::shared_ptr<AllocateIR> CodeBlock::newAllocatedVariable(std::string identifi
     }
     auto cType = this->currentScope->lookupSymbol(identifier).operator*();
     auto irVar = std::make_shared<IRVariable>(identifier, cType, shared_from_base<CodeBlock>());
-    auto allocateIr = std::make_shared<AllocateIR>(cType.sizeOf(), irVar, identifier);
+    auto allocateIr = newIR<AllocateIR>(cType.sizeOf(), irVar, identifier);
     this->variables.push_back(irVar);
     this->allocatedVariables[identifier] = irVar;
     return allocateIr;
@@ -151,7 +151,7 @@ void CodeBlock::translateStmt(Node* stmtNode) {
                 // else_block
                 // if_end_label:
                 auto endLabel = newLabel(LabelType::IF_END, stmtObj.node->lineno);
-                auto gotoEnd = std::make_shared<GotoIR>(endLabel);
+                auto gotoEnd = newIR<GotoIR>(endLabel);
                 this->content.push_back(gotoEnd);
                 this->content.push_back(elseLabel);
                 auto elseBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode->children[6]), shared_from_base<CodeBlock>());
@@ -175,7 +175,7 @@ FunctionCodeBlock::FunctionCodeBlock(Node *extDefNode)
         : CodeBlock(CodeBlockType::Function, extDefNode, nullptr) {
     this->currentScope = rootNode->children[2]->children[0]->container->castTo<Scope>();
     std::string funcName = rootNode->children[1]->children[0]->data;
-    auto funDefIr = std::make_shared<FunctionDefIR>(funcName);
+    auto funDefIr = newIR<FunctionDefIR>(funcName);
     this->content.push_back(funDefIr);
     for (const auto &item: funDefIr->functionType->funcArgs.operator*()) {
         auto irVar = std::make_shared<IRVariable>(item.first, item.second, shared_from_base<CodeBlock>());
@@ -214,7 +214,7 @@ void ForCodeBlock::startTranslation() {
     this->loopConditionLabel = newLabel(LabelType::LOOP_CONDITION, rootNode->lineno);
     this->loopBlockLabel = newLabel(LabelType::LOOP_BLOCK, rootNode->children[4]->lineno);
     this->loopEndLabel = newLabel(LabelType::LOOP_END, rootNode->children[8]->lineno);
-    this->gotoLoopCondition = std::make_shared<GotoIR>(this->loopConditionLabel);
+    this->gotoLoopCondition = newIR<GotoIR>(this->loopConditionLabel);
     // First, Generate loopEntry CodeBlock.
     // DefOrExp -> Specifier DecList | Exp
     auto defOrExp = rootNode->children[2];
