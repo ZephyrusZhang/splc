@@ -1,6 +1,8 @@
 #ifndef SPLC_IR_H
 #define SPLC_IR_H
 
+#define PARAM_PREFIX "__p_"
+
 #include <string>
 #include <memory>
 #include <utility>
@@ -60,6 +62,7 @@ enum class IRVariableType {
     Int,
     BaseAddress,
     Pointer,
+    Param,
     ArrayIndex,
     StructOffset,
     Temp,
@@ -72,18 +75,21 @@ public:
     const std::string name;
     const std::weak_ptr<CodeBlock> owner;
     std::vector<std::weak_ptr<IR>> references;
-    std::string value;
+    int32_t value = 0;
 
-    IRVariable(IRVariableType type, std::string name, std::weak_ptr<CodeBlock> owner);
+    IRVariable(std::string name, IRVariableType type, std::weak_ptr<CodeBlock> owner);
 
     // Allocate space according to CompoundType
     IRVariable(std::string name, const CompoundType &compoundType, std::weak_ptr<CodeBlock> owner);
 
     // Constant Value
-    IRVariable(uint32_t value, std::weak_ptr<CodeBlock> owner);
+    IRVariable(int32_t value, std::weak_ptr<CodeBlock> owner);
+
+    friend std::ostream& operator<<(std::ostream& ostream, const IRVariable& irVariable);
 };
 
 typedef std::shared_ptr<IRVariable> IRVariablePtr;
+typedef std::shared_ptr<IR> IRPtr;
 
 class IR : public std::enable_shared_from_this<IR> {
 public:
@@ -107,10 +113,10 @@ protected:
 
 public:
     template<typename T>
-    std::shared_ptr<T> &castTo() {
+    std::shared_ptr<T> castTo() {
+        assert(this);
         static_assert(std::is_base_of<IR, T>::value, "T should inherit from IR");
-        const IRType _irType = T::irType;
-        assert(_irType == this->irType);
+        assert(typeid(this) == typeid(T));
         return std::dynamic_pointer_cast<T>(shared_from_this());
     }
 
@@ -249,7 +255,7 @@ public:
     const size_t size;
     IRVariablePtr variable;
 
-    explicit AllocateIR(size_t size, IRVariablePtr &variable, std::string &identifierName);
+    explicit AllocateIR(size_t size, IRVariablePtr &variable, const std::string &identifierName);
 
     void generateIr(std::ostream &ostream) override;
 

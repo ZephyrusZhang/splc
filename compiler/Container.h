@@ -32,6 +32,12 @@ public:
     [[nodiscard]] const std::string &getTokenName() const noexcept;
     static void generateContainer(Node *node);
 
+    [[nodiscard]] const std::string& getChildData(const size_t idx) const {
+        assert(node);
+        assert(idx < node->children.size());
+        return node->children[idx]->data;
+    }
+
     template<typename T>
     std::shared_ptr<T> castTo() {
         static_assert(std::is_base_of<Container, T>::value, "T should inherit from Container");

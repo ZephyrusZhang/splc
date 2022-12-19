@@ -5,6 +5,7 @@
 #include <map>
 #include "Scope.h"
 #include "IR.h"
+#include "Exp.h"
 
 enum class CodeBlockType {
     Function,
@@ -45,6 +46,9 @@ public:
 protected:
     // Generate temporary variable
     std::shared_ptr<IRVariable> newVariable(IRVariableType expectedType);
+    // Generate a constant variable
+    std::shared_ptr<IRVariable> newConstantVariable(int32_t value);
+    // Generate a label
     std::shared_ptr<LabelDefIR> newLabel(LabelType type, int lineno);
     // Generate Allocated variable
     std::shared_ptr<AllocateIR> newAllocatedVariable(std::string identifier);
@@ -62,6 +66,9 @@ protected:
 
     // Translate given Exp into IRs and append to target, return the assigned IRVariable
     std::shared_ptr<IRVariable> translateExp(Node * expRoot, CodeBlockVector& target);
+
+    // Translate the access to a lvalue and return a IRVariable which holds the address of it.
+    std::shared_ptr<IRVariable> translateLValueExp(std::shared_ptr<Exp> &exp);
 
     // Translate an Assign Expression, used in variable declared with initial value.
     // Note that the IrVariable assignTo is an address, usually a pointer. Since it is allocated in stack, the value of IrVariable is the allocated start address
@@ -85,15 +92,37 @@ public:
     virtual void startTranslation() = 0;
     // write generated IRs into ostream
     void generateIr(std::ostream &ostream) override;
+
+    template<typename T>
+    bool instanceOf() {
+        static_assert(std::is_base_of<CodeBlock, T>::value, "T should inherit from CodeBlock");
+        const CodeBlockType classType = T::myCodeBlockType;
+        if (this->codeBlockType == classType) return true;
+        return false;
+    }
+
+    template<typename T>
+    std::shared_ptr<T> castCodeBlockTo() {
+        static_assert(std::is_base_of<CodeBlock, T>::value, "T should inherit from CodeBlock");
+        const CodeBlockType classType = T::myCodeBlockType;
+        assert(this->codeBlockType == classType);
+        return shared_from_this();
+    }
 };
 
 class FunctionCodeBlock : public CodeBlock {
+private:
+    std::weak_ptr<FunctionDefIR> functionDefIr;
+public:
+    static const CodeBlockType myCodeBlockType = CodeBlockType::Function;
 public:
     explicit FunctionCodeBlock(Node* extDefNode);
     void startTranslation() override;
 };
 
 class ForCodeBlock : public CodeBlock {
+public:
+    static const CodeBlockType myCodeBlockType = CodeBlockType::For;
 private:
     std::vector<std::shared_ptr<IR>> loopEntry;
     std::vector<std::shared_ptr<IR>> loopCondition;
@@ -118,6 +147,8 @@ public:
 };
 
 class WhileCodeBlock : public CodeBlock {
+public:
+    static const CodeBlockType myCodeBlockType = CodeBlockType::While;
 public:
     explicit WhileCodeBlock(Node* stmtNode, const std::shared_ptr<CodeBlock>& parentBlock);
     void startTranslation() override;

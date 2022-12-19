@@ -23,6 +23,15 @@ public:
 
     [[nodiscard]] const CompoundType &getCompoundType() const;
 
+    [[nodiscard]] ValueType getValueType() const {
+        return this->valueType;
+    }
+
+    [[nodiscard]] std::shared_ptr<Exp> getChildExp(const size_t idx) const {
+        assert(idx < node->children.size());
+        return node->children[idx]->container->castTo<Exp>();
+    }
+
     void installChild(const std::vector<Node *> &vector) override;
     [[nodiscard]] int getIntegerValue() const {
         return this->integerValue;

@@ -20,8 +20,13 @@ std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType =
     else if (expectedType == IRVariableType::Temp) name << "t";
     else name << "u";
     name << cnt;
-    auto var = std::make_shared<IRVariable>(expectedType, name.str(), shared_from_base<CodeBlock>());
+    auto var = std::make_shared<IRVariable>(name.str(), expectedType, shared_from_base<CodeBlock>());
     this->variables.push_back(var);
+    return var;
+}
+
+std::shared_ptr<IRVariable> CodeBlock::newConstantVariable(int32_t value) {
+    auto var = std::make_shared<IRVariable>(value, shared_from_base<CodeBlock>());
     return var;
 }
 
@@ -44,7 +49,7 @@ std::shared_ptr<AllocateIR> CodeBlock::newAllocatedVariable(std::string identifi
     if (this->allocatedVariables.find(identifier) != this->allocatedVariables.end()) {
         throw std::runtime_error("identifier is already allocated");
     }
-    auto cType = this->currentScope->lookupSymbol(identifier).operator*();
+    auto& cType = this->currentScope->lookupSymbol(identifier).operator*();
     auto irVar = std::make_shared<IRVariable>(identifier, cType, shared_from_base<CodeBlock>());
     auto allocateIr = newIR<AllocateIR>(cType.sizeOf(), irVar, identifier);
     this->variables.push_back(irVar);
@@ -65,9 +70,47 @@ void CodeBlock::generateIr(std::ostream &ostream) {
         item->generateIr(ostream);
 }
 
+std::shared_ptr<IRVariable> CodeBlock::translateLValueExp(std::shared_ptr<Exp>& exp) {
+    assert(exp->getValueType() == ValueType::LValue);
+    if (exp->expType == ExpType::IDENTIFIER) {
+        const auto& id = exp->getChildData(0);
+        if (exp->getCompoundType().type == BasicType::TypePointer && !exp->getCompoundType().isArray()) {
+            // A one-level pointer in c is a two-level pointer in IR
+            // , so we need to dereference once to get the real address (the uint32_t value of this C pointer).
+            // But for array, the IR stores its base address, so simply read it from table and return
+            auto ptrVar = getAllocatedVariable(id);
+            auto retAddressVar = newVariable();
+            this->content.push_back(newIR<ReadAddressIR>(retAddressVar, ptrVar));
+            return retAddressVar;
+        } else
+            return this->getAllocatedVariable(id);
+    } else if (exp->expType == ExpType::DOT_ACCESS || exp->expType == ExpType::PTR_ACCESS) {
+        auto leftExp = exp->getChildExp(0);
+        const auto& id = exp->getChildData(2);
+        // calculate the offset of id corresponding to struct
+        int32_t offset = leftExp->getCompoundType().getStructOffset(id);
+        // get the base address of the left struct
+        IRVariablePtr leftBaseAddr = translateLValueExp(leftExp);
+        IRVariablePtr retAddr = newVariable(IRVariableType::StructOffset);
+        // generate IR: retAddr := leftBaseAddr + offset
+        this->content.push_back(newIR<AdditionIR>(retAddr, leftBaseAddr, newConstantVariable(offset)));
+        return retAddr;
+    } else if (exp->expType == ExpType::ARRAY_INDEX) {
+        auto arrayExp = exp->getChildExp(0);
+        auto indexExp = exp->getChildExp(2);
+        assert(arrayExp->getCompoundType().isArray());
+        IRVariablePtr leftBaseAddr = translateLValueExp(arrayExp);
+        IRVariablePtr retAddr = newVariable(IRVariableType::StructOffset);
+        IRVariablePtr offsetVar = translateExp(indexExp->node, this->content);
+        this->content.push_back(newIR<AdditionIR>(retAddr, leftBaseAddr, offsetVar));
+    } else throw std::runtime_error("unexpected translate LValueExp");
+}
+
 std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVector& target) {
     auto exp = expRoot->container->castTo<Exp>();
-    if (exp->expType == ExpType::LITERAL_INT) {
+    if (exp->expType == ExpType::ASSIGN) {
+
+    } else if (exp->expType == ExpType::LITERAL_INT) {
 
     } else if (exp->expType == ExpType::IDENTIFIER) {
         auto id = exp->node->children[0]->data;
@@ -177,13 +220,29 @@ FunctionCodeBlock::FunctionCodeBlock(Node *extDefNode)
     std::string funcName = rootNode->children[1]->children[0]->data;
     auto funDefIr = newIR<FunctionDefIR>(funcName);
     this->content.push_back(funDefIr);
-    for (const auto &item: funDefIr->functionType->funcArgs.operator*()) {
-        auto irVar = std::make_shared<IRVariable>(item.first, item.second, shared_from_base<CodeBlock>());
-        this->variables.push_back(irVar);
-    }
+    this->functionDefIr = funDefIr;
+    // funDefIr contains function label and params
 }
 
 void FunctionCodeBlock::startTranslation() {
+    // copy the value of params into allocated stack variable
+    for (const auto &item: functionDefIr.lock()->functionType->funcArgs.operator*()) {
+        // Special allocation!
+        // Allocate space for function params, store the value of param into the address,
+        //  and restore the shallow param names: __p_ID (PARAM) -> ID (allocated IRVar)
+        //  This keeps the assumption that every variable is allocated in stack.
+        // Don't use `newAllocatedVariable` here, which use incorrect size from CType
+        //  , but we actually need a pointer to PARAM.
+        auto paramVar = std::make_shared<IRVariable>(PARAM_PREFIX + item.first, item.second, shared_from_base<CodeBlock>());
+        this->variables.push_back(paramVar);
+        IRVariablePtr allocVar = std::make_shared<IRVariable>(item.first, IRVariableType::Param, shared_from_base<CodeBlock>());
+        this->variables.push_back(allocVar);
+        this->allocatedVariables[item.first] = allocVar;
+        auto allocIr = newIR<AllocateIR>(4, allocVar, allocVar->name);
+        this->content.push_back(allocIr);
+        auto storeIr = newIR<StoreAddressIR>(allocVar, paramVar);
+        this->content.push_back(storeIr);
+    }
     Node *compSt = rootNode->children[2];
     assert(compSt->tokenName == "CompSt");
     auto stmts = Node::convertTreeToVector(compSt->children[1], "StmtList", {"Def", "Stmt"});

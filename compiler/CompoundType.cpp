@@ -43,15 +43,14 @@ CompoundType::CompoundType(const Specifier &specifier) {
             this->structDefLists = std::make_shared<std::vector<StructDefList>>();
             for (const auto &def: specifier.structDefList.operator*()) {
                 for (const auto &dec: def->declares) {
-                    CompoundType itemType(*def->specifier, *dec);
-                    this->structDefLists->emplace_back(*dec->identifier, std::move(itemType));
+                    this->structDefLists->emplace_back(*dec->identifier, CompoundType(*def->specifier, *dec));
                 }
             }
         } else {
-            // lookup SymbolTable to find Struct definition.
+            // lookup SymbolTable to find struct definition.
             if (!Scope::getCurrentScope()->isSymbolExistsRecursively(specifier.structName)) {
-                this->unresolvedStructName = std::make_shared<std::string>(specifier.structName);
-                Scope::getCurrentScope()->unresolvedStructs.push_back(this);
+                this->unresolvedStructName = std::make_unique<std::string>(specifier.structName);
+                std::cout << "unable to resolve struct " << *this->unresolvedStructName << " in " << this << std::endl;
             } else {
                 const auto &predefined = Scope::getCurrentScope()->lookupSymbol(specifier.structName);
                 this->structDefLists = predefined->structDefLists;
@@ -76,12 +75,16 @@ void print(std::ostream& os, const CompoundType& type, int depth) {
         print(os,  const_cast<const CompoundType &>(*type.pointTo), depth + 1);
     } else if (type.type == TypeStruct) {
         os << ": {";
-        if (depth <= 2)
-            for (const auto &item: type.structDefLists.operator*()) {
-                os << item.first << ":";
-                print(os, item.second, depth + 1);
-                os << "; ";
-            }
+        if (depth <= 2) {
+            if (type.getStructDefLists())
+                for (const auto &item: type.getStructDefLists().operator*()) {
+                    os << item.first << ":";
+                    print(os, item.second, depth + 1);
+                    os << "; ";
+                }
+            else
+                os << " structDefLists not filled";
+        }
         os << "}";
     }
     if (type.funcArgs) {
@@ -132,16 +135,16 @@ bool CompoundType::canAssignment(const CompoundType &left, const CompoundType &r
     }
 }
 
-size_t CompoundType::sizeOf() const {
+int32_t CompoundType::sizeOf() const {
     assert(type != TypeUnknown);
     if (type == TypeInt) return 4;
-    if (type == TypeChar) return 4;
+    if (type == TypeChar) return 4; // TODO: char should only allocate 1 byte
     if (type == TypePointer) {
         if (this->maxIndex != 0) return this->maxIndex * this->pointTo->sizeOf(); // array
         else return 4; // basic pointer
     }
     if (type == TypeStruct) {
-        size_t cnt = 0;
+        int32_t cnt = 0;
         for (const auto &item: this->structDefLists.operator*())
             cnt += item.second.sizeOf();
         return cnt;
@@ -149,3 +152,19 @@ size_t CompoundType::sizeOf() const {
     if (type == TypeFloat) return 4;
     return 0;
 }
+
+std::shared_ptr<std::vector<CompoundType::StructDefList>> CompoundType::getStructDefLists() {
+    if (!structDefLists) {
+        assert(this->unresolvedStructName);
+        auto symbol = Scope::getGlobalScope()->lookupSymbol(*this->unresolvedStructName);
+        this->structDefLists = symbol->structDefLists;
+        std::cout << "refill structDefLists for " << this->unresolvedStructName << " in " << this << std::endl;
+        this->unresolvedStructName = nullptr;
+    }
+    return this->structDefLists;
+}
+
+std::shared_ptr<const std::vector<CompoundType::StructDefList>> CompoundType::getStructDefLists() const {
+    return this->structDefLists;
+}
+

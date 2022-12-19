@@ -22,7 +22,6 @@ public:
     const std::string generateWithToken;
     std::shared_ptr<Scope> parentScope;
     std::string functionName;
-    std::vector<CompoundType *> unresolvedStructs;
 
     explicit Scope(Node * node, std::string generateWithToken);
     ~Scope() override {

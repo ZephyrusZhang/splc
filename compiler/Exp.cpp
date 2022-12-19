@@ -246,7 +246,7 @@ void Exp::installChild(const std::vector<Node *> &children) {
             }
         }
         if (leftType->type == TypeStruct) {
-            const auto &defList = *leftType->structDefLists;
+            const auto &defList = *leftType->getStructDefLists();
             const auto findId = [&id](const CompoundType::StructDefList &defList) { return defList.first == id; };
             const auto &result = std::find_if(defList.begin(), defList.end(), findId);
             if (result == defList.end()) {

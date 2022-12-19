@@ -81,13 +81,6 @@ int main(int argc, char **argv) {
 
     yyparse();
 
-    if (!Scope::getGlobalScope()->unresolvedStructs.empty()) {
-        std::cerr << "unable to resolve structures: ";
-        for (const auto &item: Scope::getGlobalScope()->unresolvedStructs) {
-            std::cerr << "\t" << *item->unresolvedStructName << std::endl;
-        }
-        exit(1);
-    }
 
     if (errCount > 0) {
         std::cout << "Error Occur" << std::endl;

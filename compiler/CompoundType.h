@@ -6,10 +6,13 @@
 #include "Dec.h"
 
 class CompoundType {
-private:
 public:
     CompoundType() = default;
     explicit CompoundType(BasicType type);
+
+    virtual ~CompoundType() {
+        std::cout << "CompoundType destructor " << this << std::endl;
+    }
 
     BasicType type = TypeUnknown;
     // for pointer, Array should be converted into pointer to PrimitiveTypes
@@ -17,7 +20,11 @@ public:
     int maxIndex = 0;
     // for struct:
     typedef std::pair<std::string, CompoundType> StructDefList;
+private:
     std::shared_ptr<std::vector<StructDefList>> structDefLists;
+public:
+    [[nodiscard]] std::shared_ptr<std::vector<StructDefList>> getStructDefLists();
+    [[nodiscard]] std::shared_ptr<const std::vector<StructDefList>> getStructDefLists() const;
     std::shared_ptr<std::string> unresolvedStructName;
     // for function definition:
     typedef std::pair<std::string, CompoundType> FuncArg;
@@ -35,16 +42,27 @@ public:
 
     // Type Checking
     friend bool operator==(const CompoundType& o1, const CompoundType& o2);
-    bool canDoArithmetic() const;
-    bool canDoBoolean() const;
-    bool canCompare() const;
+    [[nodiscard]] bool canDoArithmetic() const;
+    [[nodiscard]] bool canDoBoolean() const;
+    [[nodiscard]] bool canCompare() const;
 
-    [[nodiscard]] size_t sizeOf() const;
+    [[nodiscard]] int32_t sizeOf() const;
     [[nodiscard]] bool isArray() const {
         return type == TypePointer && maxIndex > 0;
     }
+    [[nodiscard]] int32_t getStructOffset(const std::string& id) const {
+        assert(this->type == TypeStruct);
+        assert(this->structDefLists);
+        int32_t offset = 0;
+        for (const auto &item: structDefLists.operator*()) {
+            if (item.first == id) return offset;
+            offset += item.second.sizeOf();
+        }
+        return offset;
+    }
 
     static bool canAssignment(const CompoundType& left, const CompoundType& right);
+
 };
 
 #endif //SPLC_COMPOUNDTYPE_H
