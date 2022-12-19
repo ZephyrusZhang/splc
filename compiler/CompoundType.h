@@ -10,10 +10,6 @@ public:
     CompoundType() = default;
     explicit CompoundType(BasicType type);
 
-    virtual ~CompoundType() {
-        std::cout << "CompoundType destructor " << this << std::endl;
-    }
-
     BasicType type = TypeUnknown;
     // for pointer, Array should be converted into pointer to PrimitiveTypes
     std::shared_ptr<CompoundType> pointTo;

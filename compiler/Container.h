@@ -38,6 +38,12 @@ public:
         return node->children[idx]->data;
     }
 
+    [[nodiscard]] Node * getChildAt(const size_t idx) const {
+        assert(node);
+        assert(idx < node->children.size());
+        return node->children[idx];
+    }
+
     template<typename T>
     std::shared_ptr<T> castTo() {
         static_assert(std::is_base_of<Container, T>::value, "T should inherit from Container");

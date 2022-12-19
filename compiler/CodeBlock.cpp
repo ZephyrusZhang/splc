@@ -6,11 +6,11 @@
 #include "Stmt.h"
 #include "Exp.h"
 
-CodeBlock::CodeBlock(CodeBlockType type, Node *rootNode, const std::shared_ptr<CodeBlock>& parentBlock)
+CodeBlock::CodeBlock(CodeBlockType type, Node *rootNode, const std::shared_ptr<CodeBlock> &parentBlock)
         : IR(IRType::CodeBlock), codeBlockType(type), rootNode(rootNode), parentBlock(parentBlock) {}
 
 std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType = IRVariableType::Temp) {
-    size_t cnt = this->variableCounts[expectedType]++;
+    size_t cnt = ++(this->variableCounts[expectedType]);
     std::ostringstream name;
     if (expectedType == IRVariableType::Int) name << 'i';
     else if (expectedType == IRVariableType::ArrayIndex) name << 'x';
@@ -18,6 +18,7 @@ std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType =
     else if (expectedType == IRVariableType::BaseAddress) name << 'b';
     else if (expectedType == IRVariableType::StructOffset) name << 'o';
     else if (expectedType == IRVariableType::Temp) name << "t";
+    else if (expectedType == IRVariableType::ExpResult) name << "e";
     else name << "u";
     name << cnt;
     auto var = std::make_shared<IRVariable>(name.str(), expectedType, shared_from_base<CodeBlock>());
@@ -25,31 +26,32 @@ std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType =
     return var;
 }
 
-std::shared_ptr<IRVariable> CodeBlock::newConstantVariable(int32_t value) {
+std::shared_ptr<IRVariable> CodeBlock::constantVariable(int32_t value) {
     auto var = std::make_shared<IRVariable>(value, shared_from_base<CodeBlock>());
     return var;
 }
 
 std::shared_ptr<LabelDefIR> CodeBlock::newLabel(LabelType type, int lineno) {
     std::stringstream ss;
-    if (type == LabelType::IF_False) ss << "IF_F_" ;
-    else if (type == LabelType::IF_True) ss << "IF_T_" ;
-    else if (type == LabelType::IF_END) ss << "IF_E_" ;
+    if (type == LabelType::IF_False) ss << "IF_F_";
+    else if (type == LabelType::IF_True) ss << "IF_T_";
+    else if (type == LabelType::IF_END) ss << "IF_E_";
     else if (type == LabelType::LOOP_END) ss << "FOR_END_";
     else if (type == LabelType::LOOP_BLOCK) ss << "FOR_BLK_";
     else if (type == LabelType::LOOP_CONDITION) ss << "FOR_COND_";
-    else ss << (int) type;
-    ss << this->labelCounts[type]++ << "_" << lineno;
+    else if (type == LabelType::IF_COND_SHORTCUT) ss << "IF_STC_";
+    else ss << "UKN_" << (int) type;
+    ss << ++(this->labelCounts[type]) << "_" << lineno;
     auto label = std::make_shared<LabelDefIR>(ss.str());
     this->labels.push_back(label);
     return label;
 }
 
-std::shared_ptr<AllocateIR> CodeBlock::newAllocatedVariable(std::string identifier) {
+std::shared_ptr<AllocateIR> CodeBlock::newAllocatedVariable(const std::string &identifier) {
     if (this->allocatedVariables.find(identifier) != this->allocatedVariables.end()) {
         throw std::runtime_error("identifier is already allocated");
     }
-    auto& cType = this->currentScope->lookupSymbol(identifier).operator*();
+    auto &cType = this->currentScope->lookupSymbol(identifier).operator*();
     auto irVar = std::make_shared<IRVariable>(identifier, cType, shared_from_base<CodeBlock>());
     auto allocateIr = newIR<AllocateIR>(cType.sizeOf(), irVar, identifier);
     this->variables.push_back(irVar);
@@ -57,9 +59,13 @@ std::shared_ptr<AllocateIR> CodeBlock::newAllocatedVariable(std::string identifi
     return allocateIr;
 }
 
-std::shared_ptr<IRVariable> CodeBlock::getAllocatedVariable(const std::string& identifier) {
+std::shared_ptr<IRVariable> CodeBlock::getAllocatedVariable(const std::string &identifier) {
     if (this->allocatedVariables.find(identifier) == this->allocatedVariables.end()) {
-        throw std::runtime_error("unallocated identifier when trying to get IRVariable");
+        auto parent = this->parentBlock.lock();
+        if (parent)
+            return parent->getAllocatedVariable(identifier);
+        else
+            throw std::runtime_error("unallocated identifier when trying to get IRVariable");
     } else {
         return this->allocatedVariables[identifier];
     }
@@ -70,53 +76,139 @@ void CodeBlock::generateIr(std::ostream &ostream) {
         item->generateIr(ostream);
 }
 
-std::shared_ptr<IRVariable> CodeBlock::translateLValueExp(std::shared_ptr<Exp>& exp) {
+std::shared_ptr<IRVariable> CodeBlock::translateAddressExp(std::shared_ptr<Exp> exp, CodeBlockVector &target) {
     assert(exp->getValueType() == ValueType::LValue);
     if (exp->expType == ExpType::IDENTIFIER) {
-        const auto& id = exp->getChildData(0);
-        if (exp->getCompoundType().type == BasicType::TypePointer && !exp->getCompoundType().isArray()) {
-            // A one-level pointer in c is a two-level pointer in IR
-            // , so we need to dereference once to get the real address (the uint32_t value of this C pointer).
-            // But for array, the IR stores its base address, so simply read it from table and return
-            auto ptrVar = getAllocatedVariable(id);
-            auto retAddressVar = newVariable();
-            this->content.push_back(newIR<ReadAddressIR>(retAddressVar, ptrVar));
-            return retAddressVar;
-        } else
-            return this->getAllocatedVariable(id);
-    } else if (exp->expType == ExpType::DOT_ACCESS || exp->expType == ExpType::PTR_ACCESS) {
+        const auto &id = exp->getChildData(0);
+        return this->getAllocatedVariable(id);
+    } else if (exp->expType == ExpType::DOT_ACCESS) {
         auto leftExp = exp->getChildExp(0);
-        const auto& id = exp->getChildData(2);
+        const auto &id = exp->getChildData(2);
         // calculate the offset of id corresponding to struct
         int32_t offset = leftExp->getCompoundType().getStructOffset(id);
         // get the base address of the left struct
-        IRVariablePtr leftBaseAddr = translateLValueExp(leftExp);
+        IRVariablePtr leftBaseAddr = translateExp(leftExp->node, target);
+        if (offset == 0) return leftBaseAddr;
         IRVariablePtr retAddr = newVariable(IRVariableType::StructOffset);
         // generate IR: retAddr := leftBaseAddr + offset
-        this->content.push_back(newIR<AdditionIR>(retAddr, leftBaseAddr, newConstantVariable(offset)));
+        target.push_back(newIR<AdditionIR>(retAddr, leftBaseAddr, constantVariable(offset)));
+        return retAddr;
+    } else if (exp->expType == ExpType::PTR_ACCESS) {
+        auto leftExp = exp->getChildExp(0);
+        const auto &id = exp->getChildData(2);
+        // calculate the offset of id corresponding to struct
+        int32_t offset = leftExp->getCompoundType().pointTo->getStructOffset(id);
+        // get the value of the ptr, i.e. the base address of structure
+        IRVariablePtr leftBaseAddr = translateExp(leftExp->node, target);
+        if (offset == 0) return leftBaseAddr;
+        IRVariablePtr retAddr = newVariable(IRVariableType::StructOffset);
+        // generate IR: retAddr := leftBaseAddr + offset
+        target.push_back(newIR<AdditionIR>(retAddr, leftBaseAddr, constantVariable(offset)));
         return retAddr;
     } else if (exp->expType == ExpType::ARRAY_INDEX) {
         auto arrayExp = exp->getChildExp(0);
         auto indexExp = exp->getChildExp(2);
         assert(arrayExp->getCompoundType().isArray());
-        IRVariablePtr leftBaseAddr = translateLValueExp(arrayExp);
+        IRVariablePtr leftBaseAddr = translateExp(arrayExp->node, target);
         IRVariablePtr retAddr = newVariable(IRVariableType::StructOffset);
-        IRVariablePtr offsetVar = translateExp(indexExp->node, this->content);
-        this->content.push_back(newIR<AdditionIR>(retAddr, leftBaseAddr, offsetVar));
-    } else throw std::runtime_error("unexpected translate LValueExp");
+        IRVariablePtr indexVar = translateExp(indexExp->node, this->content);
+        IRVariablePtr offsetVar = newVariable(IRVariableType::ArrayIndex);
+        target.push_back(newIR<MultiplicationIR>(offsetVar, indexVar,
+                                                 constantVariable(arrayExp->getCompoundType().pointTo->sizeOf())));
+        target.push_back(newIR<AdditionIR>(retAddr, leftBaseAddr, offsetVar));
+        return retAddr;
+    } else throw std::runtime_error("unsupported operations when trying to calculate exp address");
 }
 
-std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVector& target) {
+std::shared_ptr<IRVariable> CodeBlock::translateLogicalExp(Node *expRoot, CodeBlockVector &target,
+                                                           std::shared_ptr<LabelDefIR> shortCutLabel = nullptr) {
+    // Logical Exp: AND, OR, NOT
     auto exp = expRoot->container->castTo<Exp>();
-    if (exp->expType == ExpType::ASSIGN) {
+    if (!shortCutLabel) shortCutLabel = newLabel(LabelType::IF_COND_SHORTCUT, expRoot->lineno);
+    if (exp->expType == ExpType::AND) {
+        auto leftExp = exp->getChildExp(0);
+        auto rightExp = exp->getChildExp(2);
+        // === Translate a && b =>
+        // finalResult = compute(left)
+        // IF finalResult == 0 GOTO shortcut
+        //   rightResult = compute(right)
+        //   finalResult = rightResult      // this breaks SSA. rightResult should be eliminated.
+        // LABEL shortcut:
+        // ===
+        // finalResult = compute(left)
+        auto finalResult = translateLogicalExp(leftExp->node, target, shortCutLabel);
+        // IF finalResult == 0 GOTO ShortCut
+        target.push_back(newIR<IfIR>(finalResult, IFRelop::EQ, constantVariable(0), shortCutLabel));
+        //   rightResult = compute(right)
+        auto rightResult = translateLogicalExp(rightExp->node, target, shortCutLabel);
+        //   finalResult = rightResult
+        target.push_back(newIR<AssignIR>(finalResult, rightResult));
+        // LABEL ShortCut:
+        if (!expRoot->parent || expRoot->parent->tokenName != "Exp"
+            || exp->expType != expRoot->parent->container->castTo<Exp>()->expType)
+            target.push_back(shortCutLabel);
+        return finalResult;
+    } else if (exp->expType == ExpType::OR) {
+        auto leftExp = exp->getChildExp(0);
+        auto rightExp = exp->getChildExp(2);
+        // === Translate a || b =>
+        // finalResult = compute(left)
+        // IF finalResult != 0 GOTO shortcut
+        //   rightResult = compute(right)
+        //   finalResult = rightResult        // this breaks SSA. rightResult should be eliminated.
+        // LABEL shortcut:
+        // ===
+        // finalResult = compute(left)
+        auto finalResult = translateLogicalExp(leftExp->node, target);
+        // IF finalResult != 0 GOTO ShortCut
+        target.push_back(newIR<IfIR>(finalResult, IFRelop::NE, constantVariable(0), shortCutLabel));
+        //   rightResult = compute(right)
+        auto rightResult = translateLogicalExp(rightExp->node, target);
+        //   finalResult = rightResult
+        target.push_back(newIR<AssignIR>(finalResult, rightResult));
+        // LABEL ShortCut:
+        if (!expRoot->parent || expRoot->parent->tokenName != "Exp"
+            || exp->expType != expRoot->parent->container->castTo<Exp>()->expType)
+            target.push_back(shortCutLabel);
+        return finalResult;
+    } else return translateExp(expRoot, target);
+}
 
+std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVector &target) {
+    auto exp = expRoot->container->castTo<Exp>();
+    if (exp->expType == ExpType::PLUS || exp->expType == ExpType::MINUS
+        || exp->expType == ExpType::MUL || exp->expType == ExpType::DIV) {
+        auto leftVar = translateExp(exp->getChildAt(0), target);
+        auto rightVar = translateExp(exp->getChildAt(2), target);
+        auto resultVar = newVariable();
+        if (exp->expType == ExpType::PLUS)
+            target.push_back(newIR<AdditionIR>(resultVar, leftVar, rightVar));
+        else if (exp->expType == ExpType::MINUS)
+            target.push_back(newIR<SubtractionIR>(resultVar, leftVar, rightVar));
+        else if (exp->expType == ExpType::MUL)
+            target.push_back(newIR<MultiplicationIR>(resultVar, leftVar, rightVar));
+        else if (exp->expType == ExpType::DIV)
+            target.push_back(newIR<DivisionIR>(resultVar, leftVar, rightVar));
+        return resultVar;
+    } else if (exp->expType == ExpType::IDENTIFIER || exp->expType == ExpType::DOT_ACCESS ||
+               exp->expType == ExpType::PTR_ACCESS || exp->expType == ExpType::ARRAY_INDEX) {
+        auto addrVar = translateAddressExp(exp, target);
+        auto valueVar = newVariable();
+        target.push_back(newIR<ReadAddressIR>(valueVar, addrVar));
+        return valueVar;
+    } else if (exp->expType == ExpType::AND || exp->expType == ExpType::OR) {
+        return translateLogicalExp(expRoot, target);
+    } else if (exp->expType == ExpType::ASSIGN) {
+        auto addrVar = translateAddressExp(exp->getChildExp(0), target);
+        auto valueVar = translateExp(exp->getChildAt(2), target);
+        target.push_back(newIR<StoreAddressIR>(addrVar, valueVar));
+        return valueVar;
     } else if (exp->expType == ExpType::LITERAL_INT) {
 
-    } else if (exp->expType == ExpType::IDENTIFIER) {
-        auto id = exp->node->children[0]->data;
-        auto addr = getAllocatedVariable(id);
     }
-    return {};
+    auto tmp = newIR<AssignIR>(newVariable(), constantVariable(-114514));
+    target.push_back(tmp);
+    return tmp->target;
 }
 
 void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariable> &assignTo,
@@ -124,7 +216,8 @@ void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariabl
     // Read the comment in header file
 }
 
-void CodeBlock::translateConditionExp(Node *expRoot, std::shared_ptr<LabelDefIR> &trueLabel, std::shared_ptr<LabelDefIR> &falseLabel, CodeBlockVector &target) {
+void CodeBlock::translateConditionExp(Node *expRoot, std::shared_ptr<LabelDefIR> &trueLabel,
+                                      std::shared_ptr<LabelDefIR> &falseLabel, CodeBlockVector &target) {
     auto exp = expRoot->container->castTo<Exp>();
     if (exp->expType == ExpType::AND) {
 
@@ -135,13 +228,13 @@ void CodeBlock::translateConditionExp(Node *expRoot, std::shared_ptr<LabelDefIR>
     }
 }
 
-Node * getCompStOrStmt(Node* stmt) {
+Node *getCompStOrStmt(Node *stmt) {
     assert(stmt->tokenName == "Stmt");
     if (stmt->children[0]->tokenName == "CompSt") return stmt->children[0];
     return stmt;
 }
 
-void CodeBlock::translateStmt(Node* stmtNode) {
+void CodeBlock::translateStmt(Node *stmtNode) {
     // stmtNode may be def or Stmt
     if (stmtNode->tokenName == "Def") {
         // Def -> Specifier DecList SEMI
@@ -154,7 +247,7 @@ void CodeBlock::translateStmt(Node* stmtNode) {
                 translateDecAssignment(dec->initialValueExpNode, allocateIr->variable, content);
         }
     } else { // Stmt
-        auto& stmtObj = stmtNode->container->castTo<Stmt>().operator*();
+        auto &stmtObj = stmtNode->container->castTo<Stmt>().operator*();
         if (stmtObj.stmtType == StmtType::SINGLE) {
             translateExp(stmtNode->children[0], this->content);
         } else if (stmtObj.stmtType == StmtType::RETURN) {
@@ -164,7 +257,8 @@ void CodeBlock::translateStmt(Node* stmtNode) {
         } else if (stmtObj.stmtType == StmtType::CONTINUE) {
 
         } else if (stmtObj.stmtType == StmtType::COMP) {
-            auto compBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode), shared_from_base<CodeBlock>());
+            auto compBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode),
+                                                                shared_from_base<CodeBlock>());
             this->content.push_back(compBlock);
             compBlock->startTranslation();
         } else if (stmtObj.stmtType == StmtType::IF || stmtObj.stmtType == StmtType::IF_ELSE) {
@@ -172,7 +266,8 @@ void CodeBlock::translateStmt(Node* stmtNode) {
             auto elseLabel = newLabel(LabelType::IF_False, stmtObj.node->lineno);
             // append IF IR
             translateConditionExp(stmtNode->children[2], thenLabel, elseLabel, this->content);
-            auto thenBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode->children[4]), shared_from_base<CodeBlock>());
+            auto thenBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode->children[4]),
+                                                                shared_from_base<CodeBlock>());
             // append thenLabel (if needed), and thenBlock
 //            if (!thenLabel->references.empty())
             this->content.push_back(thenLabel);
@@ -197,7 +292,8 @@ void CodeBlock::translateStmt(Node* stmtNode) {
                 auto gotoEnd = newIR<GotoIR>(endLabel);
                 this->content.push_back(gotoEnd);
                 this->content.push_back(elseLabel);
-                auto elseBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode->children[6]), shared_from_base<CodeBlock>());
+                auto elseBlock = std::make_shared<GeneralCodeBlock>(getCompStOrStmt(stmtNode->children[6]),
+                                                                    shared_from_base<CodeBlock>());
                 elseBlock->startTranslation();
                 this->content.push_back(elseBlock);
                 this->content.push_back(endLabel);
@@ -233,9 +329,11 @@ void FunctionCodeBlock::startTranslation() {
         //  This keeps the assumption that every variable is allocated in stack.
         // Don't use `newAllocatedVariable` here, which use incorrect size from CType
         //  , but we actually need a pointer to PARAM.
-        auto paramVar = std::make_shared<IRVariable>(PARAM_PREFIX + item.first, item.second, shared_from_base<CodeBlock>());
+        auto paramVar = std::make_shared<IRVariable>(PARAM_PREFIX + item.first, item.second,
+                                                     shared_from_base<CodeBlock>());
         this->variables.push_back(paramVar);
-        IRVariablePtr allocVar = std::make_shared<IRVariable>(item.first, IRVariableType::Param, shared_from_base<CodeBlock>());
+        IRVariablePtr allocVar = std::make_shared<IRVariable>(item.first, IRVariableType::Param,
+                                                              shared_from_base<CodeBlock>());
         this->variables.push_back(allocVar);
         this->allocatedVariables[item.first] = allocVar;
         auto allocIr = newIR<AllocateIR>(4, allocVar, allocVar->name);
@@ -251,7 +349,7 @@ void FunctionCodeBlock::startTranslation() {
     }
 }
 
-ForCodeBlock::ForCodeBlock(Node *stmtNode, const std::shared_ptr<CodeBlock>& parentBlock)
+ForCodeBlock::ForCodeBlock(Node *stmtNode, const std::shared_ptr<CodeBlock> &parentBlock)
         : CodeBlock(CodeBlockType::For, stmtNode, parentBlock) {
     if (stmtNode->children[0]->container) {
         assert(stmtNode->children[0]->container->getContainerType() == ContainerType::Scope);
@@ -317,7 +415,7 @@ void ForCodeBlock::generateIr(std::ostream &ostream) {
     this->loopEndLabel->generateIr(ostream);
 }
 
-WhileCodeBlock::WhileCodeBlock(Node *stmtNode, const std::shared_ptr<CodeBlock>& parentBlock)
+WhileCodeBlock::WhileCodeBlock(Node *stmtNode, const std::shared_ptr<CodeBlock> &parentBlock)
         : CodeBlock(CodeBlockType::While, stmtNode, parentBlock) {
 
 }
@@ -330,7 +428,7 @@ void WhileCodeBlock::generateIr(std::ostream &ostream) {
 
 }
 
-GeneralCodeBlock::GeneralCodeBlock(Node *rootNode, const std::shared_ptr<CodeBlock>& parentBlock)
+GeneralCodeBlock::GeneralCodeBlock(Node *rootNode, const std::shared_ptr<CodeBlock> &parentBlock)
         : CodeBlock(CodeBlockType::General, rootNode, parentBlock) {
     if (rootNode->tokenName == "CompSt") {
         this->currentScope = rootNode->children[0]->container->castTo<Scope>();

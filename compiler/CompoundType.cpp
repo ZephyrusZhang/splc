@@ -118,7 +118,7 @@ bool CompoundType::canDoArithmetic() const {
 }
 
 bool CompoundType::canDoBoolean() const {
-    return this->type == TypeInt;
+    return this->type == TypeInt || this->type == TypePointer;
 }
 
 bool CompoundType::canCompare() const {

@@ -31,7 +31,6 @@
 %token RP RB RC
 
 %right ASSIGN
-%left PTRACS DOT
 %left INCREASE DECREASE
 %left OR
 %left AND
@@ -40,6 +39,7 @@
 %left PLUS MINUS
 %left MUL DIV
 %right NOT ADDROF
+%left PTRACS DOT
 %left LP RP LB RB
 
 %nonassoc LOWER_ELSE

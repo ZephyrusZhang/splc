@@ -66,7 +66,8 @@ enum class IRVariableType {
     ArrayIndex,
     StructOffset,
     Temp,
-    Constant
+    Constant,
+    ExpResult,
 };
 
 class IRVariable : public std::enable_shared_from_this<IRVariable> {
@@ -266,13 +267,25 @@ public:
     }
 };
 
+// IF x [relop] y GOTO label
+enum class IFRelop {
+    /* <  */    LT,
+    /* <= */    LE,
+    /* >  */    GT,
+    /* >= */    GE,
+    /* != */    NE,
+    /* == */    EQ,
+};
+
 class IfIR : public IR {
 public:
-    const IRVariablePtr condition;
-    std::weak_ptr<LabelDefIR> gotoLabel;
+    IRVariablePtr left;
+    IFRelop relop;
+    IRVariablePtr right;
+    std::shared_ptr<LabelDefIR> gotoLabel;
 
-    explicit IfIR(IRVariablePtr condition, const std::shared_ptr<LabelDefIR> &gotoLabel)
-            : IR(IRType::If), condition(std::move(condition)), gotoLabel(gotoLabel) {
+    explicit IfIR(IRVariablePtr left, IFRelop relop, IRVariablePtr right, std::shared_ptr<LabelDefIR> gotoLabel)
+            : IR(IRType::If), left(std::move(left)), relop(relop), right(std::move(right)), gotoLabel(std::move(gotoLabel)) {
     }
 
     void generateIr(std::ostream &ostream) override;
@@ -280,8 +293,9 @@ public:
     ~IfIR() override = default;
 
     void countReference() override {
-        condition->references.push_back(shared_from_this());
-        gotoLabel.lock()->references.push_back(shared_from_this());
+        left->references.push_back(shared_from_this());
+        right->references.push_back(shared_from_this());
+        gotoLabel->references.push_back(shared_from_this());
     }
 };
 

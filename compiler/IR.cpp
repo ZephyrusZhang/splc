@@ -22,7 +22,7 @@ IRVariable::IRVariable(std::string name, const CompoundType& compoundType, std::
     } else type = IRVariableType::Pointer;
 }
 
-IRVariable::IRVariable(int32_t value, std::weak_ptr<CodeBlock> owner) :name("constant"), owner(std::move(owner)) {
+IRVariable::IRVariable(int32_t value, std::weak_ptr<CodeBlock> owner) :name("constantVariable"), owner(std::move(owner)) {
     this->type = IRVariableType::Constant;
     this->value = value;
 }
@@ -59,7 +59,7 @@ void FunctionDefIR::generateIr(std::ostream &ostream) {
 }
 
 void AssignIR::generateIr(std::ostream &ostream) {
-    ostream << target->name << " := " << op1->value;
+    ostream << target->name << " := " << *op1;
     insertComment(ostream);
     ostream << std::endl;
 }
@@ -78,6 +78,8 @@ std::ostream& operator<<(std::ostream& os, const IRVariableType& type) {
     else if (type == IRVariableType::BaseAddress) os << "base";
     else if (type == IRVariableType::StructOffset) os << "off";
     else if (type == IRVariableType::ArrayIndex) os << "idx";
+    else if (type == IRVariableType::ExpResult) os << "exp";
+    else os << "ukn";
     return os;
 }
 
@@ -94,8 +96,19 @@ void AllocateIR::generateIr(std::ostream &ostream) {
     ostream << std::endl;
 }
 
+std::ostream& operator<<(std::ostream& os, const IFRelop& relop) {
+    switch (relop) {
+        case IFRelop::LE: return (os << "<=");
+        case IFRelop::LT: return (os << "<");
+        case IFRelop::GT: return (os << ">");
+        case IFRelop::GE: return (os << ">=");
+        case IFRelop::NE: return (os << "!=");
+        case IFRelop::EQ: return (os << "==");
+    }
+}
+
 void IfIR::generateIr(std::ostream &ostream) {
-    ostream << "IF " << condition->name << " == 0 GOTO " << gotoLabel.lock()->label;
+    ostream << "IF " << *left << " " << relop << " " << *right << " GOTO " << gotoLabel->label;
     insertComment(ostream);
     ostream << std::endl;
 }
@@ -118,10 +131,10 @@ void BinaryIR::generateIr(std::ostream &ostream) {
 
 void UnaryIR::generateIr(std::ostream &ostream) {
     if (irType == IRType::StoreAddress) ostream << "*";
-    ostream << target->name << " := " << *op1 << " ";
+    ostream << target->name << " := ";
     if (irType == IRType::AddressOf) ostream << "&";
     else if (irType == IRType::ReadAddress) ostream << "*";
-    ostream << std::endl;
+    ostream << this->op1->name << std::endl;
 }
 
 void ReturnIR::generateIr(std::ostream &ostream) {

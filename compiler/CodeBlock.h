@@ -19,7 +19,9 @@ enum class LabelType {
     IF_True,
     IF_END,
     LOOP_CONDITION,
-    LOOP_END, LOOP_BLOCK
+    LOOP_END,
+    LOOP_BLOCK,
+    IF_COND_SHORTCUT,
 };
 typedef std::vector<std::shared_ptr<IR>> CodeBlockVector;
 
@@ -47,11 +49,11 @@ protected:
     // Generate temporary variable
     std::shared_ptr<IRVariable> newVariable(IRVariableType expectedType);
     // Generate a constant variable
-    std::shared_ptr<IRVariable> newConstantVariable(int32_t value);
+    std::shared_ptr<IRVariable> constantVariable(int32_t value);
     // Generate a label
     std::shared_ptr<LabelDefIR> newLabel(LabelType type, int lineno);
     // Generate Allocated variable
-    std::shared_ptr<AllocateIR> newAllocatedVariable(std::string identifier);
+    std::shared_ptr<AllocateIR> newAllocatedVariable(const std::string& identifier);
 
     template<typename T, typename... Args>
     std::shared_ptr<T> newIR(Args&&... args) {
@@ -66,9 +68,6 @@ protected:
 
     // Translate given Exp into IRs and append to target, return the assigned IRVariable
     std::shared_ptr<IRVariable> translateExp(Node * expRoot, CodeBlockVector& target);
-
-    // Translate the access to a lvalue and return a IRVariable which holds the address of it.
-    std::shared_ptr<IRVariable> translateLValueExp(std::shared_ptr<Exp> &exp);
 
     // Translate an Assign Expression, used in variable declared with initial value.
     // Note that the IrVariable assignTo is an address, usually a pointer. Since it is allocated in stack, the value of IrVariable is the allocated start address
@@ -108,6 +107,10 @@ public:
         assert(this->codeBlockType == classType);
         return shared_from_this();
     }
+
+    std::shared_ptr<IRVariable> translateAddressExp(std::shared_ptr<Exp> exp, CodeBlockVector &target);
+
+    std::shared_ptr<IRVariable> translateLogicalExp(Node *expRoot, CodeBlockVector &target, std::shared_ptr<LabelDefIR> shortCutLabel);
 };
 
 class FunctionCodeBlock : public CodeBlock {
