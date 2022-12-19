@@ -115,7 +115,7 @@ void CodeBlock::translateStmt(Node* stmtNode) {
         if (stmtObj.stmtType == StmtType::SINGLE) {
             translateExp(stmtNode->children[0], this->content);
         } else if (stmtObj.stmtType == StmtType::RETURN) {
-
+//            auto retIr = newIR<ReturnIR>()
         } else if (stmtObj.stmtType == StmtType::BREAK) {
 
         } else if (stmtObj.stmtType == StmtType::CONTINUE) {

@@ -53,6 +53,7 @@ enum class IRType {
  */
 
 class CodeBlock;
+
 class IR;
 
 enum class IRVariableType {
@@ -74,8 +75,10 @@ public:
     std::string value;
 
     IRVariable(IRVariableType type, std::string name, std::weak_ptr<CodeBlock> owner);
+
     // Allocate space according to CompoundType
-    IRVariable(std::string name, const CompoundType& compoundType, std::weak_ptr<CodeBlock> owner);
+    IRVariable(std::string name, const CompoundType &compoundType, std::weak_ptr<CodeBlock> owner);
+
     // Constant Value
     IRVariable(uint32_t value, std::weak_ptr<CodeBlock> owner);
 };
@@ -91,6 +94,7 @@ public:
     explicit IR(IRType irType) : irType(irType) {};
 
     virtual void generateIr(std::ostream &ostream) = 0;
+
     virtual ~IR() = default;
 
 protected:
@@ -109,6 +113,7 @@ public:
         assert(_irType == this->irType);
         return std::dynamic_pointer_cast<T>(shared_from_this());
     }
+
     virtual void countReference() {}
 };
 
@@ -117,6 +122,7 @@ public:
     const std::string label;
 
     explicit LabelDefIR(std::string label) : IR(IRType::LabelDef), label(std::move(label)) {};
+
     void generateIr(std::ostream &ostream) override;
 
     ~LabelDefIR() override = default;
@@ -144,6 +150,7 @@ public:
             : IR(irType), target(std::move(target)), op1(std::move(op1)), op2(std::move(op2)) {}
 
     void generateIr(std::ostream &ostream) override;
+
     ~BinaryIR() override = default;
 
     void countReference() override {
@@ -162,6 +169,7 @@ public:
             : IR(irType), target(std::move(target)), op1(std::move(op1)) {}
 
     void generateIr(std::ostream &ostream) override;
+
     ~UnaryIR() override = default;
 
     void countReference() override {
@@ -174,7 +182,9 @@ class AssignIR : public UnaryIR {
 public:
     explicit AssignIR(IRVariablePtr target, IRVariablePtr source)
             : UnaryIR(IRType::Assign, std::move(target), std::move(source)) {}
+
     void generateIr(std::ostream &ostream) override;
+
     ~AssignIR() override = default;
 };
 
@@ -182,6 +192,7 @@ class AddressOfIR : public UnaryIR {
 public:
     explicit AddressOfIR(IRVariablePtr target, IRVariablePtr op1)
             : UnaryIR(IRType::AddressOf, std::move(target), std::move(op1)) {}
+
     ~AddressOfIR() override = default;
 };
 
@@ -189,6 +200,7 @@ class ReadAddressIR : public UnaryIR {
 public:
     explicit ReadAddressIR(IRVariablePtr target, IRVariablePtr srcAddr)
             : UnaryIR(IRType::ReadAddress, std::move(target), std::move(srcAddr)) {}
+
     ~ReadAddressIR() override = default;
 };
 
@@ -196,13 +208,15 @@ class StoreAddressIR : public UnaryIR {
 public:
     explicit StoreAddressIR(IRVariablePtr dstAddr, IRVariablePtr value)
             : UnaryIR(IRType::StoreAddress, std::move(dstAddr), std::move(value)) {}
+
     ~StoreAddressIR() override = default;
 };
 
 class AdditionIR : public BinaryIR {
 public:
     explicit AdditionIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
-        : BinaryIR(IRType::ArithAddition, std::move(target), std::move(op1), std::move(op2)) {}
+            : BinaryIR(IRType::ArithAddition, std::move(target), std::move(op1), std::move(op2)) {}
+
     ~AdditionIR() override = default;
 };
 
@@ -210,6 +224,7 @@ class SubtractionIR : public BinaryIR {
 public:
     explicit SubtractionIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
             : BinaryIR(IRType::ArithSubtraction, std::move(target), std::move(op1), std::move(op2)) {}
+
     ~SubtractionIR() override = default;
 };
 
@@ -217,6 +232,7 @@ class MultiplicationIR : public BinaryIR {
 public:
     explicit MultiplicationIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
             : BinaryIR(IRType::ArithMultiplication, std::move(target), std::move(op1), std::move(op2)) {}
+
     ~MultiplicationIR() override = default;
 };
 
@@ -224,6 +240,7 @@ class DivisionIR : public BinaryIR {
 public:
     explicit DivisionIR(IRVariablePtr target, IRVariablePtr op1, IRVariablePtr op2)
             : BinaryIR(IRType::ArithDivision, std::move(target), std::move(op1), std::move(op2)) {}
+
     ~DivisionIR() override = default;
 };
 
@@ -232,8 +249,10 @@ public:
     const size_t size;
     IRVariablePtr variable;
 
-    explicit AllocateIR(size_t size, IRVariablePtr& variable, std::string& identifierName);
+    explicit AllocateIR(size_t size, IRVariablePtr &variable, std::string &identifierName);
+
     void generateIr(std::ostream &ostream) override;
+
     ~AllocateIR() override = default;
 
     void countReference() override {
@@ -244,35 +263,54 @@ public:
 class IfIR : public IR {
 public:
     const IRVariablePtr condition;
-    const std::shared_ptr<LabelDefIR> gotoLabel;
+    std::weak_ptr<LabelDefIR> gotoLabel;
 
-    explicit IfIR(IRVariablePtr condition, std::shared_ptr<LabelDefIR> gotoLabel)
-            : IR(IRType::If), condition(std::move(condition)), gotoLabel(std::move(gotoLabel)) {
+    explicit IfIR(IRVariablePtr condition, const std::shared_ptr<LabelDefIR> &gotoLabel)
+            : IR(IRType::If), condition(std::move(condition)), gotoLabel(gotoLabel) {
     }
 
     void generateIr(std::ostream &ostream) override;
+
     ~IfIR() override = default;
 
     void countReference() override {
         condition->references.push_back(shared_from_this());
-        gotoLabel->references.push_back(shared_from_this());
+        gotoLabel.lock()->references.push_back(shared_from_this());
     }
 };
 
 class GotoIR : public IR {
 public:
-    const std::shared_ptr<LabelDefIR> gotoLabel;
+    const std::weak_ptr<LabelDefIR> gotoLabel;
 
-    explicit GotoIR(std::shared_ptr<LabelDefIR> gotoLabel)
-            : IR(IRType::Goto), gotoLabel(std::move(gotoLabel)) {
-        assert(this->gotoLabel);
+    explicit GotoIR(const std::shared_ptr<LabelDefIR> &gotoLabel)
+            : IR(IRType::Goto), gotoLabel(gotoLabel) {
+
     }
 
     void generateIr(std::ostream &ostream) override;
+
     ~GotoIR() override = default;
 
     void countReference() override {
-        gotoLabel->references.push_back(shared_from_this());
+        gotoLabel.lock()->references.push_back(shared_from_this());
+    }
+};
+
+class ReturnIR : public IR {
+public:
+    const std::weak_ptr<IRVariable> returnedIr;
+
+    explicit ReturnIR(const std::shared_ptr<IRVariable> &returnedIr)
+            : IR(IRType::Return), returnedIr(returnedIr) {
+
+    }
+
+    void generateIr(std::ostream &ostream) override;
+    ~ReturnIR() override = default;
+
+    void countReference() override {
+        returnedIr.lock()->references.push_back(shared_from_this());
     }
 };
 

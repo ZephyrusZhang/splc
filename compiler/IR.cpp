@@ -86,13 +86,13 @@ void AllocateIR::generateIr(std::ostream &ostream) {
 }
 
 void IfIR::generateIr(std::ostream &ostream) {
-    ostream << "IF " << condition->name << " == 0 GOTO " << gotoLabel->label;
+    ostream << "IF " << condition->name << " == 0 GOTO " << gotoLabel.lock()->label;
     insertComment(ostream);
     ostream << std::endl;
 }
 
 void GotoIR::generateIr(std::ostream &ostream) {
-    ostream << "GOTO " << gotoLabel->label;
+    ostream << "GOTO " << gotoLabel.lock()->label;
     insertComment(ostream);
     ostream << std::endl;
 }
@@ -108,10 +108,15 @@ void BinaryIR::generateIr(std::ostream &ostream) {
 }
 
 void UnaryIR::generateIr(std::ostream &ostream) {
-
     if (irType == IRType::StoreAddress) ostream << "*";
     ostream << target->name << " := " << op1->name << " ";
     if (irType == IRType::AddressOf) ostream << "&";
     else if (irType == IRType::ReadAddress) ostream << "*";
+    ostream << std::endl;
+}
+
+void ReturnIR::generateIr(std::ostream &ostream) {
+    ostream << "RETURN ";
+    ostream << returnedIr.lock()->name;
     ostream << std::endl;
 }
