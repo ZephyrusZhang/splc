@@ -12,8 +12,11 @@ int function(int a, int b[10], struct mystruct * ptr) {
 int main() {
     struct mystruct a0;
     int arr[123];
-    struct mystruct * ptr;
+    struct mystruct * ptr = 0;
     a0 = *ptr;
     for(int i = 0; i<123;i++) arr[i] = i;
     ptr && ptr->b > 10 && ptr->ptr && ptr->ptr->ptr;
+    int* xx;
+    xx = 0;
+    *xx = 123 + 55;
 }

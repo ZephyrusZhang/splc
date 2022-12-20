@@ -127,8 +127,8 @@ bool CompoundType::canCompare() const {
 
 bool CompoundType::canAssignment(const CompoundType &left, const CompoundType &right) {
     if (left == right) return true;
-    if (left.type == TypePointer && right.type == TypePointer && right.pointTo->type == TypeVoid) {
-        // allow assignment from void* to any pointer type
+    if (left.type == TypePointer && right.type == TypeInt) {
+        // allow assignment from int to any pointer type
         return true;
     } else {
         return false;

@@ -14,7 +14,7 @@ class Exp : public Container {
 private:
     ValueType valueType = ValueType::Unknown;
     std::shared_ptr<CompoundType> expCompoundType;
-    int integerValue;
+    int32_t integerValue = 0;
 public:
     const static ContainerType containerType = ContainerType::Exp;
     ExpType expType;
@@ -33,7 +33,7 @@ public:
     }
 
     void installChild(const std::vector<Node *> &vector) override;
-    [[nodiscard]] int getIntegerValue() const {
+    [[nodiscard]] int32_t getIntegerValue() const {
         return this->integerValue;
     }
 };

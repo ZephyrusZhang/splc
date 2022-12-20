@@ -59,7 +59,7 @@ void FunctionDefIR::generateIr(std::ostream &ostream) {
 }
 
 void AssignIR::generateIr(std::ostream &ostream) {
-    ostream << target->name << " := " << *op1;
+    ostream << *target << " := " << *op1;
     insertComment(ostream);
     ostream << std::endl;
 }
@@ -105,6 +105,7 @@ std::ostream& operator<<(std::ostream& os, const IFRelop& relop) {
         case IFRelop::NE: return (os << "!=");
         case IFRelop::EQ: return (os << "==");
     }
+    return os;
 }
 
 void IfIR::generateIr(std::ostream &ostream) {
@@ -120,7 +121,7 @@ void GotoIR::generateIr(std::ostream &ostream) {
 }
 
 void BinaryIR::generateIr(std::ostream &ostream) {
-    ostream << target->name << " := " << *op1 << " ";
+    ostream << *target << " := " << *op1 << " ";
     if (irType == IRType::ArithAddition) ostream << "+";
     else if (irType == IRType::ArithSubtraction) ostream << "-";
     else if (irType == IRType::ArithMultiplication) ostream << "*";
@@ -131,10 +132,10 @@ void BinaryIR::generateIr(std::ostream &ostream) {
 
 void UnaryIR::generateIr(std::ostream &ostream) {
     if (irType == IRType::StoreAddress) ostream << "*";
-    ostream << target->name << " := ";
+    ostream << *target << " := ";
     if (irType == IRType::AddressOf) ostream << "&";
     else if (irType == IRType::ReadAddress) ostream << "*";
-    ostream << this->op1->name << std::endl;
+    ostream << *op1 << std::endl;
 }
 
 void ReturnIR::generateIr(std::ostream &ostream) {

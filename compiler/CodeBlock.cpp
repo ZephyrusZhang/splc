@@ -117,6 +117,9 @@ std::shared_ptr<IRVariable> CodeBlock::translateAddressExp(std::shared_ptr<Exp> 
                                                  constantVariable(arrayExp->getCompoundType().pointTo->sizeOf())));
         target.push_back(newIR<AdditionIR>(retAddr, leftBaseAddr, offsetVar));
         return retAddr;
+    } else if (exp->expType == ExpType::DEREF) {
+        auto ptrExp = exp->getChildExp(1);
+        return translateExp(ptrExp->node, target);
     } else throw std::runtime_error("unsupported operations when trying to calculate exp address");
 }
 
@@ -171,7 +174,12 @@ std::shared_ptr<IRVariable> CodeBlock::translateLogicalExp(Node *expRoot, CodeBl
             || exp->expType != expRoot->parent->container->castTo<Exp>()->expType)
             target.push_back(shortCutLabel);
         return finalResult;
-    } else return translateExp(expRoot, target);
+    } else if (exp->expType == ExpType::NOT) {
+        // Translate ! exp =>
+        auto rightVar = translateExp(exp->getChildAt(1), target);
+        // TODO: Finish NOT
+    }
+    return translateExp(expRoot, target);
 }
 
 std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVector &target) {
@@ -191,12 +199,13 @@ std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVect
             target.push_back(newIR<DivisionIR>(resultVar, leftVar, rightVar));
         return resultVar;
     } else if (exp->expType == ExpType::IDENTIFIER || exp->expType == ExpType::DOT_ACCESS ||
-               exp->expType == ExpType::PTR_ACCESS || exp->expType == ExpType::ARRAY_INDEX) {
+               exp->expType == ExpType::PTR_ACCESS || exp->expType == ExpType::ARRAY_INDEX ||
+               exp->expType == ExpType::DEREF) {
         auto addrVar = translateAddressExp(exp, target);
         auto valueVar = newVariable();
         target.push_back(newIR<ReadAddressIR>(valueVar, addrVar));
         return valueVar;
-    } else if (exp->expType == ExpType::AND || exp->expType == ExpType::OR) {
+    } else if (exp->expType == ExpType::AND || exp->expType == ExpType::OR || exp->expType == ExpType::NOT) {
         return translateLogicalExp(expRoot, target);
     } else if (exp->expType == ExpType::ASSIGN) {
         auto addrVar = translateAddressExp(exp->getChildExp(0), target);
@@ -204,16 +213,26 @@ std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVect
         target.push_back(newIR<StoreAddressIR>(addrVar, valueVar));
         return valueVar;
     } else if (exp->expType == ExpType::LITERAL_INT) {
-
+        return constantVariable(exp->getIntegerValue());
+    } else if (exp->expType == ExpType::LITERAL_FLOAT) {
+        std::cout << "float is not supported." << std::endl;
+        return constantVariable(-114514);
+    } else if (exp->expType == ExpType::LITERAL_CHAR) {
+        return constantVariable(std::stoi(exp->getChildData(0)));
+    } else if (exp->expType == ExpType::LITERAL_STRING) {
+        std::cout << "data allocation is not supported yet" << std::endl;
+        return constantVariable(-114514);
     }
     auto tmp = newIR<AssignIR>(newVariable(), constantVariable(-114514));
     target.push_back(tmp);
     return tmp->target;
 }
 
-void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariable> &assignTo,
+void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariable> &allocatedVar,
                                        CodeBlockVector &target) {
     // Read the comment in header file
+    auto valueVar = translateExp(valueExp, target);
+    target.push_back(newIR<StoreAddressIR>(allocatedVar, valueVar));
 }
 
 void CodeBlock::translateConditionExp(Node *expRoot, std::shared_ptr<LabelDefIR> &trueLabel,

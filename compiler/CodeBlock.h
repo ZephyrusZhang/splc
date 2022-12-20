@@ -64,15 +64,22 @@ protected:
     }
     // These three methods shouldn't modify any CodeBlockVector
 
+    // get Allocated Variable by name in syntax
     std::shared_ptr<IRVariable> getAllocatedVariable(const std::string& identifier);
 
-    // Translate given Exp into IRs and append to target, return the assigned IRVariable
-    std::shared_ptr<IRVariable> translateExp(Node * expRoot, CodeBlockVector& target);
+    // Translate given Exp into IRs and append to target, return the IRVariable holds the value
+    std::shared_ptr<IRVariable> translateExp(Node *expRoot, CodeBlockVector &target);
+
+    // Translate a LValue Expression, return a IRVar which holds the address of the lvalue.
+    std::shared_ptr<IRVariable> translateAddressExp(std::shared_ptr<Exp> exp, CodeBlockVector &target);
+
+    std::shared_ptr<IRVariable>
+    translateLogicalExp(Node *expRoot, CodeBlockVector &target, std::shared_ptr<LabelDefIR> shortCutLabel);
 
     // Translate an Assign Expression, used in variable declared with initial value.
     // Note that the IrVariable assignTo is an address, usually a pointer. Since it is allocated in stack, the value of IrVariable is the allocated start address
     // Example: int a = 123; => translateAssignmentExp(root of 123, a, blocks);
-    void translateDecAssignment(Node * valueExp, std::shared_ptr<IRVariable>& assignTo, CodeBlockVector& target);
+    void translateDecAssignment(Node * valueExp, std::shared_ptr<IRVariable>& allocatedVar, CodeBlockVector& target);
 
     // Translate a Conditional Expression into IRs, need to consider shortcut !
     // Example: if (aaa && bbb) =>
@@ -107,10 +114,6 @@ public:
         assert(this->codeBlockType == classType);
         return shared_from_this();
     }
-
-    std::shared_ptr<IRVariable> translateAddressExp(std::shared_ptr<Exp> exp, CodeBlockVector &target);
-
-    std::shared_ptr<IRVariable> translateLogicalExp(Node *expRoot, CodeBlockVector &target, std::shared_ptr<LabelDefIR> shortCutLabel);
 };
 
 class FunctionCodeBlock : public CodeBlock {
