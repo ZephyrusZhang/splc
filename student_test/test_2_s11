@@ -1,4 +1,0 @@
-Error type 15 at line 2: structure x is already defined
-Error type 3 at line 8: variable c is already defined
-splc: compiler/Scope.cpp:16: void Scope::insertSymbol(const string&, const std::shared_ptr<Specifier>&, const std::shared_ptr<Dec>&): Assertion `!isSymbolExists(identifier)' failed.
-Aborted

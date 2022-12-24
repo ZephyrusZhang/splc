@@ -1,4 +1,0 @@
-Error type 4 at line 29: function function is already defined
-Error type 8 at line 30: function function should return int function() but given float
-splc: compiler/Scope.cpp:35: Scope::SymbolType Scope::lookupSymbol(const string&): Assertion `current != nullptr' failed.
-Aborted

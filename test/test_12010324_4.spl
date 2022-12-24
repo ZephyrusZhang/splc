@@ -1,9 +1,0 @@
-int main()
-{
-    int int_array[114514];
-    float float_array[1919180];
-    int_array[float_array[0]] = 233;
-    float_array['?'] = 1;
-
-    int_array[int_array[1]] = 14;
-}

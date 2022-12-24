@@ -1,5 +1,0 @@
-Error type 8 at line 2: function fun0 should return float function() but given int
-Error type 9 at line 10: function fun0 is called with mismatched args
-Error type 9 at line 10: function fun1 is called with mismatched args
-Error type 9 at line 10: function fun1 is called with mismatched args
-Error type 5 at line 10: unmatched type float and int function(int) in the assignment.

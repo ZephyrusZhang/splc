@@ -1,5 +1,0 @@
-int main()
-{
-    float a = add();
-    char c = what(1, 1);
-}
