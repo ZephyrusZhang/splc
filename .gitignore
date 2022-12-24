@@ -59,6 +59,7 @@ syntax.tab.*
 bin/
 *.output
 *.out
+*.log
 
 # IDE Configuration
 .vscode/
