@@ -19,7 +19,6 @@ public:
 private:
     std::shared_ptr<std::vector<StructDefList>> structDefLists;
 public:
-    [[nodiscard]] std::shared_ptr<std::vector<StructDefList>> getStructDefLists();
     [[nodiscard]] std::shared_ptr<const std::vector<StructDefList>> getStructDefLists() const;
     std::shared_ptr<std::string> unresolvedStructName;
     // for function definition:
@@ -56,6 +55,7 @@ public:
         }
         return offset;
     }
+    void checkIncompleteStruct();
 
     static bool canAssignment(const CompoundType& left, const CompoundType& right);
 

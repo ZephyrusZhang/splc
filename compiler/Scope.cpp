@@ -21,11 +21,8 @@ void Scope::insertSymbol(const std::string &identifier, const std::shared_ptr<Sp
         symbols[identifier] = std::make_pair(std::make_shared<CompoundType>(*specifier, *dec), SymbolAttribute{});
     else
         symbols[identifier] = std::make_pair(std::make_shared<CompoundType>(*specifier), SymbolAttribute{});
-    if (specifier->type == TypeStruct && !specifier->structDefList) {
-        // check incomplete struct
-        auto& compType = symbols[identifier].first;
-
-    }
+//    std::cout << "install " << identifier << " " << *symbols[identifier].first << std::endl;
+    symbols[identifier].first->checkIncompleteStruct();
 }
 
 bool Scope::isSymbolExistsRecursively(const std::string &identifier) const {

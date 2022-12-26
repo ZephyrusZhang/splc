@@ -153,18 +153,32 @@ int32_t CompoundType::sizeOf() const {
     return 0;
 }
 
-std::shared_ptr<std::vector<CompoundType::StructDefList>> CompoundType::getStructDefLists() {
-    if (!structDefLists) {
-        assert(this->unresolvedStructName);
-        auto symbol = Scope::getGlobalScope()->lookupSymbol(*this->unresolvedStructName);
-        this->structDefLists = symbol->structDefLists;
-        std::cout << "refill structDefLists for " << this->unresolvedStructName << " in " << this << std::endl;
-        this->unresolvedStructName = nullptr;
-    }
+std::shared_ptr<const std::vector<CompoundType::StructDefList>> CompoundType::getStructDefLists() const {
     return this->structDefLists;
 }
 
-std::shared_ptr<const std::vector<CompoundType::StructDefList>> CompoundType::getStructDefLists() const {
-    return this->structDefLists;
+void CompoundType::checkIncompleteStruct() {
+    if (type == TypeStruct) {
+        if (!structDefLists) {
+            assert(this->unresolvedStructName);
+            if (!Scope::getCurrentScope()->isSymbolExists(*this->unresolvedStructName)) return;
+            auto symbol = Scope::getCurrentScope()->lookupSymbol(*this->unresolvedStructName);
+            this->structDefLists = symbol->structDefLists;
+            std::cout << "refill structDefLists for " << *this->unresolvedStructName << " in " << this << std::endl;
+            this->unresolvedStructName = nullptr;
+        }
+        for (auto &item: structDefLists.operator*()) {
+            if (item.second.type == TypeStruct) item.second.checkIncompleteStruct();
+            else if (item.second.type == TypePointer) {
+                auto finalPtr = &item.second;
+                while (finalPtr->type == TypePointer) finalPtr = finalPtr->pointTo.get();
+                if (finalPtr->type == TypeStruct && !finalPtr->structDefLists) finalPtr->checkIncompleteStruct();
+            }
+        }
+    } else if (type == TypePointer) {
+        auto finalPtr = this;
+        while (finalPtr->type == TypePointer) finalPtr = finalPtr->pointTo.get();
+        if (finalPtr->type == TypeStruct) finalPtr->checkIncompleteStruct();
+    }
 }
 
