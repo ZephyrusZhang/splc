@@ -8,7 +8,6 @@
 // Def instance could be ExtDef and Def in grammar
 class Def : public Container {
 public:
-    const static ContainerType containerType = ContainerType::DefList;
     explicit Def(Node* node);
     Def(const Def& defList) = default;
     Def(const Def&& defList) = delete;

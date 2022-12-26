@@ -39,7 +39,7 @@ void Specifier::parseStruct(Node *defListRoot) {
     }
 }
 
-Specifier::Specifier(Node *node) : Container(node, containerType) {
+Specifier::Specifier(Node *node) : Container(node, ContainerType::Specifier) {
     type = TypeUnknown;
 }
 

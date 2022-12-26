@@ -20,7 +20,6 @@ enum BasicType {
 
 class Specifier : public Container {
 public:
-    static const ContainerType containerType = ContainerType::Specifier;
     BasicType type;
     // for structure
     std::string structName; // structure identifer

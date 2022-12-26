@@ -109,7 +109,7 @@ void Def::installChild(const std::vector<Node *> &children) {
     } else throw std::runtime_error("Def: bad TokenName " + getTokenName());
 }
 
-Def::Def(Node *node) : Container(node, containerType) {
+Def::Def(Node *node) : Container(node, ContainerType::DefList) {
 
 }
 

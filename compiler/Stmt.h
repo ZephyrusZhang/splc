@@ -6,7 +6,6 @@
 
 class Stmt : public Container {
 public:
-    const static ContainerType containerType = ContainerType::Stmt;
     StmtType stmtType;
 
     explicit Stmt(Node *node);

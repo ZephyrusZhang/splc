@@ -41,7 +41,7 @@ Scope::SymbolType Scope::lookupSymbol(const std::string &identifier) {
 }
 
 Scope::Scope(Node *node, std::string generateWithToken)
-        : Container(node, containerType), generateWithToken(std::move(generateWithToken)) {
+        : Container(node, ContainerType::Scope), generateWithToken(std::move(generateWithToken)) {
     if (!globalScopes.empty())
         parentScope = globalScopes.back();
 }

@@ -6,8 +6,7 @@
 // class Dec can be Dec or VarDec
 class Dec : public Container {
 public:
-    const static ContainerType containerType = ContainerType::Dec;
-    explicit Dec(Node* pNode) : Container(pNode, containerType) {
+    explicit Dec(Node* pNode) : Container(pNode, ContainerType::Dec) {
 
     }
     ~Dec() override = default;

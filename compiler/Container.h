@@ -47,10 +47,9 @@ public:
     template<typename T>
     std::shared_ptr<T> castTo() {
         static_assert(std::is_base_of<Container, T>::value, "T should inherit from Container");
-        const ContainerType cType = T::containerType;
         assert(this->node->container);
         assert(this->node->container.get() == this);
-        assert(this->type == cType && "Type Casting Failed");
+        assert(typeid(*this) == typeid(T));
         return std::dynamic_pointer_cast<T>(this->node->container);
     }
 };

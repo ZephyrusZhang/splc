@@ -10,7 +10,7 @@
 #include <algorithm>
 
 Exp::Exp(Node *node, ExpType expType)
-        : Container(node, containerType) {
+        : Container(node, ContainerType::Exp) {
     this->expType = expType;
 }
 

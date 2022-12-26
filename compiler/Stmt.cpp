@@ -2,7 +2,7 @@
 #include "Exp.h"
 #include "Scope.h"
 
-Stmt::Stmt(Node *node, StmtType stmtType) : Container(node, containerType) {
+Stmt::Stmt(Node *node, StmtType stmtType) : Container(node, ContainerType::Stmt) {
     this->stmtType = stmtType;
 }
 
@@ -57,7 +57,7 @@ void Stmt::installChild(const std::vector<Node *> &children) {
     }
 }
 
-Stmt::Stmt(Node *node) : Container(node, containerType) {}
+Stmt::Stmt(Node *node) : Container(node, ContainerType::Stmt) {}
 
 bool Stmt::isWhileStmt() const {
     return this->node->children[0]->tokenName == "WHILE";

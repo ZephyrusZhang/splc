@@ -16,7 +16,6 @@ public:
 private:
     std::map<std::string, std::pair<SymbolType, SymbolAttribute>> symbols;
 public:
-    const static ContainerType containerType = ContainerType::Scope;
     static std::vector<std::shared_ptr<Scope>> globalScopes;
 
     const std::string generateWithToken;

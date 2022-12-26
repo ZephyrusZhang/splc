@@ -16,7 +16,6 @@ private:
     std::shared_ptr<CompoundType> expCompoundType;
     int32_t integerValue = 0;
 public:
-    const static ContainerType containerType = ContainerType::Exp;
     ExpType expType;
     explicit Exp(Node *node, ExpType expType);
     ~Exp() override = default;
