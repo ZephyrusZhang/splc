@@ -165,8 +165,6 @@ class GeneralCodeBlock : public CodeBlock {
 public:
     explicit GeneralCodeBlock(Node* StmtListNode, const std::shared_ptr<CodeBlock>& parentBlock);
     void startTranslation() override;
-
-    void generateIr(std::ostream &ostream) override;
 };
 
 #endif //SPLC_CODEBLOCK_H

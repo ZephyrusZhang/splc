@@ -80,7 +80,9 @@ std::shared_ptr<IRVariable> CodeBlock::translateAddressExp(std::shared_ptr<Exp> 
     assert(exp->getValueType() == ValueType::LValue);
     if (exp->expType == ExpType::IDENTIFIER) {
         const auto &id = exp->getChildData(0);
-        return this->getAllocatedVariable(id);
+        auto addr = newVariable();
+        target.push_back(newIR<AddressOfIR>(addr, this->getAllocatedVariable(id)));
+        return addr;
     } else if (exp->expType == ExpType::DOT_ACCESS) {
         auto leftExp = exp->getChildExp(0);
         const auto &id = exp->getChildData(2);
@@ -125,7 +127,7 @@ std::shared_ptr<IRVariable> CodeBlock::translateAddressExp(std::shared_ptr<Exp> 
 
 std::shared_ptr<IRVariable> CodeBlock::translateLogicalExp(Node *expRoot, CodeBlockVector &target,
                                                            std::shared_ptr<LabelDefIR> shortCutLabel = nullptr) {
-    // Logical Exp: AND, OR, NOT
+    // Logical Exp: AND, OR; NOT, LT, LE, GT, GE, NE, EQ
     auto exp = expRoot->container->castTo<Exp>();
     if (!shortCutLabel) shortCutLabel = newLabel(LabelType::IF_COND_SHORTCUT, expRoot->lineno);
     if (exp->expType == ExpType::AND) {
@@ -174,10 +176,38 @@ std::shared_ptr<IRVariable> CodeBlock::translateLogicalExp(Node *expRoot, CodeBl
             || exp->expType != expRoot->parent->container->castTo<Exp>()->expType)
             target.push_back(shortCutLabel);
         return finalResult;
-    } else if (exp->expType == ExpType::NOT) {
+    } else if (exp->expType == ExpType::NOT || exp->expType == ExpType::LT || exp->expType == ExpType::LE ||
+               exp->expType == ExpType::GT || exp->expType == ExpType::GE || exp->expType == ExpType::NE ||
+               exp->expType == ExpType::EQ) {
         // Translate ! exp =>
-        auto rightVar = translateExp(exp->getChildAt(1), target);
-        // TODO: Finish NOT
+        // finalResult = 1
+        // IF right != 0 GOTO shortcut
+        //   finalResult = 0
+        // LABEL shortcut:
+        auto result = newVariable();
+        target.push_back(newIR<AssignIR>(result, constantVariable(1)));
+        IRVariablePtr leftVar;
+        IFRelop relop = IFRelop::NE;
+        IRVariablePtr rightVar;
+        auto shortcut = newLabel(LabelType::IF_COND_SHORTCUT, expRoot->lineno);
+        if (exp->expType == ExpType::NOT) {
+            leftVar = translateExp(exp->getChildAt(1), target);
+            relop = IFRelop::NE;
+            rightVar = constantVariable(0);
+        } else {
+            leftVar = translateExp(exp->getChildAt(0), target);
+            rightVar = translateExp(exp->getChildAt(2), target);
+            if (exp->expType == ExpType::LT) relop = IFRelop::LT;
+            else if (exp->expType == ExpType::LE) relop = IFRelop::LE;
+            else if (exp->expType == ExpType::GT) relop = IFRelop::GT;
+            else if (exp->expType == ExpType::GE) relop = IFRelop::GE;
+            else if (exp->expType == ExpType::NE) relop = IFRelop::NE;
+            else if (exp->expType == ExpType::EQ) relop = IFRelop::EQ;
+        }
+        target.push_back(newIR<IfIR>(leftVar, relop, rightVar, shortcut));
+        target.push_back(newIR<AssignIR>(result, constantVariable(0)));
+        target.push_back(shortcut);
+        return result;
     }
     return translateExp(expRoot, target);
 }
@@ -198,6 +228,27 @@ std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVect
         else if (exp->expType == ExpType::DIV)
             target.push_back(newIR<DivisionIR>(resultVar, leftVar, rightVar));
         return resultVar;
+    } else if (exp->expType == ExpType::INCREASE || exp->expType == ExpType::DECREASE) {
+        auto laddr = translateAddressExp(exp->getChildExp(0), target);
+        auto readVar = newVariable();
+        target.push_back(newIR<ReadAddressIR>(readVar, laddr));
+        auto changedVar = newVariable();
+        if (exp->expType == ExpType::INCREASE) target.push_back(newIR<AdditionIR>(changedVar, readVar, constantVariable(1)));
+        else target.push_back(newIR<SubtractionIR>(changedVar, readVar, constantVariable(1)));
+        target.push_back(newIR<StoreAddressIR>(laddr, changedVar));
+        return readVar;
+    } else if (exp->expType == ExpType::NEGATIVE_SIGN) {
+        auto rightExp = translateExp(exp->getChildAt(1), target);
+        auto retVar = newVariable();
+        target.push_back(newIR<SubtractionIR>(retVar, constantVariable(0), rightExp));
+        return retVar;
+    } else if (exp->expType == ExpType::SCOPE) {
+        return translateExp(exp->getChildAt(1), target);
+    } else if (exp->expType == ExpType::TYPE_CAST) {
+        return translateExp(exp->getChildAt(3), target);
+    }  else if (exp->expType == ExpType::ADDRESS_OF) {
+        return translateAddressExp(exp->getChildExp(1), target);
+        // return the address of exp
     } else if (exp->expType == ExpType::IDENTIFIER || exp->expType == ExpType::DOT_ACCESS ||
                exp->expType == ExpType::PTR_ACCESS || exp->expType == ExpType::ARRAY_INDEX ||
                exp->expType == ExpType::DEREF) {
@@ -222,10 +273,27 @@ std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVect
     } else if (exp->expType == ExpType::LITERAL_STRING) {
         std::cout << "data allocation is not supported yet" << std::endl;
         return constantVariable(-114514);
+    } else if (exp->expType == ExpType::FUNC_INVOKE) {
+        auto retVar = newVariable();
+        if (exp->getChildData(0) == "read") {
+            content.push_back(newIR<ReadIR>(retVar));
+            return retVar;
+        } else if (exp->getChildData(0) == "write") {
+            auto callArgs = Node::convertTreeToVector(exp->node->children[2], "Args", {"Exp"});
+            auto writeVar = translateExp(callArgs[0], target);
+            target.push_back(newIR<WriteIR>(writeVar));
+            return nullptr;
+        }
+        std::vector<IRVariablePtr> args;
+        if (exp->node->children[2]->tokenName == "Args") {
+            auto callArgs = Node::convertTreeToVector(exp->node->children[2], "Args", {"Exp"});
+            for (const auto &item: callArgs)
+                args.push_back(translateExp(item, target));
+        }
+        target.push_back(newIR<FunctionCallIR>(exp->getChildData(0), args, retVar));
+        return retVar;
     }
-    auto tmp = newIR<AssignIR>(newVariable(), constantVariable(-114514));
-    target.push_back(tmp);
-    return tmp->target;
+    throw std::runtime_error("unexpected Exp!");
 }
 
 void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariable> &allocatedVar,
@@ -270,7 +338,12 @@ void CodeBlock::translateStmt(Node *stmtNode) {
         if (stmtObj.stmtType == StmtType::SINGLE) {
             translateExp(stmtNode->children[0], this->content);
         } else if (stmtObj.stmtType == StmtType::RETURN) {
-//            auto retIr = newIR<ReturnIR>()
+            if (stmtNode->children[1]->tokenName == "Exp") {
+                auto returnVar = translateExp(stmtNode->children[1], this->content);
+                this->content.push_back(newIR<ReturnIR>(returnVar));
+            } else {
+                this->content.push_back(newIR<ReturnIR>(nullptr));
+            }
         } else if (stmtObj.stmtType == StmtType::BREAK) {
 
         } else if (stmtObj.stmtType == StmtType::CONTINUE) {
@@ -470,8 +543,4 @@ void GeneralCodeBlock::startTranslation() {
         for (const auto &stmt: stmts)
             translateStmt(stmt);
     }
-}
-
-void GeneralCodeBlock::generateIr(std::ostream &ostream) {
-    ostream << "\t; TODO" << std::endl;
 }

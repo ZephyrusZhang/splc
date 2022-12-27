@@ -147,6 +147,57 @@ public:
     ~FunctionDefIR() override = default;
 };
 
+class FunctionCallIR: public IR {
+public:
+    std::string functionName;
+    std::vector<IRVariablePtr> args;
+    IRVariablePtr returnVar;
+
+    FunctionCallIR(std::string functionName, std::vector<IRVariablePtr> args, IRVariablePtr returnVar)
+                   : IR(IRType::FunctionCall), functionName(std::move(functionName)), args(std::move(args)),
+                                                                   returnVar(std::move(returnVar)) {}
+
+    ~FunctionCallIR() override = default;
+
+    void generateIr(std::ostream &ostream) override;
+
+    void countReference() override {
+        for (auto &item: args) item->references.push_back(shared_from_this());
+    }
+};
+
+class ReadIR : public IR {
+public:
+    IRVariablePtr src;
+
+    explicit ReadIR(IRVariablePtr src) : IR(IRType::BuiltinRead), src(std::move(src)) {}
+    ~ReadIR() override = default;
+
+    void countReference() override {
+        src->references.push_back(shared_from_this());
+    }
+
+    void generateIr(std::ostream &ostream) override {
+        ostream << "READ " << *src << std::endl;
+    }
+};
+
+class WriteIR : public IR {
+public:
+    IRVariablePtr dst;
+    explicit WriteIR(IRVariablePtr dst) : IR(IRType::BuiltinWrite), dst(std::move(dst)) {}
+
+    void generateIr(std::ostream &ostream) override {
+        ostream << "WRITE " << *dst << std::endl;
+    }
+
+    ~WriteIR() override = default;
+
+    void countReference() override {
+        dst->references.push_back(shared_from_this());
+    }
+};
+
 class BinaryIR : public IR {
 public:
     IRVariablePtr target;
@@ -319,10 +370,10 @@ public:
 
 class ReturnIR : public IR {
 public:
-    const std::weak_ptr<IRVariable> returnedIr;
+    const std::shared_ptr<IRVariable> returnValue;
 
-    explicit ReturnIR(const std::shared_ptr<IRVariable> &returnedIr)
-            : IR(IRType::Return), returnedIr(returnedIr) {
+    explicit ReturnIR(std::shared_ptr<IRVariable> returnValue)
+            : IR(IRType::Return), returnValue(std::move(returnValue)) {
 
     }
 
@@ -330,7 +381,7 @@ public:
     ~ReturnIR() override = default;
 
     void countReference() override {
-        returnedIr.lock()->references.push_back(shared_from_this());
+        returnValue->references.push_back(shared_from_this());
     }
 };
 

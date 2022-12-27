@@ -99,9 +99,12 @@ int main(int argc, char **argv) {
                 functions.back()->startTranslation();
             }
         }
-//        std::ofstream irOutFile(irOutputPath);
+        std::ofstream irOutFile(irOutputPath);
         for (auto &item: functions) {
-            item->generateIr(std::cout);
+            item->generateIr(irOutFile);
+        }
+        for (int i = 0; i< 10;i ++) {
+
         }
     }
     outputFile.close();

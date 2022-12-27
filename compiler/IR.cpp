@@ -33,7 +33,7 @@ void IR::insertComment(std::ostream &ostream) const {
 
 void LabelDefIR::generateIr(std::ostream &ostream) {
     ostream << "LABEL " << this->label << " :";
-    insertComment(ostream);
+//    insertComment(ostream);
     ostream << std::endl;
 }
 
@@ -50,7 +50,7 @@ FunctionDefIR::FunctionDefIR(std::string& identifier) : IR(IRType::FunctionDef) 
 void FunctionDefIR::generateIr(std::ostream &ostream) {
     ostream << std::endl;
     ostream << "FUNCTION " << this->functionName << " :";
-    insertComment(ostream);
+//    insertComment(ostream);
     ostream << std::endl;
     // generate Params
     for (const auto &item: this->functionType->funcArgs.operator*()) {
@@ -58,9 +58,16 @@ void FunctionDefIR::generateIr(std::ostream &ostream) {
     }
 }
 
+void FunctionCallIR::generateIr(std::ostream &ostream) {
+    for (const auto &item: args) {
+        ostream << "ARG " << item.operator*() << std::endl;
+    }
+    ostream << returnVar.operator*() << " := CALL " << functionName << std::endl;
+}
+
 void AssignIR::generateIr(std::ostream &ostream) {
     ostream << *target << " := " << *op1;
-    insertComment(ostream);
+//    insertComment(ostream);
     ostream << std::endl;
 }
 
@@ -92,7 +99,7 @@ AllocateIR::AllocateIR(const size_t size, std::shared_ptr<IRVariable> &variable,
 
 void AllocateIR::generateIr(std::ostream &ostream) {
     ostream << "DEC " << variable->name << " " << this->size;
-    insertComment(ostream);
+//    insertComment(ostream);
     ostream << std::endl;
 }
 
@@ -110,13 +117,13 @@ std::ostream& operator<<(std::ostream& os, const IFRelop& relop) {
 
 void IfIR::generateIr(std::ostream &ostream) {
     ostream << "IF " << *left << " " << relop << " " << *right << " GOTO " << gotoLabel->label;
-    insertComment(ostream);
+//    insertComment(ostream);
     ostream << std::endl;
 }
 
 void GotoIR::generateIr(std::ostream &ostream) {
     ostream << "GOTO " << gotoLabel.lock()->label;
-    insertComment(ostream);
+//    insertComment(ostream);
     ostream << std::endl;
 }
 
@@ -140,6 +147,6 @@ void UnaryIR::generateIr(std::ostream &ostream) {
 
 void ReturnIR::generateIr(std::ostream &ostream) {
     ostream << "RETURN ";
-    ostream << returnedIr.lock()->name;
+    ostream << *returnValue;
     ostream << std::endl;
 }
