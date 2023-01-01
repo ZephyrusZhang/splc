@@ -54,7 +54,7 @@ void FunctionDefIR::generateIr(std::ostream &ostream) {
     ostream << std::endl;
     // generate Params
     for (const auto &item: this->functionType->funcArgs.operator*()) {
-        ostream << "PARAM " << PARAM_PREFIX << item.first << std::endl;
+        ostream << "PARAM " << item.first << std::endl;
     }
 }
 

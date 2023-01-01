@@ -480,25 +480,15 @@ FunctionCodeBlock::FunctionCodeBlock(Node *extDefNode)
 }
 
 void FunctionCodeBlock::startTranslation() {
-    // copy the value of params into allocated stack variable
     for (const auto &item: functionDefIr.lock()->functionType->funcArgs.operator*()) {
-        // Special allocation!
-        // Allocate space for function params, store the value of param into the address,
-        //  and restore the shallow param names: __p_ID (PARAM) -> ID (allocated IRVar)
-        //  This keeps the assumption that every variable is allocated in stack.
-        // Don't use `newAllocatedVariable` here, which use incorrect size from CType
-        //  , but we actually need a pointer to PARAM.
-        auto paramVar = std::make_shared<IRVariable>(PARAM_PREFIX + item.first, item.second,
+        auto paramVar = std::make_shared<IRVariable>(item.first, item.second,
                                                      shared_from_base<CodeBlock>());
         this->variables.push_back(paramVar);
-        IRVariablePtr allocVar = std::make_shared<IRVariable>(item.first, IRVariableType::Param,
-                                                              shared_from_base<CodeBlock>());
-        this->variables.push_back(allocVar);
-        this->allocatedVariables[item.first] = allocVar;
-        auto allocIr = newIR<AllocateIR>(4, allocVar, allocVar->name);
-        this->content.push_back(allocIr);
-        auto storeIr = newIR<AssignIR>(allocVar, paramVar);
-        this->content.push_back(storeIr);
+        this->allocatedVariables[item.first] = paramVar;
+        auto addrVar = std::make_shared<IRVariable>(item.first + "_addr", item.second, shared_from_base<CodeBlock>());
+        auto addrIr = newIR<AddressOfIR>(addrVar, paramVar);
+        this->content.push_back(addrIr);
+        this->allocatedVariablesAddress[item.first] = addrVar;
     }
     Node *compSt = rootNode->children[2];
     assert(compSt->tokenName == "CompSt");
