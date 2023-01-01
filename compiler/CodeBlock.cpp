@@ -280,6 +280,14 @@ std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVect
     } else if (exp->expType == ExpType::AND || exp->expType == ExpType::OR || exp->expType == ExpType::NOT) {
         return translateLogicalExp(expRoot, target);
     } else if (exp->expType == ExpType::ASSIGN) {
+        auto leftExp = exp->getChildExp(0);
+        if (leftExp->expType == ExpType::IDENTIFIER && leftExp->getCompoundType().type == BasicType::TypeInt) {
+            // opt: use direct write.
+            auto leftVar = translateExp(exp->getChildAt(0), target);
+            auto valueVar = translateExp(exp->getChildAt(2), target);
+            target.push_back(newIR<AssignIR>(leftVar, valueVar));
+            return valueVar;
+        }
         auto addrVar = translateAddressExp(exp->getChildExp(0), target);
         auto valueVar = translateExp(exp->getChildAt(2), target);
         target.push_back(newIR<StoreAddressIR>(addrVar, valueVar));
