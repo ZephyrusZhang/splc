@@ -155,6 +155,19 @@ public:
 class WhileCodeBlock : public CodeBlock {
 public:
     static const CodeBlockType myCodeBlockType = CodeBlockType::While;
+private:
+    // structure:
+    // Loop_Condition:  ; label
+    // <Loop_Condition> ; Exp, check enter loop or exit
+    // Loop_Block:      ; label
+    // <Loop_Body>      ; Stmt, CodeBlock::content
+    // GOTO Loop_Condition
+    // Loop_End:        ; label
+    std::vector<std::shared_ptr<IR>> loopCondition;
+    std::shared_ptr<LabelDefIR> loopConditionLabel;
+    std::shared_ptr<LabelDefIR> loopBlockLabel;
+    std::shared_ptr<LabelDefIR> loopEndLabel;
+    std::shared_ptr<GotoIR> gotoLoopCondition;
 public:
     explicit WhileCodeBlock(Node* stmtNode, const std::shared_ptr<CodeBlock>& parentBlock);
     void startTranslation() override;

@@ -537,8 +537,15 @@ void ForCodeBlock::startTranslation() {
     for (const auto &exp: exps)
         translateExp(exp, this->loopNext);
     // Forth, Generate For Statements
-    auto stmt = rootNode->children[8];
-    translateStmt(stmt);
+    auto compStOrStmt = getCompStOrStmt(rootNode->children[8]);
+    if (compStOrStmt->tokenName == "Stmt")
+        translateStmt(compStOrStmt);
+    else {
+        auto stmts = Node::convertTreeToVector(compStOrStmt->children[1], "StmtList", {"Def", "Stmt"});
+        for (const auto &stmt: stmts) {
+            translateStmt(stmt);
+        }
+    }
 }
 
 void ForCodeBlock::generateIr(std::ostream &ostream) {
@@ -547,7 +554,7 @@ void ForCodeBlock::generateIr(std::ostream &ostream) {
     for (const auto &item: this->loopCondition) item->generateIr(ostream);
     this->loopBlockLabel->generateIr(ostream);
     for (const auto &item: this->content) item->generateIr(ostream);
-    ostream << "; For Next Expressions" << std::endl;
+//    ostream << "; For Next Expressions" << std::endl;
     for (const auto &item: this->loopNext) item->generateIr(ostream);
     this->gotoLoopCondition->generateIr(ostream);
     this->loopEndLabel->generateIr(ostream);
@@ -555,15 +562,55 @@ void ForCodeBlock::generateIr(std::ostream &ostream) {
 
 WhileCodeBlock::WhileCodeBlock(Node *stmtNode, const std::shared_ptr<CodeBlock> &parentBlock)
         : CodeBlock(CodeBlockType::While, stmtNode, parentBlock) {
-
+    // Stmt -> WHILE LP Exp RP Stmt
+    assert(stmtNode->children[0]->tokenName == "WHILE");
+    if (stmtNode->children[0]->container) {
+        assert(stmtNode->children[0]->container->getContainerType() == ContainerType::Scope);
+        // if the Scope object is bound to WHILE node
+        this->currentScope = stmtNode->children[0]->container->castTo<Scope>();
+    } else {
+        auto whileBlockStmt = stmtNode->children[4];
+        assert(whileBlockStmt->children[0]->tokenName == "CompSt");
+        assert(whileBlockStmt->children[0]->children[0]->tokenName == "LC");
+        assert(whileBlockStmt->children[0]->children[0]->container);
+        assert(whileBlockStmt->children[0]->children[0]->container->getContainerType() == ContainerType::Scope);
+        this->currentScope = whileBlockStmt->children[0]->children[0]->container->castTo<Scope>();
+    }
 }
 
 void WhileCodeBlock::startTranslation() {
-
-}
+    // Stmt -> WHILE LP Exp RP Stmt
+    // Loop_Condition:  ; label
+    // <Loop_Condition> ; Exp, check enter loop or exit
+    // Loop_Block:      ; label
+    // <Loop_Body>      ; Stmt, CodeBlock::content
+    // GOTO Loop_Condition
+    // Loop_End:        ; label
+    this->loopConditionLabel = newLabel(LabelType::LOOP_CONDITION, rootNode->children[2]->lineno);
+    this->loopBlockLabel = newLabel(LabelType::LOOP_BLOCK, rootNode->children[4]->lineno);
+    this->loopEndLabel = newLabel(LabelType::LOOP_END, rootNode->lineno);
+    this->gotoLoopCondition = newIR<GotoIR>(this->loopConditionLabel);
+    // Generate Loop Condition
+    auto conditionalExp = rootNode->children[2];
+    translateConditionExp(conditionalExp, this->loopBlockLabel, this->loopEndLabel, this->loopCondition);
+    // Generate While Stmts
+    auto compStOrStmt = getCompStOrStmt(rootNode->children[4]);
+    if (compStOrStmt->tokenName == "Stmt")
+        translateStmt(compStOrStmt);
+    else {
+        auto stmts = Node::convertTreeToVector(compStOrStmt->children[1], "StmtList", {"Def", "Stmt"});
+        for (const auto &stmt: stmts) {
+            translateStmt(stmt);
+        }
+    }}
 
 void WhileCodeBlock::generateIr(std::ostream &ostream) {
-
+    this->loopConditionLabel->generateIr(ostream);
+    for (const auto &item: this->loopCondition) item->generateIr(ostream);
+    this->loopBlockLabel->generateIr(ostream);
+    for (const auto &item: this->content) item->generateIr(ostream);
+    this->gotoLoopCondition->generateIr(ostream);
+    this->loopEndLabel->generateIr(ostream);
 }
 
 GeneralCodeBlock::GeneralCodeBlock(Node *rootNode, const std::shared_ptr<CodeBlock> &parentBlock)
