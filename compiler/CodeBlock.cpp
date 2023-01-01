@@ -430,7 +430,7 @@ void FunctionCodeBlock::startTranslation() {
         this->allocatedVariables[item.first] = allocVar;
         auto allocIr = newIR<AllocateIR>(4, allocVar, allocVar->name);
         this->content.push_back(allocIr);
-        auto storeIr = newIR<StoreAddressIR>(allocVar, paramVar);
+        auto storeIr = newIR<AssignIR>(allocVar, paramVar);
         this->content.push_back(storeIr);
     }
     Node *compSt = rootNode->children[2];
