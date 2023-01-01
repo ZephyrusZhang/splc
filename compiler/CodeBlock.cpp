@@ -10,6 +10,7 @@ CodeBlock::CodeBlock(CodeBlockType type, Node *rootNode, const std::shared_ptr<C
         : IR(IRType::CodeBlock), codeBlockType(type), rootNode(rootNode), parentBlock(parentBlock) {}
 
 std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType = IRVariableType::Temp) {
+    if (!this->instanceOf<FunctionCodeBlock>() && this->parentBlock.lock()) return this->parentBlock.lock()->newVariable(expectedType);
     size_t cnt = ++(this->variableCounts[expectedType]);
     std::ostringstream name;
     if (expectedType == IRVariableType::Int) name << 'i';
@@ -32,6 +33,7 @@ std::shared_ptr<IRVariable> CodeBlock::constantVariable(int32_t value) {
 }
 
 std::shared_ptr<LabelDefIR> CodeBlock::newLabel(LabelType type, int lineno) {
+    if (!this->instanceOf<FunctionCodeBlock>() && this->parentBlock.lock()) return this->parentBlock.lock()->newLabel(type, lineno);
     std::stringstream ss;
     if (type == LabelType::IF_False) ss << "IF_F_";
     else if (type == LabelType::IF_True) ss << "IF_T_";

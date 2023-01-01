@@ -104,16 +104,14 @@ public:
     template<typename T>
     bool instanceOf() {
         static_assert(std::is_base_of<CodeBlock, T>::value, "T should inherit from CodeBlock");
-        const CodeBlockType classType = T::myCodeBlockType;
-        if (this->codeBlockType == classType) return true;
+        if (typeid(*this) == typeid(T)) return true;
         return false;
     }
 
     template<typename T>
     std::shared_ptr<T> castCodeBlockTo() {
         static_assert(std::is_base_of<CodeBlock, T>::value, "T should inherit from CodeBlock");
-        const CodeBlockType classType = T::myCodeBlockType;
-        assert(this->codeBlockType == classType);
+        assert(typeid(*this) == typeid(T));
         return shared_from_this();
     }
 };
@@ -122,15 +120,11 @@ class FunctionCodeBlock : public CodeBlock {
 private:
     std::weak_ptr<FunctionDefIR> functionDefIr;
 public:
-    static const CodeBlockType myCodeBlockType = CodeBlockType::Function;
-public:
     explicit FunctionCodeBlock(Node* extDefNode);
     void startTranslation() override;
 };
 
 class ForCodeBlock : public CodeBlock {
-public:
-    static const CodeBlockType myCodeBlockType = CodeBlockType::For;
 private:
     std::vector<std::shared_ptr<IR>> loopEntry;
     std::vector<std::shared_ptr<IR>> loopCondition;
@@ -155,8 +149,6 @@ public:
 };
 
 class WhileCodeBlock : public CodeBlock {
-public:
-    static const CodeBlockType myCodeBlockType = CodeBlockType::While;
 private:
     // structure:
     // Loop_Condition:  ; label
