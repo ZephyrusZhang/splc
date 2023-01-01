@@ -1,4 +1,5 @@
 #include <sstream>
+#include <algorithm>
 #include <utility>
 #include "CodeBlock.h"
 #include "Node.h"
@@ -319,6 +320,7 @@ std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVect
             for (const auto &item: callArgs)
                 args.push_back(translateExp(item, target));
         }
+        std::reverse(args.begin(), args.end());
         target.push_back(newIR<FunctionCallIR>(exp->getChildData(0), args, retVar));
         return retVar;
     }
