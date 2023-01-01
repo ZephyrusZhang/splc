@@ -60,6 +60,7 @@ bin/
 *.output
 *.out
 *.log
+*.ir
 
 # IDE Configuration
 .vscode/
