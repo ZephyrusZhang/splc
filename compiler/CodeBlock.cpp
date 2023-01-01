@@ -300,7 +300,7 @@ void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariabl
                                        CodeBlockVector &target) {
     // Read the comment in header file
     auto valueVar = translateExp(valueExp, target);
-    target.push_back(newIR<StoreAddressIR>(allocatedVar, valueVar));
+    target.push_back(newIR<AssignIR>(allocatedVar, valueVar));
 }
 
 void CodeBlock::translateConditionExp(Node *expRoot, std::shared_ptr<LabelDefIR> &trueLabel,
