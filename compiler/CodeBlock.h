@@ -42,6 +42,7 @@ public:
     std::vector<std::shared_ptr<LabelDefIR>> labels;
     // scope identifier -> allocated variable
     std::map<std::string, std::shared_ptr<IRVariable>> allocatedVariables;
+    std::map<std::string, std::shared_ptr<IRVariable>> allocatedVariablesAddress;
 
     CodeBlockVector content;
 
@@ -66,6 +67,7 @@ protected:
 
     // get Allocated Variable by name in syntax
     std::shared_ptr<IRVariable> getAllocatedVariable(const std::string& identifier);
+    std::shared_ptr<IRVariable> getAllocatedAddressVariable(const std::string& identifier);
 
     // Translate given Exp into IRs and append to target, return the IRVariable holds the value
     std::shared_ptr<IRVariable> translateExp(Node *expRoot, CodeBlockVector &target);

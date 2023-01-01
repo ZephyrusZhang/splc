@@ -101,6 +101,9 @@ void AllocateIR::generateIr(std::ostream &ostream) {
     ostream << "DEC " << variable->name << " " << this->size;
 //    insertComment(ostream);
     ostream << std::endl;
+    if (this->addrVar->references.size() > 1) {
+        this->addrIr->generateIr(ostream);
+    }
 }
 
 std::ostream& operator<<(std::ostream& os, const IFRelop& relop) {

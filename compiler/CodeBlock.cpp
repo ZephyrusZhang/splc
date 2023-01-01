@@ -56,6 +56,11 @@ std::shared_ptr<AllocateIR> CodeBlock::newAllocatedVariable(const std::string &i
     auto allocateIr = newIR<AllocateIR>(cType.sizeOf(), irVar, identifier);
     this->variables.push_back(irVar);
     this->allocatedVariables[identifier] = irVar;
+    auto addrVar =  std::make_shared<IRVariable>(identifier + "_addr", cType, shared_from_base<CodeBlock>());
+    auto addrIr = newIR<AddressOfIR>(addrVar, irVar);
+    allocateIr->addrVar = addrVar;
+    allocateIr->addrIr = addrIr;
+    this->allocatedVariablesAddress[identifier] = addrVar;
     return allocateIr;
 }
 
@@ -71,6 +76,18 @@ std::shared_ptr<IRVariable> CodeBlock::getAllocatedVariable(const std::string &i
     }
 }
 
+std::shared_ptr<IRVariable> CodeBlock::getAllocatedAddressVariable(const std::string &identifier) {
+    if (this->allocatedVariables.find(identifier) == this->allocatedVariables.end()) {
+        auto parent = this->parentBlock.lock();
+        if (parent)
+            return parent->getAllocatedVariable(identifier);
+        else
+            throw std::runtime_error("unallocated identifier when trying to get IRVariable");
+    } else {
+        return this->allocatedVariablesAddress[identifier];
+    }
+}
+
 void CodeBlock::generateIr(std::ostream &ostream) {
     for (const auto &item: this->content)
         item->generateIr(ostream);
@@ -80,9 +97,9 @@ std::shared_ptr<IRVariable> CodeBlock::translateAddressExp(std::shared_ptr<Exp> 
     assert(exp->getValueType() == ValueType::LValue);
     if (exp->expType == ExpType::IDENTIFIER) {
         const auto &id = exp->getChildData(0);
-        auto addr = newVariable();
-        target.push_back(newIR<AddressOfIR>(addr, this->getAllocatedVariable(id)));
-        return addr;
+//        auto addr = newVariable();
+//        target.push_back(newIR<AddressOfIR>(addr, this->getAllocatedVariable(id)));
+        return this->getAllocatedAddressVariable(id);
     } else if (exp->expType == ExpType::DOT_ACCESS) {
         auto leftExp = exp->getChildExp(0);
         const auto &id = exp->getChildData(2);

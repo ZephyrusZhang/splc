@@ -306,6 +306,8 @@ class AllocateIR : public IR {
 public:
     const size_t size;
     IRVariablePtr variable;
+    IRVariablePtr addrVar;
+    IRPtr addrIr;
 
     explicit AllocateIR(size_t size, IRVariablePtr &variable, const std::string &identifierName);
 
