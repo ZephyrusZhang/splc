@@ -1,7 +1,7 @@
 #ifndef SPLC_IR_H
 #define SPLC_IR_H
 
-#define PARAM_PREFIX "__p_"
+#define PARAM_PREFIX "p__p_"
 
 #include <string>
 #include <memory>
