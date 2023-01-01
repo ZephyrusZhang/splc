@@ -303,15 +303,61 @@ void CodeBlock::translateDecAssignment(Node *valueExp, std::shared_ptr<IRVariabl
     target.push_back(newIR<AssignIR>(allocatedVar, valueVar));
 }
 
-void CodeBlock::translateConditionExp(Node *expRoot, std::shared_ptr<LabelDefIR> &trueLabel,
-                                      std::shared_ptr<LabelDefIR> &falseLabel, CodeBlockVector &target) {
+void CodeBlock::translateConditionExp(Node *expRoot, const std::shared_ptr<LabelDefIR>& trueLabel,
+                                      const std::shared_ptr<LabelDefIR>& falseLabel, CodeBlockVector &target, bool inverse, bool ignoreGoto) {
+    // inverse == true:  goto FalseLabel
+    // inverse == false: goto TrueLabel
     auto exp = expRoot->container->castTo<Exp>();
     if (exp->expType == ExpType::AND) {
-
+        // left && right
+        // IF left == 0 GOTO falseLabel
+        // IF right == 0 GOTO falseLabel
+        // GOTO trueLabel
+        translateConditionExp(exp->getChildAt(0), trueLabel, falseLabel, target, true, true);
+        translateConditionExp(exp->getChildAt(2), trueLabel, falseLabel, target, true, true);
+        target.push_back(newIR<GotoIR>(trueLabel));
     } else if (exp->expType == ExpType::OR) {
-
-    } else {
-
+        // IF left != 0 GOTO trueLabel
+        // IF right != 0 GOTO trueLabel
+        // GOTO falseLabel
+        translateConditionExp(exp->getChildAt(0), trueLabel, falseLabel, target, false, true);
+        translateConditionExp(exp->getChildAt(2), trueLabel, falseLabel, target, false, true);
+        target.push_back(newIR<GotoIR>(falseLabel));
+    } else if (exp->expType == ExpType::NOT || exp->expType == ExpType::LT || exp->expType == ExpType::LE ||
+               exp->expType == ExpType::GT || exp->expType == ExpType::GE || exp->expType == ExpType::NE ||
+               exp->expType == ExpType::EQ) {
+        IRVariablePtr leftVar;
+        IFRelop relop = IFRelop::NE;
+        IRVariablePtr rightVar;
+        if (exp->expType == ExpType::NOT) {
+            leftVar = translateExp(exp->getChildAt(1), target);
+            relop = IFRelop::NE;
+            rightVar = constantVariable(0);
+        } else {
+            leftVar = translateExp(exp->getChildAt(0), target);
+            rightVar = translateExp(exp->getChildAt(2), target);
+            if (exp->expType == ExpType::LT) relop = IFRelop::LT;
+            else if (exp->expType == ExpType::LE) relop = IFRelop::LE;
+            else if (exp->expType == ExpType::GT) relop = IFRelop::GT;
+            else if (exp->expType == ExpType::GE) relop = IFRelop::GE;
+            else if (exp->expType == ExpType::NE) relop = IFRelop::NE;
+            else if (exp->expType == ExpType::EQ) relop = IFRelop::EQ;
+        }
+        if (inverse) {
+            if (relop == IFRelop::NE) relop = IFRelop::EQ;
+            else if (relop == IFRelop::EQ) relop = IFRelop::NE;
+            else if (relop == IFRelop::LT) relop = IFRelop::GE;
+            else if (relop == IFRelop::GT) relop = IFRelop::LE;
+            else if (relop == IFRelop::LE) relop = IFRelop::GT;
+            else if (relop == IFRelop::GE) relop = IFRelop::LT;
+            target.push_back(newIR<IfIR>(leftVar, relop, rightVar, falseLabel));
+            if (!ignoreGoto)
+                target.push_back(newIR<GotoIR>(trueLabel));
+        } else {
+            target.push_back(newIR<IfIR>(leftVar, relop, rightVar, trueLabel));
+            if (!ignoreGoto)
+                target.push_back(newIR<GotoIR>(falseLabel));
+        }
     }
 }
 

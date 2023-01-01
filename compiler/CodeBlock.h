@@ -88,7 +88,7 @@ protected:
     //      ib := ???
     //      IF NOT ib GOTO False_Label
     //    don't need to GOTO True_Label
-    void translateConditionExp(Node *expRoot, std::shared_ptr<LabelDefIR> &trueLabel, std::shared_ptr<LabelDefIR> &falseLabel, CodeBlockVector &target);
+    void translateConditionExp(Node *expRoot, const std::shared_ptr<LabelDefIR>& trueLabel, const std::shared_ptr<LabelDefIR>& falseLabel, CodeBlockVector &target, bool inverse = true, bool ignoreGoto = false);
 
     // Translate given Stmt into IRs and append to this->content
     void translateStmt(Node * stmtNode);
