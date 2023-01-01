@@ -268,9 +268,11 @@ std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVect
     }  else if (exp->expType == ExpType::ADDRESS_OF) {
         return translateAddressExp(exp->getChildExp(1), target);
         // return the address of exp
-    } else if (exp->expType == ExpType::IDENTIFIER || exp->expType == ExpType::DOT_ACCESS ||
-               exp->expType == ExpType::PTR_ACCESS || exp->expType == ExpType::ARRAY_INDEX ||
-               exp->expType == ExpType::DEREF) {
+    } else if (exp->expType == ExpType::IDENTIFIER) {
+        const auto &id = exp->getChildData(0);
+        return this->getAllocatedVariable(id);
+    } else if (exp->expType == ExpType::DOT_ACCESS || exp->expType == ExpType::PTR_ACCESS ||
+               exp->expType == ExpType::ARRAY_INDEX || exp->expType == ExpType::DEREF) {
         auto addrVar = translateAddressExp(exp, target);
         auto valueVar = newVariable();
         target.push_back(newIR<ReadAddressIR>(valueVar, addrVar));
