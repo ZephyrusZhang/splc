@@ -82,7 +82,7 @@ std::shared_ptr<IRVariable> CodeBlock::getAllocatedAddressVariable(const std::st
     if (this->allocatedVariables.find(identifier) == this->allocatedVariables.end()) {
         auto parent = this->parentBlock.lock();
         if (parent)
-            return parent->getAllocatedVariable(identifier);
+            return parent->getAllocatedAddressVariable(identifier);
         else
             throw std::runtime_error("unallocated identifier when trying to get IRVariable");
     } else {
