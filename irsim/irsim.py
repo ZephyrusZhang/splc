@@ -7,6 +7,7 @@ from __future__ import division
 import argparse, logging, operator, os, re, signal, urwid
 import sys
 
+
 class IRSyntaxError(Exception):
     pass
 
@@ -75,7 +76,8 @@ class IRSimModel:
             self.pauseRunning = True
             self.ip = self.mainIp
         elif self.ip < 0 or self.ip >= len(self.codeList):
-            self.controller.log_warning('Program Counter goes out of bound. The running program will be terminated instantly')
+            self.controller.log_warning(
+                'Program Counter goes out of bound. The running program will be terminated instantly')
             self.ip = -1
             self.pauseRunning = False
             return
@@ -133,7 +135,8 @@ class IRSimModel:
                 self.controller.console_error('If this message keeps popping out, please reload the source file')
             else:
                 if error_code == 3:
-                    self.controller.log_warning('Program Counter goes out of bound. The running program will be terminated instantly')
+                    self.controller.log_warning(
+                        'Program Counter goes out of bound. The running program will be terminated instantly')
                     self.controller.console_warning('Program Counter goes out of bound')
                 elif error_code == 4:
                     self.controller.log_warning('Invalid input integer literal, program terminates')
@@ -220,7 +223,8 @@ class IRSimModel:
                                             if tokens[3] in arithops:
                                                 self.table_insert(tokens[2])
                                                 self.table_insert(tokens[4])
-                                                self.codeList.append(('ARITH', tokens[0], tokens[2], tokens[3], tokens[4]))
+                                                self.codeList.append(
+                                                    ('ARITH', tokens[0], tokens[2], tokens[3], tokens[4]))
                                         else:
                                             raise IRSyntaxError
             return True
@@ -276,7 +280,7 @@ class IRSimModel:
                 self.offset += size
             else:
                 self.variableDict[var] = (
-                 -1, size, array)
+                    -1, size, array)
 
     def get_value(self, var):
         if var[0] == '#':
@@ -312,12 +316,12 @@ class IRSimModel:
                         if code[0] == 'IF':
                             value1 = self.get_value(code[1])
                             value2 = self.get_value(code[3])
-                            result = {'<':operator.lt, 
-                             '<=':operator.le, 
-                             '>':operator.gt, 
-                             '>=':operator.ge, 
-                             '!=':operator.ne, 
-                             '==':operator.eq}.get(code[2])(value1, value2)
+                            result = {'<': operator.lt,
+                                      '<=': operator.le,
+                                      '>': operator.gt,
+                                      '>=': operator.ge,
+                                      '!=': operator.ne,
+                                      '==': operator.eq}.get(code[2])(value1, value2)
                             if result:
                                 self.ip = self.labelDict[code[4]]
                         else:
@@ -335,10 +339,10 @@ class IRSimModel:
                                     value1 = self.get_value(code[2])
                                     value2 = self.get_value(code[4])
                                     addr = self.variableDict[code[1]][0] // 4
-                                    result = {'+':operator.add, 
-                                     '-':operator.sub, 
-                                     '*':operator.mul, 
-                                     '/':operator.ifloordiv}.get(code[3])(value1, value2)
+                                    result = {'+': operator.add,
+                                              '-': operator.sub,
+                                              '*': operator.mul,
+                                              '/': operator.ifloordiv}.get(code[3])(value1, value2)
                                     self.memory[addr] = result
                                 else:
                                     if code[0] == 'RETURN':
@@ -359,7 +363,10 @@ class IRSimModel:
                                             oldOffset = self.offset
                                             for key in self.functionDict[code[2]]:
                                                 oldAddrs[key] = self.variableDict[key]
-                                                self.variableDict[key] = (self.get_new_addr(self.variableDict[key][1]), self.variableDict[key][1], self.variableDict[key][2])
+                                                self.variableDict[key] = (
+                                                    self.get_new_addr(self.variableDict[key][1]),
+                                                    self.variableDict[key][1],
+                                                    self.variableDict[key][2])
 
                                             self.callStack.append((self.ip, code[1], oldAddrs, oldOffset))
                                             self.ip = self.labelDict[code[2]]
@@ -382,8 +389,8 @@ class IRSimModel:
 
 class IRSimView(urwid.WidgetWrap):
     palette = [
-     ('bg', 'black', 'dark blue'),
-     ('reveal focus', 'black', 'dark cyan', 'standout')]
+        ('bg', 'black', 'dark blue'),
+        ('reveal focus', 'black', 'dark cyan', 'standout')]
 
     class SelectableText(urwid.Edit):
 
@@ -424,7 +431,7 @@ class IRSimView(urwid.WidgetWrap):
 
         stop = urwid.Button('stop', on_stop)
         v = urwid.GridFlow([
-         step, run, stop], 8, 2, 0, 'center')
+            step, run, stop], 8, 2, 0, 'center')
         v.focus_position = 1
         v = urwid.Filler(v)
         return v
@@ -465,29 +472,29 @@ class IRSimView(urwid.WidgetWrap):
         self.console = self.console_view()
         self.txt_banner = urwid.Text('    SUSTech-CS323 IR-Simulator [#]')
         left = urwid.Pile([
-         (
-          1, urwid.Filler(urwid.Text('CODE', align='center'))),
-         (
-          3, self.buttons),
-         self.instructions],
-          focus_item=1)
+            (
+                1, urwid.Filler(urwid.Text('CODE', align='center'))),
+            (
+                3, self.buttons),
+            self.instructions],
+            focus_item=1)
         left = urwid.Filler(left, valign='top', height=('relative', 100))
         left = urwid.Padding(left, left=2, right=1)
         right = urwid.Pile([
-         (
-          1, urwid.Filler(urwid.Text('SYMBOLS', align='center'))),
-         self.variables,
-         self.console])
+            (
+                1, urwid.Filler(urwid.Text('SYMBOLS', align='center'))),
+            self.variables,
+            self.console])
         right = urwid.Filler(right, valign='top', height=('relative', 100))
         right = urwid.Padding(right, left=1, right=2)
         w = urwid.Columns([
-         left,
-         right],
-          dividechars=1)
+            left,
+            right],
+            dividechars=1)
         w = urwid.Pile([
-         (
-          'pack', self.txt_banner),
-         urwid.LineBox(w)])
+            (
+                'pack', self.txt_banner),
+            urwid.LineBox(w)])
         w = urwid.Filler(w, height=('relative', 90))
         return w
 
@@ -514,7 +521,6 @@ class DummyIRSimView:
         pass
 
     def button_view(self):
-
         def on_step(btn):
             pass
 
@@ -523,7 +529,7 @@ class DummyIRSimView:
 
         def on_stop(btn):
             pass
-    
+
     def variable_view(self):
         pass
 
@@ -532,16 +538,16 @@ class DummyIRSimView:
 
     def input_view(self):
         pass
-    
+
     def main_window(self):
         pass
-    
+
     def set_filename(self, filepath):
         pass
-    
+
     def flush_console(self):
         pass
-    
+
     def append_console(self, msg, *args):
         if debug_file:
             debug_file.write(msg % args)
@@ -605,7 +611,10 @@ class IRSimController:
             new_text = inst.text.replace(' @ ', '   ')
             inst.set_caption(new_text)
 
-        insts.set_focus(ip)
+        try:
+            insts.set_focus(ip)
+        except:
+            print(ip)
         new_focus, new_index = insts.get_focus()
         text = new_focus.text.replace('   ', ' @ ')
         new_focus.set_caption(text)
@@ -687,11 +696,15 @@ def parse_args():
     parser.add_argument('irpath', type=str, help='path to IR code file')
     parser.add_argument('-i', type=str, dest='inputs', default='', help='input int/char seperated by comma')
     parser.add_argument('-l', type=str, dest='logpath', default='irsim.log', help='path to log file')
-    parser.add_argument('--non-interactive', dest='non_interactive', default=False, action='store_true', help='enable non-interactive mode. -i is ignored, and use -I, -O, -L.')
+    parser.add_argument('--non-interactive', dest='non_interactive', default=False, action='store_true',
+                        help='enable non-interactive mode. -i is ignored, and use -I, -O, -L.')
     # non-interactive mode
-    parser.add_argument('-I', type=str, dest='input_file', default='', help='READ input file, seperated by comma. Required in non-interactive mode.')
-    parser.add_argument("-O", type=str, dest='output_file', default='', help='WRITE output file. Required in non-interactive mode.')
-    parser.add_argument("-L", type=str, dest='debug_log', default='/dev/null', help='DEBUG output file. Optional in non-interactive mode.')
+    parser.add_argument('-I', type=str, dest='input_file', default='',
+                        help='READ input file, seperated by comma. Required in non-interactive mode.')
+    parser.add_argument("-O", type=str, dest='output_file', default='',
+                        help='WRITE output file. Required in non-interactive mode.')
+    parser.add_argument("-L", type=str, dest='debug_log', default='/dev/null',
+                        help='DEBUG output file. Optional in non-interactive mode.')
     return parser.parse_args()
 
 
@@ -704,9 +717,11 @@ def init_logger(logpath):
     logger.addHandler(handler)
     return logger
 
+
 non_interactive = False
 debug_file = None
 output_file = None
+
 
 def main():
     args = parse_args()
@@ -716,20 +731,22 @@ def main():
     non_interactive = args.non_interactive
     if non_interactive:
         logger.info('Non-interactive mode enabled')
-        if not args.input_file:
-            logger.error('Input file is required in non-interactive mode')
-            sys.exit(1)
+
         if not args.output_file:
             logger.error('Output file is required in non-interactive mode')
             sys.exit(1)
-        with open(args.input_file, 'r') as (f):
-            inputs = f.readline().strip()
+        if not args.input_file:
+            inputs = args.inputs
+        else:
+            with open(args.input_file, 'r') as (f):
+                inputs = f.readline().strip()
         logger.debug('Read inputs: %s' % inputs)
         debug_file = open(args.debug_log, 'w')
         output_file = open(args.output_file, 'w')
     else:
         inputs = args.inputs
     irsim = IRSimController((args.irpath), inputs=inputs, logger=logger)
+
     def on_interrupt(signum, frame):
         irsim.log_info('KeyboardInterrupt raised, quit program')
         raise urwid.ExitMainLoop
@@ -740,5 +757,6 @@ def main():
         debug_file.close()
     if output_file:
         output_file.close()
+
 
 main()
