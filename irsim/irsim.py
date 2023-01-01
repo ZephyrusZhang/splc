@@ -701,7 +701,7 @@ def parse_args():
     # non-interactive mode
     parser.add_argument('-I', type=str, dest='input_file', default='',
                         help='READ input file, seperated by comma. Required in non-interactive mode.')
-    parser.add_argument("-O", type=str, dest='output_file', default='',
+    parser.add_argument("-O", type=str, dest='output_file', default='/dev/stdout',
                         help='WRITE output file. Required in non-interactive mode.')
     parser.add_argument("-L", type=str, dest='debug_log', default='/dev/null',
                         help='DEBUG output file. Optional in non-interactive mode.')
