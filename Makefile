@@ -45,7 +45,7 @@ $(OUT_NAME): $(OBJS)
 release: $(OUT_NAME)
 
 clean:
-	@rm -rf lex.yy.* syntax.tab.* bin out *.out *.output
+	@rm -rf lex.yy.* syntax.tab.* bin out *.out *.output test/*.ir
 	@rm -rf test/*.out
 	@rm -rf build
 	@mkdir -p build
