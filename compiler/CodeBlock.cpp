@@ -14,6 +14,8 @@ std::shared_ptr<IRVariable> CodeBlock::newVariable(IRVariableType expectedType =
     if (!this->instanceOf<FunctionCodeBlock>() && this->parentBlock.lock()) return this->parentBlock.lock()->newVariable(expectedType);
     size_t cnt = ++(this->variableCounts[expectedType]);
     std::ostringstream name;
+    auto lastFunc = findLast<FunctionCodeBlock>();
+    if (lastFunc->functionDefIr.lock()) name << lastFunc->functionDefIr.lock()->functionName << "_";
     if (expectedType == IRVariableType::Int) name << 'i';
     else if (expectedType == IRVariableType::ArrayIndex) name << 'x';
     else if (expectedType == IRVariableType::Pointer) name << "p";

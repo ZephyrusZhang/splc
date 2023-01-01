@@ -114,10 +114,21 @@ public:
         assert(typeid(*this) == typeid(T));
         return shared_from_this();
     }
+
+    template<typename T>
+    std::shared_ptr<T> findLast() {
+        static_assert(std::is_base_of<CodeBlock, T>::value, "T should inherit from CodeBlock");
+        std::shared_ptr<CodeBlock> ptr = shared_from_base<CodeBlock>();
+        while(ptr) {
+            if (ptr->instanceOf<T>()) return std::dynamic_pointer_cast<T>(ptr);
+            ptr = ptr->parentBlock.lock();
+        }
+        return {nullptr};
+    }
 };
 
 class FunctionCodeBlock : public CodeBlock {
-private:
+public:
     std::weak_ptr<FunctionDefIR> functionDefIr;
 public:
     explicit FunctionCodeBlock(Node* extDefNode);
