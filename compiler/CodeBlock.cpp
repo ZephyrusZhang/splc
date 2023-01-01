@@ -111,7 +111,7 @@ std::shared_ptr<IRVariable> CodeBlock::translateAddressExp(std::shared_ptr<Exp> 
         auto arrayExp = exp->getChildExp(0);
         auto indexExp = exp->getChildExp(2);
         assert(arrayExp->getCompoundType().isArray());
-        IRVariablePtr leftBaseAddr = translateExp(arrayExp->node, target);
+        IRVariablePtr leftBaseAddr = translateAddressExp(arrayExp, target);
         IRVariablePtr retAddr = newVariable(IRVariableType::StructOffset);
         IRVariablePtr indexVar = translateExp(indexExp->node, this->content);
         IRVariablePtr offsetVar = newVariable(IRVariableType::ArrayIndex);
