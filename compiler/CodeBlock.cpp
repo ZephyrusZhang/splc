@@ -651,11 +651,11 @@ void GeneralCodeBlock::startTranslation() {
     if (rootNode->tokenName == "Stmt") {
         translateStmt(rootNode);
     } else if (rootNode->tokenName == "StmtList") {
-        auto stmts = Node::convertTreeToVector(rootNode, "StmtList", {"Stmt"});
+        auto stmts = Node::convertTreeToVector(rootNode, "StmtList", {"Def", "Stmt"});
         for (const auto &stmt: stmts)
             translateStmt(stmt);
     } else if (rootNode->tokenName == "CompSt") {
-        auto stmts = Node::convertTreeToVector(rootNode->children[1], "StmtList", {"Stmt"});
+        auto stmts = Node::convertTreeToVector(rootNode->children[1], "StmtList", {"Def", "Stmt"});
         for (const auto &stmt: stmts)
             translateStmt(stmt);
     }
