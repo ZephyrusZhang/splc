@@ -8,6 +8,7 @@ int test(struct Student* ptr) {
     write(ptr->ID);
     write(ptr->score);
     ptr->ID++;
+    write(ptr->ID);
     return ptr->ID;
 }
 
@@ -22,8 +23,17 @@ int main()
     write(s1.score);
     struct Student * ptr;
     ptr = &s2;
+    test(ptr);
     write(ptr->score);
     write(ptr->ID);
+
+    struct Student stus[10];
+    for(int i=0;i<10;i++) {
+        stus[i].ID = i + 101;
+        stus[i].score = 123;
+        test(&stus[i]);
+        test(&stus[i]);
+    }
     return 0;
 }
 
