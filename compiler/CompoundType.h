@@ -45,6 +45,9 @@ public:
     [[nodiscard]] bool isArray() const {
         return type == TypePointer && maxIndex > 0;
     }
+    [[nodiscard]] bool isStruct() const {
+        return type == TypeStruct;
+    }
     [[nodiscard]] int32_t getStructOffset(const std::string& id) const {
         assert(this->type == TypeStruct);
         assert(this->structDefLists);
@@ -59,6 +62,7 @@ public:
 
     static bool canAssignment(const CompoundType& left, const CompoundType& right);
 
+    bool isStruct();
 };
 
 #endif //SPLC_COMPOUNDTYPE_H

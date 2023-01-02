@@ -111,7 +111,7 @@ std::shared_ptr<IRVariable> CodeBlock::translateAddressExp(std::shared_ptr<Exp> 
         // calculate the offset of id corresponding to struct
         int32_t offset = leftExp->getCompoundType().getStructOffset(id);
         // get the base address of the left struct
-        IRVariablePtr leftBaseAddr = translateExp(leftExp->node, target);
+        IRVariablePtr leftBaseAddr = translateAddressExp(leftExp, target);
         if (offset == 0) return leftBaseAddr;
         IRVariablePtr retAddr = newVariable(IRVariableType::StructOffset);
         // generate IR: retAddr := leftBaseAddr + offset
@@ -321,7 +321,7 @@ std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVect
             auto callArgs = Node::convertTreeToVector(exp->node->children[2], "Args", {"Exp"});
             for (const auto &item: callArgs) {
                 auto argExp = item->container->castTo<Exp>();
-                if (argExp->getCompoundType().isArray())
+                if (argExp->getCompoundType().isArray() || argExp->getCompoundType().isStruct())
                     args.push_back(translateAddressExp(argExp, target));
                 else
                     args.push_back(translateExp(item, target));
@@ -505,7 +505,7 @@ void FunctionCodeBlock::startTranslation() {
         auto addrVar = std::make_shared<IRVariable>(item.first + "_addr", item.second,
                                                     shared_from_base<CodeBlock>());
         IRPtr addrIr;
-        if (item.second.isArray())
+        if (item.second.isArray() || item.second.isStruct())
             addrIr = newIR<AssignIR>(addrVar, paramVar);
         else addrIr = newIR<AddressOfIR>(addrVar, paramVar);
         this->content.push_back(addrIr);
