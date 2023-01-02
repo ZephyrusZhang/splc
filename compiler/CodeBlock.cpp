@@ -319,8 +319,13 @@ std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVect
         std::vector<IRVariablePtr> args;
         if (exp->node->children[2]->tokenName == "Args") {
             auto callArgs = Node::convertTreeToVector(exp->node->children[2], "Args", {"Exp"});
-            for (const auto &item: callArgs)
-                args.push_back(translateExp(item, target));
+            for (const auto &item: callArgs) {
+                auto argExp = item->container->castTo<Exp>();
+                if (argExp->getCompoundType().isArray())
+                    args.push_back(translateAddressExp(argExp, target));
+                else
+                    args.push_back(translateExp(item, target));
+            }
         }
         std::reverse(args.begin(), args.end());
         target.push_back(newIR<FunctionCallIR>(exp->getChildData(0), args, retVar));
@@ -497,8 +502,12 @@ void FunctionCodeBlock::startTranslation() {
                                                      shared_from_base<CodeBlock>());
         this->variables.push_back(paramVar);
         this->allocatedVariables[item.first] = paramVar;
-        auto addrVar = std::make_shared<IRVariable>(item.first + "_addr", item.second, shared_from_base<CodeBlock>());
-        auto addrIr = newIR<AddressOfIR>(addrVar, paramVar);
+        auto addrVar = std::make_shared<IRVariable>(item.first + "_addr", item.second,
+                                                    shared_from_base<CodeBlock>());
+        IRPtr addrIr;
+        if (item.second.isArray())
+            addrIr = newIR<AssignIR>(addrVar, paramVar);
+        else addrIr = newIR<AddressOfIR>(addrVar, paramVar);
         this->content.push_back(addrIr);
         this->allocatedVariablesAddress[item.first] = addrVar;
     }
