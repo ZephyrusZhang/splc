@@ -498,11 +498,12 @@ FunctionCodeBlock::FunctionCodeBlock(Node *extDefNode)
 
 void FunctionCodeBlock::startTranslation() {
     for (const auto &item: functionDefIr.lock()->functionType->funcArgs.operator*()) {
-        auto paramVar = std::make_shared<IRVariable>(item.first, item.second,
+        auto id = functionDefIr.lock()->functionName + "_param_" + item.first;
+        auto paramVar = std::make_shared<IRVariable>(id, item.second,
                                                      shared_from_base<CodeBlock>());
         this->variables.push_back(paramVar);
         this->allocatedVariables[item.first] = paramVar;
-        auto addrVar = std::make_shared<IRVariable>(item.first + "_addr", item.second,
+        auto addrVar = std::make_shared<IRVariable>(id + "_addr", item.second,
                                                     shared_from_base<CodeBlock>());
         IRPtr addrIr;
         if (item.second.isArray() || item.second.isStruct())
