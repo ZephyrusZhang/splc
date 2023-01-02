@@ -251,6 +251,13 @@ std::shared_ptr<IRVariable> CodeBlock::translateExp(Node *expRoot, CodeBlockVect
             target.push_back(newIR<DivisionIR>(resultVar, leftVar, rightVar));
         return resultVar;
     } else if (exp->expType == ExpType::INCREASE || exp->expType == ExpType::DECREASE) {
+        if (exp->getChildExp(0)->expType == ExpType::IDENTIFIER) {
+            // opt: i++;
+            auto leftVar = translateExp(exp->getChildAt(0), target);
+            if (exp->expType == ExpType::INCREASE) target.push_back(newIR<AdditionIR>(leftVar, leftVar, constantVariable(1)));
+            else target.push_back(newIR<SubtractionIR>(leftVar, leftVar, constantVariable(1)));
+            return leftVar;
+        }
         auto laddr = translateAddressExp(exp->getChildExp(0), target);
         auto readVar = newVariable();
         target.push_back(newIR<ReadAddressIR>(readVar, laddr));
