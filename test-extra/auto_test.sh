@@ -46,7 +46,7 @@ while read -r p; do
   IRSIM_OUTPUT=$(mktemp)
   echo "$GCC_INPUT" | ./"$GCC_OUT_FILE" > "$GCC_OUTPUT"
   python3 ../irsim/irsim.py "$IR_FILE" --non-interactive -i "$p" -O "$IRSIM_OUTPUT"
-  diff "$GCC_OUTPUT" "$IRSIM_OUTPUT" > /dev/null || print_failed "$GCC_OUTPUT" "$IRSIM_OUTPUT" && exit 1
+  diff "$GCC_OUTPUT" "$IRSIM_OUTPUT" > /dev/null || print_failed "$GCC_OUTPUT" "$IRSIM_OUTPUT"
   rm "$GCC_OUTPUT"
   rm "$IRSIM_OUTPUT"
   echo
