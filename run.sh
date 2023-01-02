@@ -9,6 +9,8 @@ bin/splc test/test_3_r08.spl
 bin/splc test/test_3_r09.spl
 bin/splc test/test_3_r10.spl
 
+bin/splc test-extra/
+
 gcc -x c test-cpp/test_3_r01.c -o test-cpp/test_3_r01.out
 gcc -x c test-cpp/test_3_r02.c -o test-cpp/test_3_r02.out
 gcc -x c test-cpp/test_3_r03.c -o test-cpp/test_3_r03.out
