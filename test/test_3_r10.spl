@@ -7,3 +7,8 @@ int main()
     else write(0);
     return 0;
 }
+
+// 1
+// -2
+// 12
+

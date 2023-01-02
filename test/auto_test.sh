@@ -31,7 +31,7 @@ INPUTS=$(mktemp)
 grep '//' "$INPUT_FILE" | sed "s/\/\/ //g" > "$INPUTS"
 
 function print_failed() {
-    echo "Failed."
+    echo "Failed in file $INPUT_FILE"
     echo "gcc output:"
     cat "$1"
     echo "irsim output:"
@@ -46,7 +46,7 @@ while read -r p; do
   IRSIM_OUTPUT=$(mktemp)
   echo "$GCC_INPUT" | ./"$GCC_OUT_FILE" > "$GCC_OUTPUT"
   python3 ../irsim/irsim.py "$IR_FILE" --non-interactive -i "$p" -O "$IRSIM_OUTPUT"
-  diff "$GCC_OUTPUT" "$IRSIM_OUTPUT" > /dev/null || print_failed "$GCC_OUTPUT" "$IRSIM_OUTPUT"
+  diff "$GCC_OUTPUT" "$IRSIM_OUTPUT" > /dev/null || print_failed "$GCC_OUTPUT" "$IRSIM_OUTPUT" && exit 1
   rm "$GCC_OUTPUT"
   rm "$IRSIM_OUTPUT"
   echo
